@@ -10,7 +10,7 @@
 .globl gdt_desc, ldt_desc, tss_desc
 .globl tss, tss_desc_ptr, ldt, ldt_desc_ptr
 .globl gdt_ptr
-.globl idt_desc_ptr, idt
+.globl idt_desc_ptr, idt, gdt_desc_ptr
 
 .align 4
 
@@ -91,7 +91,7 @@ ldt:
     .endr
 ldt_bottom:
 
-.align 4
+    .align 4
     .word 0 # Padding
 idt_desc_ptr:
     .word idt_bottom - idt - 1
@@ -106,3 +106,11 @@ _idt:
     .endr
 
 idt_bottom:
+
+ # IA-32 2.4
+ # put the empty gdt table into gdt register
+    .align 4
+    .word 0 # Padding
+gdt_desc_ptr:
+    .word gdt_bottom - gdt - 1      # 16 bits table limits
+    .long gdt           # 32 bits linear base addr
