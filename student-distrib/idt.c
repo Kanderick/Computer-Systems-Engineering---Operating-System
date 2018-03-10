@@ -77,7 +77,10 @@ void idt_init(unsigned index, unsigned gateType) {
             desc.reserved2 = 0;
             desc.reserved1 = 0;
             desc.reserved0 = 0;
-            /*not sure about dpl of call gate*/
+            switch(index) {
+                case SCV:
+                    desc.dpl = DPL_SC;
+            }
     }
-    idt[index] = desc;
+    idt[index] = temp;
 }
