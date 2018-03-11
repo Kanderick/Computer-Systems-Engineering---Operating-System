@@ -20,6 +20,7 @@
 #define SS      12      /*Stack Fault Exception*/
 #define GP      13      /*General Protection Exception*/
 #define PF      14      /*Page-Fault Exception*/
+#define UN      15      /*unkown interrupt*/
 #define MF      16      /*x87 FPU Floating-Point Error*/
 #define AC      17      /*Alignment Check Exception*/
 #define MC      18      /*Machine-Check Exception*/

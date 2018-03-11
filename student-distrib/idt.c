@@ -1,7 +1,6 @@
 #include "idt.h"
 
 void idt_init_exceptions(void){
-    int i;
     idt_init(DE, TRAP_GATE, &exception_DE_wrapper);
     idt_init(DB, TRAP_GATE, &exception_DB_wrapper);
     idt_init(NMI, INT_GATE, &exception_NMI_wrapper);
@@ -17,12 +16,13 @@ void idt_init_exceptions(void){
     idt_init(SS, TRAP_GATE, &exception_SS_wrapper);
     idt_init(GP, TRAP_GATE, &exception_GP_wrapper);
     idt_init(PF, TRAP_GATE, &exception_PF_wrapper);
-    idt_init(15, TRAP_GATE, &unkown_int_wrapper);
+    idt_init(UN, TRAP_GATE, &unkown_int_wrapper);
     idt_init(MF, TRAP_GATE, &exception_MF_wrapper);
     idt_init(AC, TRAP_GATE, &exception_AC_wrapper);
     idt_init(MC, TRAP_GATE, &exception_MC_wrapper);
     idt_init(XF, TRAP_GATE, &exception_XF_wrapper);
-
+    idt_init(KB_INT, INT_GATE, &keyboard_wrapper);
+    idt_init(RTC_INT, INT_GATE, &rtc_wrapper);
 }
 /*IA-32 5.11 & 4.8*/
 void idt_init(unsigned index, unsigned gateType, void *handler) {
