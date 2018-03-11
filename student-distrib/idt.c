@@ -22,29 +22,31 @@ idt_init(XF, TRAP_GATE, exception_XF);
 
 /*IA-32 5.11 & 4.8*/
 void idt_init(unsigned index, unsigned gateType, uint32_t handler) {
-    idt_desc_t temp = idt[index];
+    idt_desc_t desc = idt[index];
     desc.seg_selector = KERNEL_CS;
-    SET_IDT_ENTRY(temp, handler);
-    desc.reserved4 = 0;
+    SET_IDT_ENTRY(desc, handler);
     desc.size = 1;
     desc.present = 1;
     switch(gateType) {
         case INT_GATE:
-            desc.reserved3 = 1;
+            desc.reserved4 = 0;
+            desc.reserved3 = 0;
             desc.reserved2 = 1;
-            desc.reserved1 = 0;
-            desc.reserved0 = 1;
+            desc.reserved1 = 1;
+            desc.reserved0 = 0;
             desc.dpl = DPL_IE;
         case TRAP_GATE:
+            desc.reserved4 = 0;
             desc.reserved3 = 1;
             desc.reserved2 = 1;
             desc.reserved1 = 1;
-            desc.reserved0 = 1;
+            desc.reserved0 = 0;
             desc.dpl = DPL_IE;
         case CALL_GATE:
-            desc.reserved3 = 1;
+            desc.reserved4 = 0;
+            desc.reserved3 = 0;
             desc.reserved2 = 0;
-            desc.reserved1 = 0;
+            desc.reserved1 = 1;
             desc.reserved0 = 0;
             switch(index) {
                 case SCV:
