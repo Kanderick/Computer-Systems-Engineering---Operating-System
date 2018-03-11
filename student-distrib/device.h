@@ -9,4 +9,7 @@
 void keyboard_interupt();
 char KB_decode(char scancode);
 void init_keyboard();
+void rtc_interupt();
+void init_rtc();
+
 #endif
