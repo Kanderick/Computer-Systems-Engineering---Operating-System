@@ -1,6 +1,10 @@
 #ifndef IDT_H
 #define IDT_H
 
+#include "types.h"
+#include "x86_desc.h"
+#include "lib.h"
+
 #define DE      0       /*Divide Error Exception*/
 #define DB      1       /*Debug Exception*/
 #define NMI     2       /*NMI Interrupt*/
@@ -36,23 +40,23 @@
                         (call, interrupt, and trap gates) */
 
 void idt_init(unsigned index, unsigned gateType, uint32_t handler);
-void exception_DE();
-void exception_DB();
-void exception_NMI();
-void exception_BP();
-void exception_OF();
-void exception_BR();
-void exception_UD();
-void exception_NM();
-void exception_CSO();
-void exception_TS();
-void exception_NP();
-void exception_SS();
-void exception_GP();
-void exception_PF();
-void exception_MF();
-void exception_AC();
-void exception_MC();
-void exception_XF();
+void exception_DE(void);
+void exception_DB(void);
+void exception_NMI(void);
+void exception_BP(void);
+void exception_OF(void);
+void exception_BR(void);
+void exception_UD(void);
+void exception_NM(void);
+void exception_CSO(void);
+void exception_TS(void);
+void exception_NP(void);
+void exception_SS(void);
+void exception_GP(void);
+void exception_PF(void);
+void exception_MF(void);
+void exception_AC(void);
+void exception_MC(void);
+void exception_XF(void);
 
 #endif
