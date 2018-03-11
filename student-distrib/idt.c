@@ -1,24 +1,29 @@
 #include "idt.h"
 #include "x86_desc.h"
 
-idt_init(DE, TRAP_GATE, exception_DE);
-idt_init(DB, TRAP_GATE, exception_DB);
-idt_init(NMI, TRAP_GATE, exception_NMI);
-idt_init(BP, TRAP_GATE, exception_BP);
-idt_init(OF, TRAP_GATE, exception_OF);
-idt_init(BR, TRAP_GATE, exception_BR);
-idt_init(UD, TRAP_GATE, exception_UD);
-idt_init(NM, TRAP_GATE, exception_NM);
-idt_init(CSO, TRAP_GATE, exception_CSO);
-idt_init(TS, TRAP_GATE, exception_TS);
-idt_init(NP, TRAP_GATE, exception_NP);
-idt_init(SS, TRAP_GATE, exception_SS);
-idt_init(GP, TRAP_GATE, exception_GP);
-idt_init(PF, TRAP_GATE, exception_PF);
-idt_init(MF, TRAP_GATE, exception_MF);
-idt_init(AC, TRAP_GATE, exception_AC);
-idt_init(MC, TRAP_GATE, exception_MC);
-idt_init(XF, TRAP_GATE, exception_XF);
+void idt_init_all(void){
+
+    idt_init(DE, TRAP_GATE, exception_DE);
+    idt_init(DB, TRAP_GATE, exception_DB);
+    idt_init(NMI, TRAP_GATE, exception_NMI);
+    idt_init(BP, TRAP_GATE, exception_BP);
+    idt_init(OF, TRAP_GATE, exception_OF);
+    idt_init(BR, TRAP_GATE, exception_BR);
+    idt_init(UD, TRAP_GATE, exception_UD);
+    idt_init(NM, TRAP_GATE, exception_NM);
+    idt_init(CSO, TRAP_GATE, exception_CSO);
+    idt_init(TS, TRAP_GATE, exception_TS);
+    idt_init(NP, TRAP_GATE, exception_NP);
+    idt_init(SS, TRAP_GATE, exception_SS);
+    idt_init(GP, TRAP_GATE, exception_GP);
+    idt_init(PF, TRAP_GATE, exception_PF);
+    idt_init(MF, TRAP_GATE, exception_MF);
+    idt_init(AC, TRAP_GATE, exception_AC);
+    idt_init(MC, TRAP_GATE, exception_MC);
+    idt_init(XF, TRAP_GATE, exception_XF);
+    
+}
+
 
 /*IA-32 5.11 & 4.8*/
 void idt_init(unsigned index, unsigned gateType, uint32_t handler) {

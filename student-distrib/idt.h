@@ -35,6 +35,8 @@
                         hold pointers to procedure entry points in code segments
                         (call, interrupt, and trap gates) */
 
+
+void idt_init_all(void);
 void idt_init(unsigned index, unsigned gateType);
 void exception_DE();
 void exception_DB();
