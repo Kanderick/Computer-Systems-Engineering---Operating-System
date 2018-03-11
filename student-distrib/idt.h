@@ -40,7 +40,7 @@
                         (call, interrupt, and trap gates) */
 
 void idt_init_exceptions(void);
-void idt_init(unsigned index, unsigned gateType, void (*handler)(void));
+void idt_init(unsigned index, unsigned gateType, void *handler);
 void exception_DE(void);
 void exception_DB(void);
 void exception_NMI(void);
@@ -49,6 +49,7 @@ void exception_OF(void);
 void exception_BR(void);
 void exception_UD(void);
 void exception_NM(void);
+void exception_DF(void);
 void exception_CSO(void);
 void exception_TS(void);
 void exception_NP(void);
@@ -59,24 +60,29 @@ void exception_MF(void);
 void exception_AC(void);
 void exception_MC(void);
 void exception_XF(void);
+void unkown_int(void);
 
-void exception_DE_wrapper(void);
-void exception_DB_wrapper(void);
-void exception_NMI_wrapper(void);
-void exception_BP_wrapper(void);
-void exception_OF_wrapper(void);
-void exception_BR_wrapper(void);
-void exception_UD_wrapper(void);
-void exception_NM_wrapper(void);
-void exception_CSO_wrapper(void);
-void exception_TS_wrapper(void);
-void exception_NP_wrapper(void);
-void exception_SS_wrapper(void);
-void exception_GP_wrapper(void);
-void exception_PF_wrapper(void);
-void exception_MF_wrapper(void);
-void exception_AC_wrapper(void);
-void exception_MC_wrapper(void);
-void exception_XF_wrapper(void);
+extern void exception_DE_wrapper(void);
+extern void exception_DB_wrapper(void);
+extern void exception_NMI_wrapper(void);
+extern void exception_BP_wrapper(void);
+extern void exception_OF_wrapper(void);
+extern void exception_BR_wrapper(void);
+extern void exception_UD_wrapper(void);
+extern void exception_NM_wrapper(void);
+extern void exception_DF_wrapper(void);
+extern void exception_CSO_wrapper(void);
+extern void exception_TS_wrapper(void);
+extern void exception_NP_wrapper(void);
+extern void exception_SS_wrapper(void);
+extern void exception_GP_wrapper(void);
+extern void exception_PF_wrapper(void);
+extern void exception_MF_wrapper(void);
+extern void exception_AC_wrapper(void);
+extern void exception_MC_wrapper(void);
+extern void exception_XF_wrapper(void);
+extern void unkown_int_wrapper(void);
+
+
 
 #endif

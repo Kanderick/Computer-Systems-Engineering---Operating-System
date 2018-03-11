@@ -1,3 +1,4 @@
+.text
 .globl exception_DE_wrapper
 .globl exception_DB_wrapper
 .globl exception_NMI_wrapper
@@ -6,6 +7,7 @@
 .globl exception_BR_wrapper
 .globl exception_UD_wrapper
 .globl exception_NM_wrapper
+.globl exception_DF_wrapper
 .globl exception_CSO_wrapper
 .globl exception_TS_wrapper
 .globl exception_NP_wrapper
@@ -16,6 +18,7 @@
 .globl exception_AC_wrapper
 .globl exception_MC_wrapper
 .globl exception_XF_wrapper
+.globl unkown_int_wrapper
 
 exception_DE_wrapper:
     pushl %ebp
@@ -145,6 +148,23 @@ exception_NM_wrapper:
     pushl %esi
     pushl %edi
     call exception_NM
+    pushl %edi
+    pushl %esi
+    pushl %ebx
+    pushl %edx
+    pushl %ecx
+    pushl %eax
+    popl %ebp
+    iret
+exception_DF_wrapper:
+    pushl %ebp
+    pushl %eax
+    pushl %ecx
+    pushl %edx
+    pushl %ebx
+    pushl %esi
+    pushl %edi
+    call exception_CSO
     pushl %edi
     pushl %esi
     pushl %ebx
@@ -315,6 +335,23 @@ exception_XF_wrapper:
     pushl %esi
     pushl %edi
     call exception_XF
+    pushl %edi
+    pushl %esi
+    pushl %ebx
+    pushl %edx
+    pushl %ecx
+    pushl %eax
+    popl %ebp
+    iret
+unkown_int_wrapper:
+    pushl %ebp
+    pushl %eax
+    pushl %ecx
+    pushl %edx
+    pushl %ebx
+    pushl %esi
+    pushl %edi
+    call unkown_int
     pushl %edi
     pushl %esi
     pushl %ebx

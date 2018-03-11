@@ -1,27 +1,31 @@
 #include "idt.h"
 
 void idt_init_exceptions(void){
+    int i;
     idt_init(DE, TRAP_GATE, &exception_DE_wrapper);
     idt_init(DB, TRAP_GATE, &exception_DB_wrapper);
-    idt_init(NMI, TRAP_GATE, &exception_NMI_wrapper);
+    idt_init(NMI, INT_GATE, &exception_NMI_wrapper);
     idt_init(BP, TRAP_GATE, &exception_BP_wrapper);
     idt_init(OF, TRAP_GATE, &exception_OF_wrapper);
     idt_init(BR, TRAP_GATE, &exception_BR_wrapper);
     idt_init(UD, TRAP_GATE, &exception_UD_wrapper);
     idt_init(NM, TRAP_GATE, &exception_NM_wrapper);
+    idt_init(DF, TRAP_GATE, &exception_DF_wrapper);
     idt_init(CSO, TRAP_GATE, &exception_CSO_wrapper);
     idt_init(TS, TRAP_GATE, &exception_TS_wrapper);
     idt_init(NP, TRAP_GATE, &exception_NP_wrapper);
     idt_init(SS, TRAP_GATE, &exception_SS_wrapper);
     idt_init(GP, TRAP_GATE, &exception_GP_wrapper);
     idt_init(PF, TRAP_GATE, &exception_PF_wrapper);
+    idt_init(15, TRAP_GATE, &unkown_int_wrapper);
     idt_init(MF, TRAP_GATE, &exception_MF_wrapper);
     idt_init(AC, TRAP_GATE, &exception_AC_wrapper);
     idt_init(MC, TRAP_GATE, &exception_MC_wrapper);
     idt_init(XF, TRAP_GATE, &exception_XF_wrapper);
+
 }
 /*IA-32 5.11 & 4.8*/
-void idt_init(unsigned index, unsigned gateType, void (*handler)(void)) {
+void idt_init(unsigned index, unsigned gateType, void *handler) {
     idt_desc_t desc = idt[index];
     SET_IDT_ENTRY(desc, handler);
     desc.seg_selector = KERNEL_CS;
@@ -60,81 +64,81 @@ void idt_init(unsigned index, unsigned gateType, void (*handler)(void)) {
 }
 
 void exception_DE(void) {
-    cli();
+     cli();
     printf("Divide Error Exception\n");
-    while(1);
+     while(1);
 }
 
 void exception_DB(void) {
-    cli();
+     cli();
     printf("Debug Exception\n");
-    while(1);
+     while(1);
 }
 
 void exception_NMI(void) {
-    cli();
+     cli();
     printf("NMI Interrupt\n");
-    while(1);
+     while(1);
 }
 
 void exception_BP(void) {
-    cli();
+     cli();
     printf("Breakpoint Exception\n");
-    while(1);
+     while(1);
 }
 
 void exception_OF(void) {
-    cli();
+     cli();
     printf("Overflow Exception\n");
-    while(1);
+     while(1);
 }
 
 void exception_BR(void) {
-    cli();
+     cli();
     printf("BOUND Range Exceeded Exception\n");
-    while(1);
+     while(1);
 }
 
 void exception_UD(void) {
-    cli();
+     cli();
     printf("Invalid Opcode Exception\n");
-    while(1);
+     while(1);
 }
 
 void exception_NM(void) {
-    cli();
+     cli();
     printf("Device Not Available Exception\n");
-    while(1);
+     while(1);
 }
 
 void exception_DF(void) {
-    cli();
+     cli();
     printf("Double Fault Exception\n");
-    while(1);
+     while(1);
 }
 
 void exception_CSO(void) {
-    cli();
+     cli();
     printf("Coprocessor Segment Overrun\n");
-    while(1);
+     while(1);
 }
 
 void exception_TS(void) {
-    cli();
+     cli();
     printf("Invalid TSS Exception\n");
-    while(1);
+     while(1);
 }
 
 void exception_NP(void) {
-    cli();
+     cli();
     printf("Segment Not Present\n");
-    while(1);
+     while(1);
 }
 
 void exception_SS(void) {
-    cli();
+     cli();
     printf("Stack Fault Exception\n");
-    while(1);
+     while(1);
 }
 
 void exception_GP(void) {
@@ -144,31 +148,37 @@ void exception_GP(void) {
 }
 
 void exception_PF(void) {
-    cli();
+     cli();
     printf("Page-Fault Exception\n");
-    while(1);
+     while(1);
 }
 
 void exception_MF(void) {
-    cli();
+     cli();
     printf("x87 FPU Floating-Point Error\n");
-    while(1);
+     while(1);
 }
 
 void exception_AC(void) {
-    cli();
+     cli();
     printf("Alignment Check Exception\n");
-    while(1);
+     while(1);
 }
 
 void exception_MC(void) {
-    cli();
+     cli();
     printf("Machine-Check Exception\n");
-    while(1);
+     while(1);
 }
 
 void exception_XF(void) {
-    cli();
+     cli();
     printf("SIMD Floating-Point Exception\n");
+     while(1);
+}
+
+void unkown_int(void) {
+    cli();
+   printf("unkown interruption\n");
     while(1);
 }
