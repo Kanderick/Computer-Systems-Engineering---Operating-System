@@ -32,7 +32,6 @@ static inline void assertion_failure(){
  */
 int idt_test(){
 	TEST_HEADER;
-
 	int i;
 	int result = PASS;
 	for (i = 0; i < 10; ++i){
