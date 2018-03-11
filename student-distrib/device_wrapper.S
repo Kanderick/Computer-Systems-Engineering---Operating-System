@@ -10,7 +10,7 @@ keyboard_wrapper:
     pushl %ebx
     pushl %esi
     pushl %edi
-    call keboard_interupt
+    call keyboard_interrupt
     pushl %edi
     pushl %esi
     pushl %ebx
@@ -27,7 +27,7 @@ rtc_wrapper:
     pushl %ebx
     pushl %esi
     pushl %edi
-    call rtc_interupt
+    call rtc_interrupt
     pushl %edi
     pushl %esi
     pushl %ebx

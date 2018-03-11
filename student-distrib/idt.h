@@ -63,6 +63,8 @@ void exception_MC(void);
 void exception_XF(void);
 void unkown_int(void);
 
+extern void keyboard_wrapper(void);
+extern void rtc_wrapper(void);
 extern void exception_DE_wrapper(void);
 extern void exception_DB_wrapper(void);
 extern void exception_NMI_wrapper(void);

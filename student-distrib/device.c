@@ -12,9 +12,9 @@
 
 static uint8_t shiftFlag;
 
-void keyboard_interupt() {
-    char scancode;
-    char pressedKey;
+void keyboard_interrupt() {
+    unsigned char scancode;
+    unsigned char pressedKey;
     while (!(inb(KEY_REG_STATUS) & 1));
     scancode = inb(KEY_REG_DATA);
     if (scancode == 0x2A || scancode == 0x36) {
@@ -22,7 +22,7 @@ void keyboard_interupt() {
         send_eoi(KEYBOARD_IRQ);
         return;
     }
-    if (scancode == 0xAA || scancode = 0xB6) {
+    if (scancode == 0xAA || scancode == 0xB6) {
         shiftFlag = 0;
         send_eoi(KEYBOARD_IRQ);
         return;
@@ -32,7 +32,7 @@ void keyboard_interupt() {
     send_eoi(KEYBOARD_IRQ);
 }
 
-char KB_decode(char scancode) {
+unsigned char KB_decode(unsigned char scancode) {
     if (shiftFlag == 0) {
         switch(scancode) {
             case 0x02: return '1';
@@ -147,7 +147,7 @@ void init_keyboard() {
     enable_irq(KEYBOARD_IRQ);
 }
 
-void rtc_interupt() {
+void rtc_interrupt() {
     outb(SR_C, RTC_REG_NUM);
     inb(RTC_REG_DATA);
     send_eoi(RTC_IRQ);

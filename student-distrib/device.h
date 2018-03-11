@@ -6,10 +6,10 @@
 #include "lib.h"
 
 
-void keyboard_interupt();
-char KB_decode(char scancode);
+void keyboard_interrupt();
+unsigned char KB_decode(unsigned char scancode);
 void init_keyboard();
-void rtc_interupt();
+void rtc_interrupt();
 void init_rtc();
 
 #endif
