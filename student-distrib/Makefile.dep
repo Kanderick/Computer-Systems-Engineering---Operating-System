@@ -1,4 +1,5 @@
 boot.o: boot.S multiboot.h x86_desc.h types.h
+exception_wrapper.o: exception_wrapper.S
 x86_desc.o: x86_desc.S x86_desc.h types.h
 i8259.o: i8259.c i8259.h types.h lib.h
 idt.o: idt.c idt.h types.h x86_desc.h lib.h

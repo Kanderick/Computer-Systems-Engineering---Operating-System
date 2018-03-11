@@ -60,4 +60,23 @@ void exception_AC(void);
 void exception_MC(void);
 void exception_XF(void);
 
+void exception_DE_wrapper(void);
+void exception_DB_wrapper(void);
+void exception_NMI_wrapper(void);
+void exception_BP_wrapper(void);
+void exception_OF_wrapper(void);
+void exception_BR_wrapper(void);
+void exception_UD_wrapper(void);
+void exception_NM_wrapper(void);
+void exception_CSO_wrapper(void);
+void exception_TS_wrapper(void);
+void exception_NP_wrapper(void);
+void exception_SS_wrapper(void);
+void exception_GP_wrapper(void);
+void exception_PF_wrapper(void);
+void exception_MF_wrapper(void);
+void exception_AC_wrapper(void);
+void exception_MC_wrapper(void);
+void exception_XF_wrapper(void);
+
 #endif
