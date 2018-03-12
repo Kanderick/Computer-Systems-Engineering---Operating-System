@@ -20,6 +20,7 @@ static uint8_t shiftFlag;
 void keyboard_interrupt() {
     cli();                          /*clean the interrupt flag*/
     send_eoi(KEYBOARD_IRQ);         /*send the end of interrupt signal to PIC*/
+    sti();                          /*restore the interrupt flag*/
     unsigned char scancode = 0;     /*initialize scancode*/
     unsigned char pressedKey = 0;   /*initialize pressedKey*/
     while (!(inb(KEY_REG_STATUS) & 1));         /*check whether the first bit of status reg is set to one*/
@@ -31,19 +32,16 @@ void keyboard_interrupt() {
     } while(1);
     if (scancode == 0x2A || scancode == 0x36) { /* check whether the shift key is pressed */
         shiftFlag = 1;
-        sti();                          /*restore the interrupt flag*/
         return;
     }
     if (scancode == 0xAA || scancode == 0xB6) { /* check whether the shift key is released */
         shiftFlag = 0;
-        sti();                          /*restore the interrupt flag*/
         return;
     }
     /* if a key is pressed, decode it into the char that should be print on the screen */
     if (scancode > 0x00 && scancode < 0x81) pressedKey = KB_decode(scancode);
     /* if the key pressed value is known, print it */
     if (pressedKey != 0) printf("%c", pressedKey);
-    sti();                          /*restore the interrupt flag*/
 }
 
 /*
