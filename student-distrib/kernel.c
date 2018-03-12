@@ -145,10 +145,13 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Init the PIC */
     i8259_init();
 
+    /* Init the keyboard */
     init_keyboard();
 
+    /* Init the rtc */
     init_rtc();
 
+    /* Init the paging */
     init_paging();
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
