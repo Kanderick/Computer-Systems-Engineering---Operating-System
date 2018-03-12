@@ -10,6 +10,7 @@
 #include "tests.h"
 #include "idt.h"
 #include "device.h"
+#include "paging.h"
 
 #define RUN_TESTS
 
@@ -147,6 +148,8 @@ void entry(unsigned long magic, unsigned long addr) {
     init_keyboard();
 
     init_rtc();
+
+    init_paging();
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */

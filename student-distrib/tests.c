@@ -2,6 +2,8 @@
 #include "x86_desc.h"
 #include "lib.h"
 #include "idt.h"
+#include "paging.h"
+
 
 #define PASS 1
 #define FAIL 0
@@ -45,14 +47,36 @@ int idt_test(){
 	return result;
 }
 
-int keyboard(){
-	while(1)
-		{;}
-	return PASS;
+#if (PAGE_TEST == 1)
+int paging_test() {
+	clear();
+
+	TEST_HEADER;
+
+	unsigned long* kernel_addr =    (unsigned long*)0x00400000;
+	unsigned long* video_addr =     (unsigned long*)0x000B8000;
+	unsigned long* unpresent_addr = (unsigned long*)0x00012000;
+
+	int result = PASS;
+	printf("Page directory[0] is  0x%#x\n", page_directory[0]);
+	printf("Page directory[1] is  0x%#x\n", page_directory[1]);
+	printf("Page_table_0[0xB8] is 0x%#x\n", page_table_0[0xB8]);
+
+	printf("Kernel dereference:\n");
+	unsigned long kernel_variable = *kernel_addr;
+	printf("Kernel variable is    0x%#x\n", kernel_variable);
+
+	printf("Video dereference:\n");
+	unsigned long video_variable = *video_addr;
+	printf("Video variable is     0x%#x\n", video_variable);
+
+	printf("Unpresent dereference:\n");
+	unsigned long unpresent_variable = *unpresent_addr;
+	printf("Unpresent variable is 0x%#x\n", unpresent_variable);
+
+	return result;
 }
-
-
-// add more tests here
+#endif
 
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
@@ -63,6 +87,8 @@ int keyboard(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
-	// TEST_OUTPUT("keyboard", keyboard());
 	// launch your tests here
+#if (PAGE_TEST == 1)
+	TEST_OUTPUT("paging_test", paging_test());
+#endif
 }
