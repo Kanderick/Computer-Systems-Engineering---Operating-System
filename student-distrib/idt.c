@@ -3,7 +3,7 @@
 void idt_init_exceptions(void){
     unsigned i;
     for(i = 0; i < 256; i ++) {
-        idt_init(DE, INT_GATE, &unkown_int_wrapper);
+        idt_init(i, INT_GATE, &unkown_int_wrapper);
     }
     idt_init(DE, TRAP_GATE, &exception_DE_wrapper);
     idt_init(DB, TRAP_GATE, &exception_DB_wrapper);

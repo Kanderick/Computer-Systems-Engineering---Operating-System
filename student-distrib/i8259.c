@@ -38,11 +38,8 @@ void i8259_init(void) {
     outb(SLAVE_BIT_, PIC2_DATA);         /* ICW3: load slave bit */
     outb(NORMAL_EOI, PIC2_DATA);          /* ICW4: master expect normal EOI */
     // set ACK
-    master_mask = 0xFF;
-    slave_mask = 0xFF;
-    // restore masks
-    outb(master_mask, PIC1_DATA);
-    outb(slave_mask, PIC2_DATA);
+    master_mask = MASK_OFF;
+    slave_mask = MASK_OFF;
     enable_irq(SLAVE_BIT_);
 
 }
@@ -78,14 +75,16 @@ void disable_irq(uint32_t irq_num) {
 /* Send end-of-interrupt signal for the specified IRQ */
 void send_eoi(uint32_t irq_num) {
     uint8_t value;
+
     if(irq_num >= 8) {
         irq_num -= IRQ_NUM_;
         value = EOI | irq_num;
         outb(value, SLAVE_8259_PORT);
-        outb(EOI | 0x02, MASTER_8259_PORT);
+        outb((EOI | 0x02), MASTER_8259_PORT);
     }
     else {
         value = EOI | irq_num;
+        // outb(master_mask, PIC1_DATA);
         outb(value, MASTER_8259_PORT);
     }
 }

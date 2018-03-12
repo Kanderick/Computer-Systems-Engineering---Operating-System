@@ -9,11 +9,15 @@
 #define PERIOD              0x40
 #define KEY_REG_STATUS      0x64
 #define KEY_REG_DATA        0x60
+#define MAX_RATE            0x0F
+#define RATE                15
 
 static uint8_t shiftFlag;
 
 void keyboard_interrupt() {
-    // send_eoi(KEYBOARD_IRQ);
+    cli();
+    send_eoi(KEYBOARD_IRQ);
+    sti();
     unsigned char scancode = 0;
     unsigned char pressedKey = 0;
     while (!(inb(KEY_REG_STATUS) & 1));
@@ -25,18 +29,15 @@ void keyboard_interrupt() {
     } while(1);
     if (scancode == 0x2A || scancode == 0x36) {
         shiftFlag = 1;
-        send_eoi(KEYBOARD_IRQ);
         return;
     }
     if (scancode == 0xAA || scancode == 0xB6) {
         shiftFlag = 0;
-        send_eoi(KEYBOARD_IRQ);
         return;
     }
     scancode = inb(KEY_REG_DATA);
     if (scancode > 0x00 && scancode < 0x81) pressedKey = KB_decode(scancode);
     if (pressedKey != 0) printf("%c", pressedKey);
-    send_eoi(KEYBOARD_IRQ);
 }
 
 unsigned char KB_decode(unsigned char scancode) {
@@ -155,18 +156,32 @@ void init_keyboard() {
 }
 
 void rtc_interrupt() {
+    cli();
+    send_eoi(RTC_IRQ);
+    sti();
     outb(SR_C, RTC_REG_NUM);
     inb(RTC_REG_DATA);
     test_interrupts();
-    send_eoi(KEYBOARD_IRQ);
+
 }
 
 void init_rtc() {
+    char prev;
+    enable_irq(RTC_IRQ);
     outb(SR_B, RTC_REG_NUM);
-    char prev = inb(RTC_REG_DATA);
+    prev = inb(RTC_REG_DATA);
     outb(SR_B, RTC_REG_NUM);
     outb(prev | PERIOD, RTC_REG_DATA);
-    // outb(SR_C, RTC_REG_NUM);
-    // inb(RTC_REG_DATA);
-    enable_irq(RTC_IRQ);
+    outb(SR_C, RTC_REG_NUM);
+    inb(RTC_REG_DATA);
+    set_rate(RATE-1);
+}
+
+void set_rate(unsigned rate) {
+  char prev;
+  rate &= MAX_RATE;
+  outb(SR_A, RTC_REG_NUM);
+  prev = inb(RTC_REG_DATA);
+  outb(SR_A, RTC_REG_NUM);
+  outb((prev & 0xF0) | rate, RTC_REG_DATA);
 }
