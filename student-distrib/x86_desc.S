@@ -107,7 +107,6 @@ _idt:
 
 idt_bottom:
 
- # IA-32 2.4
  # put the empty gdt table into gdt register
     .align 4
     .word 0 # Padding

@@ -1,3 +1,5 @@
+# exception_wrapper.S - Set up all the exception handler wrapper
+
 .text
 .globl exception_DE_wrapper
 .globl exception_DB_wrapper
@@ -20,343 +22,124 @@
 .globl exception_XF_wrapper
 .globl unkown_int_wrapper
 
+# wrappers to call the related functions to execute when exception or interruption happens
+
 exception_DE_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_DE
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 exception_DB_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_DB
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 exception_NMI_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_NMI
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 exception_BP_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_BP
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 exception_OF_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_OF
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 exception_BR_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_BR
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 exception_UD_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_UD
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 exception_NM_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_NM
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 exception_DF_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_CSO
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 exception_CSO_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_CSO
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 exception_TS_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_TS
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 exception_NP_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_NP
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 exception_SS_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_SS
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 exception_GP_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_GP
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 exception_PF_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_PF
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 exception_MF_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_MF
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 exception_AC_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_AC
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 exception_MC_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_MC
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 exception_XF_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call exception_XF
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret
+
 unkown_int_wrapper:
-    pushl %ebp
-    pushl %eax
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+    pushal
     call unkown_int
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %edx
-    popl %ecx
-    popl %eax
-    popl %ebp
+    popal
     iret

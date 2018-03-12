@@ -1,48 +1,59 @@
+/* device.c - Functions to initialize the devices and set up
+their handler
+ */
 #include "device.h"
 #include "i8259.h"
 
-#define RTC_REG_NUM         0x70
-#define RTC_REG_DATA        0x71
-#define SR_A                0x8A
-#define SR_B                0x8B
-#define SR_C                0x0C
-#define PERIOD              0x40
-#define KEY_REG_STATUS      0x64
-#define KEY_REG_DATA        0x60
-#define MAX_RATE            0x0F
-#define RATE                15
-
+/*check whether the shiftkey is pressed*/
 static uint8_t shiftFlag;
 
+/*
+ * keyboard_interrupt
+ *   DESCRIPTION: this function will be called by the keyboard_wrapper
+                  and print the pressed key onto the screen
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: print the pressed key onto the screen
+ */
+
 void keyboard_interrupt() {
-    cli();
-    send_eoi(KEYBOARD_IRQ);
-    sti();
-    unsigned char scancode = 0;
-    unsigned char pressedKey = 0;
-    while (!(inb(KEY_REG_STATUS) & 1));
+    cli();      /*clean the interrupt flag*/
+    send_eoi(KEYBOARD_IRQ);         /*send the end of interrupt signal to PIC*/
+    sti();      /*restore the interrupt flag*/
+    unsigned char scancode = 0;         /*initialize scancode*/
+    unsigned char pressedKey = 0;           /*initialize pressedKey*/
+    while (!(inb(KEY_REG_STATUS) & 1));         /*check whether the first bit of status reg is set to one*/
     do {
-        if (inb(KEY_REG_DATA) != scancode) {
-            scancode = inb(KEY_REG_DATA);
+        if (inb(KEY_REG_DATA) != scancode) {        /*check whether a key is pressed*/
+            scancode = inb(KEY_REG_DATA);           /*read the key and put the value into scancode*/
             break;
         }
     } while(1);
-    if (scancode == 0x2A || scancode == 0x36) {
+    if (scancode == 0x2A || scancode == 0x36) {     /*check whether the shift key is pressed*/
         shiftFlag = 1;
         return;
     }
-    if (scancode == 0xAA || scancode == 0xB6) {
+    if (scancode == 0xAA || scancode == 0xB6) {     /*check whether the shift key is released*/
         shiftFlag = 0;
         return;
     }
-    scancode = inb(KEY_REG_DATA);
-    if (scancode > 0x00 && scancode < 0x81) pressedKey = KB_decode(scancode);
-    if (pressedKey != 0) printf("%c", pressedKey);
+    if (scancode > 0x00 && scancode < 0x81) pressedKey = KB_decode(scancode);       /*if a key is pressed, decode it into the char that should be print on the screen*/
+    if (pressedKey != 0) printf("%c", pressedKey);          /*if the key pressed value is known, print it*/
 }
 
+/*
+ * KB_decode
+ *   DESCRIPTION: decode the signal received by data and return
+ *   INPUTS: scancode -- the signal received by data port of keyboard
+ *   OUTPUTS: none
+ *   RETURN VALUE: the char that should be displayed on the screen
+ *   SIDE EFFECTS: none
+ */
+
 unsigned char KB_decode(unsigned char scancode) {
-    if (shiftFlag == 0) {
-        switch(scancode) {
+    if (shiftFlag == 0) {       /*check whether the shift key is pressed*/
+        switch(scancode) {          /*decode the scancode*/
             case 0x02: return '1';
             case 0x03: return '2';
             case 0x04: return '3';
@@ -95,7 +106,7 @@ unsigned char KB_decode(unsigned char scancode) {
         }
     }
     else {
-        switch(scancode) {
+        switch(scancode) {          /*decode the scancode*/
             case 0x02: return '!';
             case 0x03: return '@';
             case 0x04: return '#';
@@ -147,41 +158,79 @@ unsigned char KB_decode(unsigned char scancode) {
             case 0x39: return ' ';
         }
     }
-    return '?';
+    return '?';         /*if the pressed key is unkown, print ?*/
 }
+
+/*
+ * init_keyboard
+ *   DESCRIPTION: this function will be called in the kernel.c initializing
+                  the keyboard and enable keyboard IRQ
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: initialize the keyboard and enable keyboard IRQ
+ */
 
 void init_keyboard() {
-    shiftFlag = 0;
-    enable_irq(KEYBOARD_IRQ);
+    shiftFlag = 0;          /*reset the shift flag*/
+    enable_irq(KEYBOARD_IRQ);       /*enable keyboard IRQ*/
 }
+
+/*
+ * rtc_interrupt
+ *   DESCRIPTION: this function will be called by the rtc_wrapper execute
+                  the interrupt of rtc
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS:  execute the interrupt of rtc
+ */
 
 void rtc_interrupt() {
-    cli();
-    send_eoi(RTC_IRQ);
-    sti();
-    outb(SR_C, RTC_REG_NUM);
-    inb(RTC_REG_DATA);
+    cli();      /*clean the interrupt flag*/
+    send_eoi(RTC_IRQ);      /*send the end of interrupt signal to PIC*/
+    sti();      /*restore the interrupt flag*/
+    outb(SR_C, RTC_REG_NUM);        /*select register C*/
+    inb(RTC_REG_DATA);          /*throw away contents*/
     test_interrupts();
-
 }
+
+/*
+ * init_rtc
+ *   DESCRIPTION: this function will be called in the kernel.c, initializing
+                  the rtc and enable rtc IRQ
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: initialize the rtc and enable rtc IRQ
+ */
 
 void init_rtc() {
     char prev;
-    enable_irq(RTC_IRQ);
-    outb(SR_B, RTC_REG_NUM);
-    prev = inb(RTC_REG_DATA);
-    outb(SR_B, RTC_REG_NUM);
-    outb(prev | PERIOD, RTC_REG_DATA);
-    outb(SR_C, RTC_REG_NUM);
-    inb(RTC_REG_DATA);
-    set_rate(RATE-1);
+    enable_irq(RTC_IRQ);        /*enable rtc IRQ*/
+    outb(SR_B, RTC_REG_NUM);        /*select register B, and disable NMI*/
+    prev = inb(RTC_REG_DATA);       /*read the current value of register B*/
+    outb(SR_B, RTC_REG_NUM);        /*set the index again*/
+    outb(prev | PERIOD, RTC_REG_DATA);      /*write the previous value ORed with 0x40. This turns on bit 6 of register B*/
+    outb(SR_C, RTC_REG_NUM);        /*select register C*/
+    inb(RTC_REG_DATA);      /*throw away contents*/
+    set_rate(RATE - 1);     /*set the rate*/
 }
+
+/*
+ * set_rate
+ *   DESCRIPTION: change the rate of rtc freqency
+ *   INPUTS: rate -- the new rate of rtc
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: change the rate of rtc freqency
+ */
 
 void set_rate(unsigned rate) {
   char prev;
-  rate &= MAX_RATE;
-  outb(SR_A, RTC_REG_NUM);
-  prev = inb(RTC_REG_DATA);
-  outb(SR_A, RTC_REG_NUM);
-  outb((prev & 0xF0) | rate, RTC_REG_DATA);
+  rate &= MAX_RATE;         /*rate must be above 2 and not over 15*/
+  outb(SR_A, RTC_REG_NUM);      /*set index to register A, disable NMI*/
+  prev = inb(RTC_REG_DATA);         /*get initial value of register A*/
+  outb(SR_A, RTC_REG_NUM);      /*reset index to A*/
+  outb((prev & 0xF0) | rate, RTC_REG_DATA);     /*write only our rate to A. Note, rate is the bottom 4 bits*/
 }
