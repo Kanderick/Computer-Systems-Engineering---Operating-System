@@ -1,4 +1,5 @@
 #include "idt.h"
+#include "x86_desc.h"
 
 void idt_init_exceptions(void){
     unsigned i;
