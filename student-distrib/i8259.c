@@ -11,17 +11,16 @@
 static uint8_t master_mask; /* IRQs 0-7  */
 static uint8_t slave_mask;  /* IRQs 8-15 */
 
+/*
+ * i8259_init
+ *   DESCRIPTION: this function will be called in the kernel.c and
+                  initialize the PIC
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: initialize the PIC
+ */
 
-// IO_WAIT wait for an I/O operation to complete
-// static inline void io_wait(void)
-// {
-//     /* TODO: This is probably fragile. */
-//     asm volatile ( "jmp 1f\n\t"
-//                    "1:jmp 2f\n\t"
-//                    "2:" );
-// }
-
-/* Initialize the 8259 PIC */
 void i8259_init(void) {
     // store mask
     outb(MASK_OFF, PIC1_DATA);
@@ -44,7 +43,16 @@ void i8259_init(void) {
 
 }
 
-/* Enable (unmask) the specified IRQ */
+/*
+ * enable_irq
+ *   DESCRIPTION: the function recive the IRQ numebr that should be
+                  enabled and enable this IRQ on the PIC
+ *   INPUTS: irq_num -- the index for the IRQ that should be enabled
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: enable the IRQ on the PIC
+ */
+
 void enable_irq(uint32_t irq_num) {
     if (irq_num < 8) {
         master_mask &= ~(1 << irq_num);
@@ -57,7 +65,16 @@ void enable_irq(uint32_t irq_num) {
     }
 }
 
-/* Disable (mask) the specified IRQ */
+/*
+ * disable_irq
+ *   DESCRIPTION: the function recive the IRQ numebr that should be
+                  disabled and disable this IRQ on the PIC
+ *   INPUTS: irq_num -- the index for the IRQ that should be disabled
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: disable the IRQ on the PIC
+ */
+
 void disable_irq(uint32_t irq_num) {
     // if irq received from PIC1
     if(irq_num < 8) {
@@ -72,19 +89,28 @@ void disable_irq(uint32_t irq_num) {
     // mask the corresponding bit to 1
 }
 
-/* Send end-of-interrupt signal for the specified IRQ */
+/*
+ * send_eoi
+ *   DESCRIPTION: the function recive the IRQ numebr that send the eoi
+                  signal back and enable the PIC to send next interrupt
+ *   INPUTS: irq_num -- the index for the IRQ that send the eoi
+                        signal back
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: enable the interruption for PIC
+ */
+
 void send_eoi(uint32_t irq_num) {
     uint8_t value;
 
     if(irq_num >= 8) {
-        irq_num -= IRQ_NUM_;
-        value = EOI | irq_num;
-        outb(value, SLAVE_8259_PORT);
+        irq_num -= IRQ_NUM_;        //get the irq numer on the slave pic
+        value = EOI | irq_num;      //or EOI and the irq num
+        outb(value, SLAVE_8259_PORT); 
         outb((EOI | 0x02), MASTER_8259_PORT);
     }
     else {
-        value = EOI | irq_num;
-        // outb(master_mask, PIC1_DATA);
+        value = EOI | irq_num;      ////or EOI and the irq num
         outb(value, MASTER_8259_PORT);
     }
 }
