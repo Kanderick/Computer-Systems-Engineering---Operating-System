@@ -3,8 +3,8 @@
 
 #define RTC_REG_NUM         0x70
 #define RTC_REG_DATA        0x71
-#define SR_A                0x0A
-#define SR_B                0x0B
+#define SR_A                0x8A
+#define SR_B                0x8B
 #define SR_C                0x0C
 #define PERIOD              0x40
 #define KEY_REG_STATUS      0x64
@@ -13,9 +13,9 @@
 static uint8_t shiftFlag;
 
 void keyboard_interrupt() {
-    send_eoi(KEYBOARD_IRQ);
+    // send_eoi(KEYBOARD_IRQ);
     unsigned char scancode = 0;
-    unsigned char pressedKey;
+    unsigned char pressedKey = 0;
     while (!(inb(KEY_REG_STATUS) & 1));
     do {
         if (inb(KEY_REG_DATA) != scancode) {
@@ -23,21 +23,20 @@ void keyboard_interrupt() {
             break;
         }
     } while(1);
-    scancode = inb(KEY_REG_DATA);
     if (scancode == 0x2A || scancode == 0x36) {
         shiftFlag = 1;
-        // send_eoi(KEYBOARD_IRQ);
+        send_eoi(KEYBOARD_IRQ);
         return;
     }
     if (scancode == 0xAA || scancode == 0xB6) {
         shiftFlag = 0;
-        // send_eoi(KEYBOARD_IRQ);
+        send_eoi(KEYBOARD_IRQ);
         return;
     }
-    pressedKey = KB_decode(scancode);
-    printf("%c", pressedKey);
-
-
+    scancode = inb(KEY_REG_DATA);
+    if (scancode > 0x00 && scancode < 0x81) pressedKey = KB_decode(scancode);
+    if (pressedKey != 0) printf("%c", pressedKey);
+    send_eoi(KEYBOARD_IRQ);
 }
 
 unsigned char KB_decode(unsigned char scancode) {
@@ -147,7 +146,7 @@ unsigned char KB_decode(unsigned char scancode) {
             case 0x39: return ' ';
         }
     }
-    return ' ';
+    return '?';
 }
 
 void init_keyboard() {
@@ -156,12 +155,10 @@ void init_keyboard() {
 }
 
 void rtc_interrupt() {
-    send_eoi(KEYBOARD_IRQ);
     outb(SR_C, RTC_REG_NUM);
     inb(RTC_REG_DATA);
     test_interrupts();
-
-
+    send_eoi(KEYBOARD_IRQ);
 }
 
 void init_rtc() {
@@ -169,7 +166,7 @@ void init_rtc() {
     char prev = inb(RTC_REG_DATA);
     outb(SR_B, RTC_REG_NUM);
     outb(prev | PERIOD, RTC_REG_DATA);
-    outb(SR_C, RTC_REG_NUM);
-    inb(RTC_REG_DATA);
+    // outb(SR_C, RTC_REG_NUM);
+    // inb(RTC_REG_DATA);
     enable_irq(RTC_IRQ);
 }

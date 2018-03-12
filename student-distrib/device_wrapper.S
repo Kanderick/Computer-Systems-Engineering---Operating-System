@@ -11,12 +11,12 @@ keyboard_wrapper:
     pushl %esi
     pushl %edi
     call keyboard_interrupt
-    pushl %edi
-    pushl %esi
-    pushl %ebx
-    pushl %edx
-    pushl %ecx
-    pushl %eax
+    popl %edi
+    popl %esi
+    popl %ebx
+    popl %edx
+    popl %ecx
+    popl %eax
     popl %ebp
     iret
 rtc_wrapper:
@@ -28,11 +28,11 @@ rtc_wrapper:
     pushl %esi
     pushl %edi
     call rtc_interrupt
-    pushl %edi
-    pushl %esi
-    pushl %ebx
-    pushl %edx
-    pushl %ecx
-    pushl %eax
+    popl %edi
+    popl %esi
+    popl %ebx
+    popl %edx
+    popl %ecx
+    popl %eax
     popl %ebp
     iret
