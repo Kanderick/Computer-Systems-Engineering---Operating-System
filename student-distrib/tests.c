@@ -122,9 +122,9 @@ int paging_test() {
 	printf("\n[TEST dereference at unpresent address, should trigger PFE]\n");
 	test_variable = *((unsigned long *)PAGE_TEST_UNPRESENT);
 	printf("[FAIL] M[%#x] is     0x%#x, didn't trigger PFE\n", PAGE_TEST_UNPRESENT, test_variable);
-	result = FAIL;
+	result = FAIL;	/* Test failed if not triggered exception */
 
-	return result;
+	return result;	/* Reserved for future use */
 }
 
 #if (EXCEPTION_TEST == 1)
@@ -140,8 +140,9 @@ int paging_test() {
  */
 int divide_zero_test(){
 	TEST_HEADER;
-	int i = 5 / 0;
-	return FAIL;
+	/* Compiler will not be happy with this line of code */
+	int i = 5 / 0;	/* This will trigger divide zero exception. */
+	return FAIL;	/* Test failed if not triggered exception */
 }
 #endif
 
@@ -158,8 +159,8 @@ int divide_zero_test(){
 int invalid_opcode_test(){
 	TEST_HEADER;
 	int val = 1;
-	asm volatile("movl %0,%%cr6": :"r" (val));
-	return FAIL;
+	asm volatile("movl %0,%%cr6": :"r" (val)); /* CR6 is a madeup register */
+	return FAIL;	/* Test failed if not triggered exception */
 }
 
 /* Checkpoint 2 tests */
