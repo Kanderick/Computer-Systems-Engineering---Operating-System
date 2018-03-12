@@ -4,10 +4,6 @@
 #include "idt.h"
 #include "paging.h"
 
-
-#define PASS 1
-#define FAIL 0
-
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
 	printf("[TEST %s] Running %s at %s:%d\n", __FUNCTION__, __FUNCTION__, __FILE__, __LINE__)
@@ -19,7 +15,6 @@ static inline void assertion_failure(){
 	   reserved by Intel */
 	asm volatile("int $15");
 }
-
 
 /* Checkpoint 1 tests */
 
@@ -43,36 +38,94 @@ int idt_test(){
 			result = FAIL;
 		}
 	}
-
 	return result;
 }
 
 #if (PAGE_TEST == 1)
+/* Paging Test
+ * Purpose	Check page directory and page table alignment, content, and dereference
+ * Inputs	None
+ * Outputs	PASS/FAIL
+ * Side Effects
+ *		Kernel will freeze after PFE
+ * Coverage
+ *		Page directory and page table alignment, content, and dereference
+ * Files	paging.c/h
+ */
 int paging_test() {
 	clear();
-
+	printf("\n");
 	TEST_HEADER;
 
-	unsigned long* kernel_addr =    (unsigned long*)0x00400000;
-	unsigned long* video_addr =     (unsigned long*)0x000B8000;
-	unsigned long* unpresent_addr = (unsigned long*)0x00012000;
-
 	int result = PASS;
-	printf("Page directory[0] is  0x%#x\n", page_directory[0]);
-	printf("Page directory[1] is  0x%#x\n", page_directory[1]);
-	printf("Page_table_0[0xB8] is 0x%#x\n", page_table_0[0xB8]);
+	unsigned long test_variable;
 
-	printf("Kernel dereference:\n");
-	unsigned long kernel_variable = *kernel_addr;
-	printf("Kernel variable is    0x%#x\n", kernel_variable);
+	/* Page Directory and Page Table should align at 4kb */
+	printf("\n[TEST page_directory and page_table_0 address]\n");
+	if (((unsigned long)page_directory & PAGE_TEST_ADDR_MASK) != 0) {
+		printf("[FAIL] page_directory     0x%#x, not aligned at 4KB\n", page_directory);
+		result = FAIL;
+	} else {
+		printf("[PASS] *page_directory    0x%#x, aligned at 4KB\n", page_directory);
+	}
+	if (((unsigned long)page_table_0 & PAGE_TEST_ADDR_MASK) != 0) {
+		printf("[FAIL] page_table_0       0x%#x, not aligned at 4KB\n", page_table_0);
+		result = FAIL;
+	} else {
+		printf("[PASS] *page_table_0      0x%#x, aligned at 4KB\n", page_table_0);
+	}
 
-	printf("Video dereference:\n");
-	unsigned long video_variable = *video_addr;
-	printf("Video variable is     0x%#x\n", video_variable);
+	/* Check if Page Directory and Page Table contain correct content */
+	printf("\n[TEST page_directory and page_table_0 content]\n");
+	if ((page_directory[0] & PTBA_MASK) != (unsigned long)page_table_0) {
+		printf("[FAIL] page_directory[0]  0x%#x, doesn't contain address of page_table_0\n", page_directory[0]);
+		result = FAIL;
+	} else {
+		printf("[PASS] page_directory[0]  0x%#x, contain addr of page_table_0 with flags\n", page_directory[0]);
+	}
+	if ((page_directory[1] & PBA_4M_MASK) != KERNEL_START) {
+		printf("[FAIL] page_directory[1]  0x%#x, doesn't contain address of kernel\n", page_directory[1]);
+		result = FAIL;
+	} else {
+		printf("[PASS] page_directory[1]  0x%#x, contain addr of kernel with flags\n", page_directory[1]);
+	}
+	if (page_directory[2] != 0) {
+		printf("[FAIL] page_directory[2]  0x%#x, not empty\n", page_directory[2]);
+		result = FAIL;
+	} else {
+		printf("[PASS] page_directory[2]  0x%#x, empty\n", page_directory[2]);
+	}
+	if (page_table_0[0] != 0) {
+		printf("[FAIL] page_table_0[0]    0x%#x, not empty\n", page_table_0[0]);
+		result = FAIL;
+	} else {
+		printf("[PASS] page_table_0[0]    0x%#x, empty\n", page_table_0[0]);
+	}
+	if ((page_table_0[VIDEO_VIRTUAL] & PBA_4K_MASK) != VIDEO_START) {
+		printf("[FAIL] page_table_0[0x%x] 0x%#x, doesn't contain address of video mem\n", VIDEO_VIRTUAL, page_table_0[VIDEO_VIRTUAL]);
+		result = FAIL;
+	} else {
+		printf("[PASS] page_table_0[0x%x] 0x%#x, contain addr of video mem with flags\n", VIDEO_VIRTUAL, page_table_0[VIDEO_VIRTUAL]);
+	}
 
-	printf("Unpresent dereference:\n");
-	unsigned long unpresent_variable = *unpresent_addr;
-	printf("Unpresent variable is 0x%#x\n", unpresent_variable);
+	/* If anything trigger PFE, test failed */
+	printf("\n[TEST dereference at kernel address]\n");
+	test_variable = *((unsigned long *)KERNEL_START);
+	printf("[PASS] M[%#x] is     0x%#x, didn't trigger PFE\n", KERNEL_START, test_variable);
+	test_variable = *((unsigned long *)PAGE_TEST_KERNEL_ADDR);
+	printf("[PASS] M[%#x] is     0x%#x, didn't trigger PFE\n", PAGE_TEST_KERNEL_ADDR, test_variable);
+
+	printf("\n[TEST dereference at video address]\n");
+	test_variable = *((unsigned long *)VIDEO_START);
+	printf("[PASS] M[%#x] is     0x%#x, didn't trigger PFE\n", VIDEO_START, test_variable);
+	test_variable = *((unsigned long *)PAGE_TEST_VIDEO_ADDR);
+	printf("[PASS] M[%#x] is     0x%#x, didn't trigger PFE\n", PAGE_TEST_VIDEO_ADDR, test_variable);
+
+	/* If PFE didn't triggered, test failed */
+	printf("\n[TEST dereference at unpresent address, should trigger PFE]\n");
+	test_variable = *((unsigned long *)PAGE_TEST_UNPRESENT);
+	printf("[FAIL] M[%#x] is     0x%#x, didn't trigger PFE\n", PAGE_TEST_UNPRESENT, test_variable);
+	result = FAIL;
 
 	return result;
 }
@@ -82,7 +135,6 @@ int paging_test() {
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
-
 
 /* Test suite entry point */
 void launch_tests(){
