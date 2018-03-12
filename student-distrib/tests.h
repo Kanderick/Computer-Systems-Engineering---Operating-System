@@ -9,10 +9,11 @@
 void launch_tests();
 
 /* Checkpoint 1 Tests Macro and Functions */
+/* Test keyboard with everything set to 0 */
 #define RTC_TEST                0           /* Set to 1 to run RTC test */
 #define IDT_TEST                0           /* Set to 1 to run IDT test */
 #define PAGE_TEST               0           /* Set to 1 to run paging test */
-#define EXCEPTION_TEST          2           /* Set to 1 to get divide zero */
+#define EXCEPTION_TEST          0           /* Set to 1 to get divide zero */
                                             /* Set to 2 to get invalid opcode */
 #define PAGE_TEST_ADDR_MASK     0x00000FFF  /* Mask out other flags */
 #define PAGE_TEST_UNPRESENT     0x00012000  /* Random page address */
