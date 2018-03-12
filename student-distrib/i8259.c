@@ -14,7 +14,7 @@ uint8_t slave_mask;  /* IRQs 8-15 */
 static spinlock_t i8259A_lock=SPIN_LOCK_UNLOCKED;   /*PIC's  spinlock*/
 #endif
 
-// IO_WAIT wait for an I/O operation to complete 
+// IO_WAIT wait for an I/O operation to complete
 static inline void io_wait(void)
 {
     /* TODO: This is probably fragile. */
@@ -59,10 +59,10 @@ void i8259_init(void) {
     // restore masks
     outb(MASK1, PIC1_DATA);
     outb(MASK2, PIC2_DATA);
-    // mask KEYBOARD
-    disable_irq(KEYBOARD_IRQ);
-    // mask RTC
-    disable_irq(RTC_IRQ);
+    // // mask KEYBOARD
+    // disable_irq(KEYBOARD_IRQ);
+    // // mask RTC
+    // disable_irq(RTC_IRQ);
 #if (HAVE_SPIN_LOCK == 1)
     spin_unlock_irqrestore(&i8259A_lock, flags);
 #endif

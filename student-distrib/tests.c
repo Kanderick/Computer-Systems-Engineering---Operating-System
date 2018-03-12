@@ -45,6 +45,13 @@ int idt_test(){
 	return result;
 }
 
+int keyboard(){
+	while(1)
+		{;}
+	return PASS;
+}
+
+
 // add more tests here
 
 /* Checkpoint 2 tests */
@@ -56,5 +63,6 @@ int idt_test(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
+	// TEST_OUTPUT("keyboard", keyboard());
 	// launch your tests here
 }

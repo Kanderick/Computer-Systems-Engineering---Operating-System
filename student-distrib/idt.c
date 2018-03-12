@@ -1,6 +1,10 @@
 #include "idt.h"
 
 void idt_init_exceptions(void){
+    unsigned i;
+    for(i = 0; i < 256; i ++) {
+        idt_init(DE, INT_GATE, &unkown_int_wrapper);
+    }
     idt_init(DE, TRAP_GATE, &exception_DE_wrapper);
     idt_init(DB, TRAP_GATE, &exception_DB_wrapper);
     idt_init(NMI, INT_GATE, &exception_NMI_wrapper);
@@ -21,8 +25,10 @@ void idt_init_exceptions(void){
     idt_init(AC, TRAP_GATE, &exception_AC_wrapper);
     idt_init(MC, TRAP_GATE, &exception_MC_wrapper);
     idt_init(XF, TRAP_GATE, &exception_XF_wrapper);
-    idt_init(KB_INT, INT_GATE, &keyboard_wrapper);
-    idt_init(RTC_INT, INT_GATE, &rtc_wrapper);
+    // idt_init(KB_INT, INT_GATE, &keyboard_wrapper);
+    // idt_init(RTC_INT, INT_GATE, &rtc_wrapper);
+    idt_init(KB_INT, INT_GATE, &unkown_int_wrapper);
+    idt_init(RTC_INT, INT_GATE, &unkown_int_wrapper);
 }
 /*IA-32 5.11 & 4.8*/
 void idt_init(unsigned index, unsigned gateType, void *handler) {

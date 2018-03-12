@@ -13,23 +13,31 @@
 static uint8_t shiftFlag;
 
 void keyboard_interrupt() {
-    unsigned char scancode;
+    send_eoi(KEYBOARD_IRQ);
+    unsigned char scancode = 0;
     unsigned char pressedKey;
     while (!(inb(KEY_REG_STATUS) & 1));
+    do {
+        if (inb(KEY_REG_DATA) != scancode) {
+            scancode = inb(KEY_REG_DATA);
+            break;
+        }
+    } while(1);
     scancode = inb(KEY_REG_DATA);
     if (scancode == 0x2A || scancode == 0x36) {
         shiftFlag = 1;
-        send_eoi(KEYBOARD_IRQ);
+        // send_eoi(KEYBOARD_IRQ);
         return;
     }
     if (scancode == 0xAA || scancode == 0xB6) {
         shiftFlag = 0;
-        send_eoi(KEYBOARD_IRQ);
+        // send_eoi(KEYBOARD_IRQ);
         return;
     }
     pressedKey = KB_decode(scancode);
     printf("%c", pressedKey);
-    send_eoi(KEYBOARD_IRQ);
+
+
 }
 
 unsigned char KB_decode(unsigned char scancode) {
@@ -148,9 +156,12 @@ void init_keyboard() {
 }
 
 void rtc_interrupt() {
+    send_eoi(KEYBOARD_IRQ);
     outb(SR_C, RTC_REG_NUM);
     inb(RTC_REG_DATA);
-    send_eoi(RTC_IRQ);
+    test_interrupts();
+
+
 }
 
 void init_rtc() {
