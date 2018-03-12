@@ -1,3 +1,6 @@
+/* paging.c - Initialize paging
+ * vim:ts=4 noexpandtab
+ */
 #include "paging.h"
 
 /* Declaration of Global Page Directory/Table */

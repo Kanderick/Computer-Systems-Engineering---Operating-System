@@ -1,3 +1,6 @@
+/* paging.h - Initialize paging
+ * vim:ts=4 noexpandtab
+ */
 #ifndef PAGE_H
 #define PAGE_H
 

@@ -17,9 +17,7 @@ static inline void assertion_failure(){
 }
 
 /* Checkpoint 1 tests */
-
-/* IDT Test - Example
- *
+/* idt_test
  * Asserts that first 10 IDT entries are not NULL
  * Inputs: None
  * Outputs: PASS/FAIL
@@ -41,8 +39,7 @@ int idt_test(){
 	return result;
 }
 
-#if (PAGE_TEST == 1)
-/* Paging Test
+/* paging_test
  * Purpose	Check page directory and page table alignment, content, and dereference
  * Inputs	None
  * Outputs	PASS/FAIL
@@ -54,7 +51,7 @@ int idt_test(){
  */
 int paging_test() {
 	clear();
-	printf("\n");
+	printf("\n\n\n");
 	TEST_HEADER;
 
 	int result = PASS;
@@ -129,7 +126,41 @@ int paging_test() {
 
 	return result;
 }
+
+#if (EXCEPTION_TEST == 1)
+/* divide_zero_test
+ * Purpose	Check if Divide Zero Exception is working
+ * Inputs	None
+ * Outputs	PASS/FAIL
+ * Side Effects
+ *		Kernel will freeze after exception
+ * Coverage
+ *		Divide Zero Exception
+ * Files	idt.c/h
+ */
+int divide_zero_test(){
+	TEST_HEADER;
+	int i = 5 / 0;
+	return FAIL;
+}
 #endif
+
+/* invalid_opcode_test
+ * Purpose	Check if Invalid Opcode Exception is working
+ * Inputs	None
+ * Outputs	PASS/FAIL
+ * Side Effects
+ *		Kernel will freeze after exception
+ * Coverage
+ *		Invalid Opcode Exception
+ * Files	idt.c/h
+ */
+int invalid_opcode_test(){
+	TEST_HEADER;
+	int val = 1;
+	asm volatile("movl %0,%%cr6": :"r" (val));
+	return FAIL;
+}
 
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
@@ -138,9 +169,16 @@ int paging_test() {
 
 /* Test suite entry point */
 void launch_tests(){
+	#if (IDT_TEST == 1)
 	TEST_OUTPUT("idt_test", idt_test());
-	// launch your tests here
-#if (PAGE_TEST == 1)
+	#endif
+	#if (PAGE_TEST == 1)
 	TEST_OUTPUT("paging_test", paging_test());
-#endif
+	#endif
+	#if (EXCEPTION_TEST == 1)
+	TEST_OUTPUT("divide_zero_test", divide_zero_test());
+	#endif
+	#if (EXCEPTION_TEST == 2)
+	TEST_OUTPUT("invalid_opcode_test", invalid_opcode_test());
+	#endif
 }

@@ -3,8 +3,9 @@ their handler
  */
 #include "device.h"
 #include "i8259.h"
+#include "tests.h"
 
-/*check whether the shiftkey is pressed*/
+/* check whether the shiftkey is pressed */
 static uint8_t shiftFlag;
 
 /*
@@ -16,30 +17,31 @@ static uint8_t shiftFlag;
  *   RETURN VALUE: none
  *   SIDE EFFECTS: print the pressed key onto the screen
  */
-
 void keyboard_interrupt() {
-    cli();      /*clean the interrupt flag*/
+    cli();                          /*clean the interrupt flag*/
     send_eoi(KEYBOARD_IRQ);         /*send the end of interrupt signal to PIC*/
-    sti();      /*restore the interrupt flag*/
-    unsigned char scancode = 0;         /*initialize scancode*/
-    unsigned char pressedKey = 0;           /*initialize pressedKey*/
+    sti();                          /*restore the interrupt flag*/
+    unsigned char scancode = 0;     /*initialize scancode*/
+    unsigned char pressedKey = 0;   /*initialize pressedKey*/
     while (!(inb(KEY_REG_STATUS) & 1));         /*check whether the first bit of status reg is set to one*/
     do {
-        if (inb(KEY_REG_DATA) != scancode) {        /*check whether a key is pressed*/
-            scancode = inb(KEY_REG_DATA);           /*read the key and put the value into scancode*/
+        if (inb(KEY_REG_DATA) != scancode) {    /* check whether a key is pressed */
+            scancode = inb(KEY_REG_DATA);       /* read the key and put the value into scancode */
             break;
         }
     } while(1);
-    if (scancode == 0x2A || scancode == 0x36) {     /*check whether the shift key is pressed*/
+    if (scancode == 0x2A || scancode == 0x36) { /* check whether the shift key is pressed */
         shiftFlag = 1;
         return;
     }
-    if (scancode == 0xAA || scancode == 0xB6) {     /*check whether the shift key is released*/
+    if (scancode == 0xAA || scancode == 0xB6) { /* check whether the shift key is released */
         shiftFlag = 0;
         return;
     }
-    if (scancode > 0x00 && scancode < 0x81) pressedKey = KB_decode(scancode);       /*if a key is pressed, decode it into the char that should be print on the screen*/
-    if (pressedKey != 0) printf("%c", pressedKey);          /*if the key pressed value is known, print it*/
+    /* if a key is pressed, decode it into the char that should be print on the screen */
+    if (scancode > 0x00 && scancode < 0x81) pressedKey = KB_decode(scancode);
+    /* if the key pressed value is known, print it */
+    if (pressedKey != 0) printf("%c", pressedKey);
 }
 
 /*
@@ -158,7 +160,7 @@ unsigned char KB_decode(unsigned char scancode) {
             case 0x39: return ' ';
         }
     }
-    return '?';         /*if the pressed key is unkown, print ?*/
+    return '?';                 /*if the pressed key is unkown, print ?*/
 }
 
 /*
@@ -170,10 +172,9 @@ unsigned char KB_decode(unsigned char scancode) {
  *   RETURN VALUE: none
  *   SIDE EFFECTS: initialize the keyboard and enable keyboard IRQ
  */
-
 void init_keyboard() {
-    shiftFlag = 0;          /*reset the shift flag*/
-    enable_irq(KEYBOARD_IRQ);       /*enable keyboard IRQ*/
+    shiftFlag = 0;              /*reset the shift flag*/
+    enable_irq(KEYBOARD_IRQ);   /*enable keyboard IRQ*/
 }
 
 /*
@@ -185,14 +186,15 @@ void init_keyboard() {
  *   RETURN VALUE: none
  *   SIDE EFFECTS:  execute the interrupt of rtc
  */
-
 void rtc_interrupt() {
-    cli();      /*clean the interrupt flag*/
-    send_eoi(RTC_IRQ);      /*send the end of interrupt signal to PIC*/
-    sti();      /*restore the interrupt flag*/
-    outb(SR_C, RTC_REG_NUM);        /*select register C*/
+    cli();                      /*clean the interrupt flag*/
+    send_eoi(RTC_IRQ);          /*send the end of interrupt signal to PIC*/
+    sti();                      /*restore the interrupt flag*/
+    outb(SR_C, RTC_REG_NUM);    /*select register C*/
     inb(RTC_REG_DATA);          /*throw away contents*/
+#if (RTC_TEST == 1)
     test_interrupts();
+#endif
 }
 
 /*
