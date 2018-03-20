@@ -4,6 +4,7 @@ their handler
 #include "device.h"
 #include "i8259.h"
 #include "tests.h"
+#include "rtc.h"
 
 /* check whether the shiftkey is pressed */
 static uint8_t shiftFlag;
@@ -195,6 +196,7 @@ void rtc_interrupt() {
 #if (RTC_TEST == 1)
     test_interrupts();
 #endif
+    rtcFlag = 0;
 }
 
 /*
