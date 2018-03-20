@@ -64,7 +64,7 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t* dentry){
     uint8_t find_flag = 0;
     uint32_t index=0;
     // find name string's length
-    const uint32_t fname_len = strlen((int8_t *)fname);
+    uint32_t fname_len = strlen((int8_t *)fname);
     // check if the file system is initialized
     if(ece391FileSystem.ece391_boot_block == NULL || \
        ece391FileSystem.ece391_inodes == NULL ||\
@@ -74,8 +74,9 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t* dentry){
     }
     // check if input string name valid
     if(fname_len>FILE_NAME_LEN){
-        printf("Input string too long.\n");
-        return -1;
+        // printf("Input string too long.\n");
+        // return -1;
+        fname_len=FILE_NAME_LEN;
     }
     // search for the input fname
     for(i = 0; i < ece391FileSystem.dir_count; i++){    /* traverse each directories */
@@ -105,6 +106,7 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t* dentry){
     // pass found index to function read_dentry_by_index
     return read_dentry_by_index(index, dentry);
 }
+
 /* Need header */
 int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry){
     unsigned int i;
@@ -132,6 +134,8 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry){
     return 0;
 
 }
+
+/* Need header */
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length){
     uint32_t buf_index = 0;
     uint32_t data_block_index = 0;
