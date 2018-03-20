@@ -80,9 +80,11 @@ struct ece391_file_system{
 }__attribute((packed));
 typedef struct ece391_file_system ece391_file_system_t;
 
+// extern file system
+extern ece391_file_system_t   ece391FileSystem;
 // utility functions
 extern void init_file_system(unsigned int addr_start, unsigned int addr_end);
-extern int32_t read_dentry_by_name(const uint8_t *fname, dentry_t* dentry,);
+extern int32_t read_dentry_by_name(const uint8_t *fname, dentry_t* dentry);
 extern int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry);
 extern int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
 #endif

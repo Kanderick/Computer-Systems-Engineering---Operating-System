@@ -1,14 +1,16 @@
 #include "file_system.h"
 #include "lib.h"
 /* the hierarchy for ece391 file system */
-static ece391_file_system_t   ece391FileSystem;
+ece391_file_system_t   ece391FileSystem;
 
 /* Need header */
 void init_file_system(unsigned int addr_start, unsigned int addr_end){
     unsigned int addr;
+    printf("\n\n\nCHECK_POINT_1\n");
     ece391FileSystem.dir_count = 0;
     ece391FileSystem.inode_count = 0;
     ece391FileSystem.data_count = 0;
+    printf("CHECK_POINT_2\n");
     // check if pointer valid
     if (addr_start==0 || addr_end<=addr_start){
         printf("ECE391 file system input address invalid.\n");
@@ -18,7 +20,8 @@ void init_file_system(unsigned int addr_start, unsigned int addr_end){
         return;
     }
     // parsing the boot block
-    ece391FileSystem.ece391_boot_block = (boot_block*) addr_start;
+    ece391FileSystem.ece391_boot_block = (boot_block_t*) addr_start;
+    printf("CHECK_POINT_3\n");
     // check if boot statistic valid
     /* file system directory number*/
     if (ece391FileSystem.ece391_boot_block->dir_count > DIRENTRIES_NUM){
@@ -41,12 +44,16 @@ void init_file_system(unsigned int addr_start, unsigned int addr_end){
     ece391FileSystem.dir_count = ece391FileSystem.ece391_boot_block->dir_count;
     ece391FileSystem.inode_count = ece391FileSystem.ece391_boot_block->inode_count;
     ece391FileSystem.data_count = ece391FileSystem.ece391_boot_block->data_count;
+    printf("ece391FileSystem.dir_count %d\n", (unsigned long)ece391FileSystem.dir_count);
+    printf("ece391FileSystem.inode_count %d\n", (unsigned long)ece391FileSystem.inode_count);
+    printf("ece391FileSystem.data_count %d\n", (unsigned long)ece391FileSystem.data_count);
+
     // parsing the inodes
     addr = addr_start+BLOCK_SIZE_4KB;
-    ece391FileSystem.ece391_inodes = (inode*) addr;
+    ece391FileSystem.ece391_inodes = (inode_t*) addr;
     // parsing the data blocks
     addr += BLOCK_SIZE_4KB*ece391FileSystem.ece391_boot_block->inode_count;
-    ece391FileSystem.ece391_data_blocks = (data_block*) addr;
+    ece391FileSystem.ece391_data_blocks = (data_block_t*) addr;
     return;
 }
 
@@ -57,7 +64,7 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t* dentry){
     uint8_t find_flag = 0;
     uint32_t index=0;
     // find name string's length
-    const uint32_t fname_len = strlen(fname);
+    const uint32_t fname_len = strlen((int8_t *)fname);
     // check if the file system is initialized
     if(ece391FileSystem.ece391_boot_block == NULL || \
        ece391FileSystem.ece391_inodes == NULL ||\
@@ -79,6 +86,12 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t* dentry){
             if(fname[j]!=ece391FileSystem.ece391_boot_block->direntries[i].filename[j]) /* Need optimizing */
                 find_flag = 0;
         }
+        // check EOS
+        if(fname_len!=FILE_NAME_LEN && find_flag == 1){
+            if(ece391FileSystem.ece391_boot_block->direntries[i].filename[fname_len]!=NULL)
+                find_flag = 0;
+        }
+        // find the correct name
         if(find_flag==1){
             index = i;
             break;

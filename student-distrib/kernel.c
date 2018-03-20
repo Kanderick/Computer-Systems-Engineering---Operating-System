@@ -22,7 +22,8 @@
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
 void entry(unsigned long magic, unsigned long addr) {
-
+    unsigned int ECE391_FILE_SYSTEM_ADDR_START;
+    unsigned int ECE391_FILE_SYSTEM_ADDR_END;
     multiboot_info_t *mbi;
 
     /* Clear the screen. */
@@ -59,6 +60,10 @@ void entry(unsigned long magic, unsigned long addr) {
         while (mod_count < mbi->mods_count) {
             printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
             printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
+            if(mod_count == 0){
+                ECE391_FILE_SYSTEM_ADDR_START=(unsigned int)mod->mod_start;
+                ECE391_FILE_SYSTEM_ADDR_END=(unsigned int)mod->mod_end;
+            }
             printf("First few bytes of module:\n");
             for (i = 0; i < 16; i++) {
                 printf("0x%x ", *((char*)(mod->mod_start+i)));
@@ -155,10 +160,12 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Init the paging */
     init_paging();
 
-    /* Initialize devices, memory, filesystem, enable device interrupts on the
-     * PIC, any other initialization stuff... */
-    init_file_system((unsigned int)mod->mod_start, (unsigned int)mod->mod_end);
-
+    {
+        /* Initialize devices, memory, filesystem, enable device interrupts on the
+         * PIC, any other initialization stuff... */
+        clear();
+        init_file_system(ECE391_FILE_SYSTEM_ADDR_START, ECE391_FILE_SYSTEM_ADDR_END);
+    }
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
