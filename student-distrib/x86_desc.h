@@ -151,11 +151,11 @@ typedef union idt_desc_t {
         uint16_t offset_15_00;
         uint16_t seg_selector;
         uint8_t  reserved4;
-        uint32_t reserved3 : 1;
-        uint32_t reserved2 : 1;
-        uint32_t reserved1 : 1;
+        uint32_t reserved3 : 1; // 8yh bit in interrupt gate
+        uint32_t reserved2 : 1; // 9th bit in
+        uint32_t reserved1 : 1; // 10th bit in interrupt gate
         uint32_t size      : 1;
-        uint32_t reserved0 : 1;
+        uint32_t reserved0 : 1; // 12th bit in interrupt gate
         uint32_t dpl       : 2;
         uint32_t present   : 1;
         uint16_t offset_31_16;
@@ -166,6 +166,8 @@ typedef union idt_desc_t {
 extern idt_desc_t idt[NUM_VEC];
 /* The descriptor used to load the IDTR */
 extern x86_desc_t idt_desc_ptr;
+
+extern x86_desc_t gdt_desc_ptr;
 
 /* Sets runtime parameters for an IDT entry */
 #define SET_IDT_ENTRY(str, handler)                              \

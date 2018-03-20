@@ -5,8 +5,28 @@
 
 #ifndef _I8259_H
 #define _I8259_H
-
+#include "lib.h"
 #include "types.h"
+// #include <linux/spinlock.h>
+
+#define MASK_OFF    0xFF /* mask off all the bits */
+#define UNMASK_RTC  0x7F /* unmask RTC from slave PIC */
+#define UNMASK_KB   0xBF /* unmask keyboard from master PIC */
+#define PIC1        0x20 /* IO base address for master PIC */
+#define PIC2        0xA0 /* IO base address for slave PIC */
+#define PIC1_COMMAND    0x20        /* PIC1 command port */
+#define PIC1_DATA       0x21        /* PIC1 data port */
+#define PIC2_COMMAND    0xA0        /* PIC2 command port */
+#define PIC2_DATA       0xA1        /* PIC2 data port */
+#define PIC1_MAP_OFFSET     0x20    /* IR0-7 mapping offset */
+#define PIC2_MAP_OFFSET     0x28    /* IR8-15 mapping offset */
+#define PIC_INIT_CODE       0x11    /* PIC INIT code */
+#define NORMAL_EOI          0x01    /* EOI normal */
+#define SLAVE_MASK_         0x04    /* slave PIC mask */
+#define SLAVE_BIT_          0x02    /* slave PIC bit */
+#define IRQ_NUM_            8       /* number of IRQ in a PIC */
+#define KEYBOARD_IRQ        1       /* #IRQ of keyboard */
+#define RTC_IRQ             8       /* #IRQ of RTC */
 
 /* Ports that each PIC sits on */
 #define MASTER_8259_PORT    0x20
