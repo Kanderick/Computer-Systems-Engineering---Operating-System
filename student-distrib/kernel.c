@@ -11,6 +11,7 @@
 #include "idt.h"
 #include "device.h"
 #include "paging.h"
+#include "file_system.h"
 
 #define RUN_TESTS
 
@@ -156,6 +157,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
+    init_file_system((unsigned int)mod->mod_start, (unsigned int)mod->mod_end);
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
