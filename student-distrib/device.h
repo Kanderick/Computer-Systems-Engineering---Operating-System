@@ -7,6 +7,7 @@
 #include "types.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "terminal.h"
 
 #define RTC_REG_NUM         0x70        /*rtc number register*/
 #define RTC_REG_DATA        0x71        /*rtc data register*/
@@ -18,6 +19,7 @@
 #define KEY_REG_DATA        0x60        /*keyboard data register*/
 #define MAX_RATE            0x0F        /*maximum rate*/
 #define RATE                15
+#define BUFF_SIZE           128
 
 /*print the pressed key onto the screen*/
 void keyboard_interrupt(void);

@@ -5,9 +5,14 @@ their handler
 #include "i8259.h"
 #include "tests.h"
 #include "rtc.h"
+#include "lib.h"
 
-/* check whether the shiftkey is pressed */
-static uint8_t shiftFlag;
+static uint8_t shiftFlag;       /* check whether the shiftkey is pressed */
+static uint8_t ctrlFlag;
+static uint8_t altFlag;
+static uint8_t capsFlag;
+static unsigned char keyBuffer[BUFF_SIZE];
+static int buffIdx = 0;
 
 /*
  * keyboard_interrupt
@@ -31,18 +36,50 @@ void keyboard_interrupt() {
             break;
         }
     } while(1);
-    if (scancode == 0x2A || scancode == 0x36) { /* check whether the shift key is pressed */
-        shiftFlag = 1;
+    if (scancode == 0x2A || scancode == 0x36) shiftFlag = 1; /* check whether the shift key is pressed */
+    if (scancode == 0xAA || scancode == 0xB6) shiftFlag = 0; /* check whether the shift key is released */
+    if (scancode == 0x1D) ctrlFlag = 1;
+    if (scancode == 0x9D) ctrlFlag = 0;
+    if (scancode == 0x38) altFlag = 1;
+    if (scancode == 0xB8) altFlag = 0;
+    if (scancode == 0x3A) {
+        if (capsFlag == 0) capsFlag = 1;
+        else capsFlag = 0;
+    }
+    if (scancode == 0x26 && ctrlFlag == 1) {
+        setCursor(0, 0);
+        clear();
+        ctrlFlag = 0;
         return;
     }
-    if (scancode == 0xAA || scancode == 0xB6) { /* check whether the shift key is released */
-        shiftFlag = 0;
+    if (scancode == 0x11 && altFlag == 1) {
+        scrollUp();
+        altFlag = 0;
         return;
+    }
+    if (scancode == 0x1F && altFlag == 1) {
+        scrollDown();
+        altFlag = 0;
+        return;
+    }
+    if (scancode == 0x0E) {
+        backspace();
+        if (buffIdx != 0) {
+            buffIdx --;
+            keyBuffer[buffIdx] = '\0';
+        }
     }
     /* if a key is pressed, decode it into the char that should be print on the screen */
     if (scancode > 0x00 && scancode < 0x81) pressedKey = KB_decode(scancode);
     /* if the key pressed value is known, print it */
-    if (pressedKey != 0) printf("%c", pressedKey);
+    if (pressedKey != 0) {
+        printf("%c", pressedKey);
+        if (buffIdx < BUFF_SIZE) {
+            keyBuffer[buffIdx] = pressedKey;
+            buffIdx ++;
+        }
+    }
+    moveCursor();
 }
 
 /*
@@ -55,6 +92,10 @@ void keyboard_interrupt() {
  */
 
 unsigned char KB_decode(unsigned char scancode) {
+    switch(scancode) {
+        case 0x1C: return '\n';
+        case 0x39: return ' ';
+    }
     if (shiftFlag == 0) {       /*check whether the shift key is pressed*/
         switch(scancode) {          /*decode the scancode*/
             case 0x02: return '1';
@@ -69,43 +110,15 @@ unsigned char KB_decode(unsigned char scancode) {
             case 0x0B: return '0';
             case 0x0C: return '-';
             case 0x0D: return '=';
-            case 0x10: return 'q';
-            case 0x11: return 'w';
-            case 0x12: return 'e';
-            case 0x13: return 'r';
-            case 0x14: return 't';
-            case 0x15: return 'y';
-            case 0x16: return 'u';
-            case 0x17: return 'i';
-            case 0x18: return 'o';
-            case 0x19: return 'p';
             case 0x1A: return '[';
             case 0x1B: return ']';
-            case 0x1C: return '\n';
-            case 0x1E: return 'a';
-            case 0x1F: return 's';
-            case 0x20: return 'd';
-            case 0x21: return 'f';
-            case 0x22: return 'g';
-            case 0x23: return 'h';
-            case 0x24: return 'j';
-            case 0x25: return 'k';
-            case 0x26: return 'l';
             case 0x27: return ';';
             case 0x28: return '\'';
             case 0x29: return '`';
             case 0x2B: return '\\';
-            case 0x2C: return 'z';
-            case 0x2D: return 'x';
-            case 0x2E: return 'c';
-            case 0x2F: return 'v';
-            case 0x30: return 'b';
-            case 0x31: return 'n';
-            case 0x32: return 'm';
             case 0x33: return ',';
             case 0x34: return '.';
             case 0x35: return '/';
-            case 0x39: return ' ';
         }
     }
     else {
@@ -122,6 +135,19 @@ unsigned char KB_decode(unsigned char scancode) {
             case 0x0B: return ')';
             case 0x0C: return '_';
             case 0x0D: return '+';
+            case 0x1A: return '{';
+            case 0x1B: return '}';
+            case 0x27: return ':';
+            case 0x28: return '"';
+            case 0x29: return '~';
+            case 0x2B: return '|';
+            case 0x33: return '<';
+            case 0x34: return '>';
+            case 0x35: return '?';
+        }
+    }
+    if (shiftFlag ^ capsFlag) {
+        switch(scancode) {
             case 0x10: return 'Q';
             case 0x11: return 'W';
             case 0x12: return 'E';
@@ -132,9 +158,6 @@ unsigned char KB_decode(unsigned char scancode) {
             case 0x17: return 'I';
             case 0x18: return 'O';
             case 0x19: return 'P';
-            case 0x1A: return '{';
-            case 0x1B: return '}';
-            case 0x1C: return '\n';
             case 0x1E: return 'A';
             case 0x1F: return 'S';
             case 0x20: return 'D';
@@ -144,10 +167,6 @@ unsigned char KB_decode(unsigned char scancode) {
             case 0x24: return 'J';
             case 0x25: return 'K';
             case 0x26: return 'L';
-            case 0x27: return ':';
-            case 0x28: return '"';
-            case 0x29: return '~';
-            case 0x2B: return '|';
             case 0x2C: return 'Z';
             case 0x2D: return 'X';
             case 0x2E: return 'C';
@@ -155,13 +174,39 @@ unsigned char KB_decode(unsigned char scancode) {
             case 0x30: return 'B';
             case 0x31: return 'N';
             case 0x32: return 'M';
-            case 0x33: return '<';
-            case 0x34: return '>';
-            case 0x35: return '?';
-            case 0x39: return ' ';
         }
     }
-    return '?';                 /*if the pressed key is unkown, print ?*/
+    else {
+        switch(scancode) {
+            case 0x10: return 'q';
+            case 0x11: return 'w';
+            case 0x12: return 'e';
+            case 0x13: return 'r';
+            case 0x14: return 't';
+            case 0x15: return 'y';
+            case 0x16: return 'u';
+            case 0x17: return 'i';
+            case 0x18: return 'o';
+            case 0x19: return 'p';
+            case 0x1E: return 'a';
+            case 0x1F: return 's';
+            case 0x20: return 'd';
+            case 0x21: return 'f';
+            case 0x22: return 'g';
+            case 0x23: return 'h';
+            case 0x24: return 'j';
+            case 0x25: return 'k';
+            case 0x26: return 'l';
+            case 0x2C: return 'z';
+            case 0x2D: return 'x';
+            case 0x2E: return 'c';
+            case 0x2F: return 'v';
+            case 0x30: return 'b';
+            case 0x31: return 'n';
+            case 0x32: return 'm';
+        }
+    }
+    return 0;                 /*if the pressed key is unkown, print ?*/
 }
 
 /*

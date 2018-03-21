@@ -11,7 +11,8 @@
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
-
+static char *preVideo_mem = (char *)VIDEO - NUM_COLS * NUM_ROWS;
+static char *nextVideo_mem = (char *)VIDEO + NUM_COLS * NUM_ROWS;
 /* void clear(void);
  * Inputs: void
  * Return Value: none
@@ -22,6 +23,55 @@ void clear(void) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
+}
+
+void initMem() {
+    int32_t i;
+    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
+        *(uint8_t *)(preVideo_mem + (i << 1)) = ' ';
+        *(uint8_t *)(preVideo_mem + (i << 1) + 1) = ATTRIB;
+    }
+    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
+        *(uint8_t *)(nextVideo_mem + (i << 1)) = ' ';
+        *(uint8_t *)(nextVideo_mem + (i << 1) + 1) = ATTRIB;
+    }
+}
+
+void scrollDown() {
+    int32_t i;
+    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
+        *(uint8_t *)(video_mem + (i << 1)) = *(uint8_t *)(video_mem + ((i + NUM_COLS) << 1));
+        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+    }
+}
+
+void scrollUp() {
+    int32_t i;
+    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
+        *(uint8_t *)(video_mem + (i << 1)) = *(uint8_t *)(video_mem + ((i - NUM_COLS) << 1));
+        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+    }
+}
+
+void setCursor(int x, int y) {
+    screen_x = x;
+    screen_y = y;
+    moveCursor();
+}
+
+void moveCursor() {
+    uint16_t pos = screen_y * NUM_COLS + screen_x;
+	outb(0x0F, 0x3D4);
+	outb((uint8_t)(pos & 0xFF), 0x3D5);
+	outb(0x0E, 0x3D4);
+	outb((uint8_t)((pos >> 8) & 0xFF), 0x3D5);
+}
+
+void backspace() {
+    if (screen_x == 0) return;
+    screen_x --;
+    printf(" ");
+    screen_x --;
 }
 
 /* Standard printf().
@@ -470,7 +520,7 @@ int8_t* strncpy(int8_t* dest, const int8_t* src, uint32_t n) {
  * Function: increments video memory. To be used to test rtc */
 void test_interrupts(void) {
     int32_t i;
-    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) { 
+    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         video_mem[i << 1]++;
     }
 }
