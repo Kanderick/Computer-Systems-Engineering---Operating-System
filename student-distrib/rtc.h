@@ -8,12 +8,12 @@
 volatile unsigned int rtcFlag;
 volatile unsigned int rtcCount = 0;
 
-int rtc_open(void);
+int32_t rtc_open(void);
 
-int rtc_close(void);
+int32_t rtc_close(void);
 
-int rtc_read(void);
+int32_t rtc_read(void);
 
-int rtc_write(int freqency);
+int32_t rtc_write(int freqency);
 
 #endif
