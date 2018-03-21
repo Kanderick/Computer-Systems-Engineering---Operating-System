@@ -19,7 +19,7 @@ static char *nextVideo_mem = (char *)VIDEO + NUM_COLS * NUM_ROWS;
  * Function: Clears video memory */
 void clear(void) {
     int32_t i;
-    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
+    for (i = 0; i < NUM_ROWS * NUM_COLS; i ++) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
@@ -27,7 +27,7 @@ void clear(void) {
 
 void initMem() {
     int32_t i;
-    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
+    for (i = 0; i < NUM_ROWS * NUM_COLS; i ++) {
         *(uint8_t *)(preVideo_mem + (i << 1)) = ' ';
         *(uint8_t *)(preVideo_mem + (i << 1) + 1) = ATTRIB;
     }
@@ -39,7 +39,7 @@ void initMem() {
 
 void scrollDown() {
     int32_t i;
-    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
+    for (i = 0; i < (NUM_ROWS - 1) * NUM_COLS; i ++) {
         *(uint8_t *)(video_mem + (i << 1)) = *(uint8_t *)(video_mem + ((i + NUM_COLS) << 1));
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
@@ -47,7 +47,7 @@ void scrollDown() {
 
 void scrollUp() {
     int32_t i;
-    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
+    for (i = NUM_ROWS * NUM_COLS - 1; i >= NUM_COLS; i --) {
         *(uint8_t *)(video_mem + (i << 1)) = *(uint8_t *)(video_mem + ((i - NUM_COLS) << 1));
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }

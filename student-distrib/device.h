@@ -39,4 +39,8 @@ void init_rtc(void);
 /*change the rate of rtc freqency*/
 void set_rate(unsigned rate);
 
+unsigned char *getBuffer(void);
+
+void resetBuffer(void);
+
 #endif

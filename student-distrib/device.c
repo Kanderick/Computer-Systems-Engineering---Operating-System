@@ -283,3 +283,12 @@ void set_rate(unsigned rate) {
   outb(SR_A, RTC_REG_NUM);      /*reset index to A*/
   outb((prev & 0xF0) | rate, RTC_REG_DATA);     /*write only our rate to A. Note, rate is the bottom 4 bits*/
 }
+
+unsigned char *getBuffer() {
+    return keyBuffer;
+}
+
+void resetBuffer() {
+    int i;
+    for (i = 0; i < BUFF_SIZE; i ++) keyBuffer[i] = '\0';
+}
