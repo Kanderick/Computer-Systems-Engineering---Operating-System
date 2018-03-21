@@ -168,7 +168,7 @@ int invalid_opcode_test(){
 int file_read_test_naive(){
 	dentry_t test;
 	uint8_t buffer[6000];
-	char name[] = "very";
+	char name[] = "cat";
 	if(read_dentry_by_name((uint8_t *)name, &test)==-1){
 		printf("Name not found.\n");
 		return PASS;
@@ -178,7 +178,7 @@ int file_read_test_naive(){
 		if (test.filetype == 2){
 			read_data(test.inode_num, 0, buffer, 6000);
 			buffer[5999]=NULL;
-			printf("%s", buffer);
+			putbuf((int8_t*)buffer, 6000);
 		}
 	}
 	return PASS;

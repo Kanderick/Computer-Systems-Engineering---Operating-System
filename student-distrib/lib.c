@@ -163,6 +163,16 @@ int32_t puts(int8_t* s) {
     return index;
 }
 
+int32_t putbuf(int8_t* s, uint32_t len) {
+    register int32_t index = 0;
+    while (len != 0) {
+        putc(s[index]);
+        len--;
+        index++;
+    }
+    return index;
+}
+
 /* void putc(uint8_t c);
  * Inputs: uint_8* c = character to print
  * Return Value: void
@@ -470,7 +480,7 @@ int8_t* strncpy(int8_t* dest, const int8_t* src, uint32_t n) {
  * Function: increments video memory. To be used to test rtc */
 void test_interrupts(void) {
     int32_t i;
-    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) { 
+    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         video_mem[i << 1]++;
     }
 }
