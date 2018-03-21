@@ -7,12 +7,12 @@
 #define NUM_COLS    80
 #define NUM_ROWS    25
 #define ATTRIB      0x7
+#define MEM_SIZE    3840
 
 static int screen_x;
 static int screen_y;
+static int endStr;
 static char* video_mem = (char *)VIDEO;
-static char *preVideo_mem = (char *)VIDEO - NUM_COLS * NUM_ROWS;
-static char *nextVideo_mem = (char *)VIDEO + NUM_COLS * NUM_ROWS;
 /* void clear(void);
  * Inputs: void
  * Return Value: none
@@ -25,37 +25,10 @@ void clear(void) {
     }
 }
 
-void initMem() {
-    int32_t i;
-    for (i = 0; i < NUM_ROWS * NUM_COLS; i ++) {
-        *(uint8_t *)(preVideo_mem + (i << 1)) = ' ';
-        *(uint8_t *)(preVideo_mem + (i << 1) + 1) = ATTRIB;
-    }
-    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
-        *(uint8_t *)(nextVideo_mem + (i << 1)) = ' ';
-        *(uint8_t *)(nextVideo_mem + (i << 1) + 1) = ATTRIB;
-    }
-}
-
-void scrollDown() {
-    int32_t i;
-    for (i = 0; i < (NUM_ROWS - 1) * NUM_COLS; i ++) {
-        *(uint8_t *)(video_mem + (i << 1)) = *(uint8_t *)(video_mem + ((i + NUM_COLS) << 1));
-        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
-    }
-}
-
-void scrollUp() {
-    int32_t i;
-    for (i = NUM_ROWS * NUM_COLS - 1; i >= NUM_COLS; i --) {
-        *(uint8_t *)(video_mem + (i << 1)) = *(uint8_t *)(video_mem + ((i - NUM_COLS) << 1));
-        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
-    }
-}
-
 void setCursor(int x, int y) {
     screen_x = x;
     screen_y = y;
+    endStr = screen_x;
     moveCursor();
 }
 
@@ -67,13 +40,36 @@ void moveCursor() {
 	outb((uint8_t)((pos >> 8) & 0xFF), 0x3D5);
 }
 
-void backspace() {
-    if (screen_x == 0 && screen_y == 0) return;
-    screen_x --;
-    printf(" ");
-    screen_x --;
+void scrolling() {
+    int32_t i;
+    if (screen_y == NUM_ROWS) {
+        memmove(video_mem, video_mem + (NUM_COLS << 1), MEM_SIZE);
+        screen_y = NUM_ROWS - 1;
+        for (i = (NUM_ROWS - 1) * NUM_COLS; i < NUM_ROWS * NUM_COLS; i ++) {
+            *(uint8_t *)(video_mem + (i << 1)) = ' ';
+            *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+        }
+    }
 }
 
+void spKey(unsigned char scancode) {
+    if (scancode == 0x53) {
+        memmove(video_mem + ((NUM_COLS * screen_y + screen_x) << 1), video_mem + ((NUM_COLS * screen_y + screen_x + 1) << 1), (NUM_COLS - screen_x - 1) << 1);
+        endStr --;
+    }
+    if (scancode == 0x0E) {
+        if (screen_x == 0 && screen_y == 0) return;
+        screen_x --;
+        endStr --;
+        memmove(video_mem + ((NUM_COLS * screen_y + screen_x) << 1), video_mem + ((NUM_COLS * screen_y + screen_x + 1) << 1), (NUM_COLS - screen_x - 1) << 1);
+    }
+    if (scancode == 0x4B) {
+        if (screen_x > 0) screen_x --;
+    }
+    if (scancode == 0x4D) {
+        if (screen_x < endStr) screen_x ++;
+    }
+}
 /* Standard printf().
  * Only supports the following format strings:
  * %%  - print a literal '%' character
@@ -221,12 +217,19 @@ void putc(uint8_t c) {
     if(c == '\n' || c == '\r') {
         screen_y++;
         screen_x = 0;
+        endStr = 0;
+        scrolling();
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
-        screen_x %= NUM_COLS;
+        endStr ++;
+        screen_y = screen_y + (screen_x / NUM_COLS);
+        scrolling();
+        if (screen_x >= NUM_COLS) {
+            screen_x %= NUM_COLS;
+            endStr = screen_x;
+        }
     }
 }
 

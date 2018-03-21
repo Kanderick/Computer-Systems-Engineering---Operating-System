@@ -19,6 +19,8 @@ int32_t terminal_read(unsigned char *buffer, int32_t bytes) {
     while (1) {
         keyBuffer = getBuffer();
         if (keyBuffer != NULL) {
+            while (!getEnter())
+            resetEnter();
             cli();
             buffLen = strlen((int8_t *)keyBuffer);
             for (i = 0; i < bytes; i ++) buffer[i] = '\0';

@@ -16,10 +16,8 @@ uint32_t strlen(const int8_t* s);
 void clear(void);
 void setCursor(int x, int y);
 void moveCursor(void);
-void backspace(void);
-void initMem(void);
-void scrollDown(void);
-void scrollUp(void);
+void spKey(unsigned char scancode);
+void scrolling(void);
 
 void* memset(void* s, int32_t c, uint32_t n);
 void* memset_word(void* s, int32_t c, uint32_t n);

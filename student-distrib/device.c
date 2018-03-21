@@ -11,6 +11,7 @@ static uint8_t shiftFlag;       /* check whether the shiftkey is pressed */
 static uint8_t ctrlFlag;
 static uint8_t altFlag;
 static uint8_t capsFlag;
+static volatile uint8_t enterFlag;
 static unsigned char keyBuffer[BUFF_SIZE];
 static int buffIdx = 0;
 
@@ -52,18 +53,7 @@ void keyboard_interrupt() {
         ctrlFlag = 0;
         return;
     }
-    if (scancode == 0x11 && altFlag == 1) {
-        scrollUp();
-        altFlag = 0;
-        return;
-    }
-    if (scancode == 0x1F && altFlag == 1) {
-        scrollDown();
-        altFlag = 0;
-        return;
-    }
     if (scancode == 0x0E) {
-        backspace();
         if (buffIdx != 0) {
             buffIdx --;
             keyBuffer[buffIdx] = '\0';
@@ -78,7 +68,9 @@ void keyboard_interrupt() {
             keyBuffer[buffIdx] = pressedKey;
             buffIdx ++;
         }
+        else enterFlag = 1;
     }
+    if (pressedKey == 0) spKey(scancode);
     moveCursor();
 }
 
@@ -93,7 +85,10 @@ void keyboard_interrupt() {
 
 unsigned char KB_decode(unsigned char scancode) {
     switch(scancode) {
-        case 0x1C: return '\n';
+        case 0x1C: {
+            enterFlag = 1;
+            return '\n';
+        }
         case 0x39: return ' ';
     }
     if (shiftFlag == 0) {       /*check whether the shift key is pressed*/
@@ -284,9 +279,11 @@ void set_rate(unsigned rate) {
   outb((prev & 0xF0) | rate, RTC_REG_DATA);     /*write only our rate to A. Note, rate is the bottom 4 bits*/
 }
 
-unsigned char *getBuffer() {
-    return keyBuffer;
-}
+unsigned char *getBuffer() {return keyBuffer;}
+
+uint8_t getEnter() {return enterFlag;}
+
+void resetEnter() {enterFlag = 0;}
 
 void resetBuffer() {
     int i;

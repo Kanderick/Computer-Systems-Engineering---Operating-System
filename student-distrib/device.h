@@ -41,6 +41,10 @@ void set_rate(unsigned rate);
 
 unsigned char *getBuffer(void);
 
+uint8_t getEnter(void);
+
+void resetEnter(void);
+
 void resetBuffer(void);
 
 #endif
