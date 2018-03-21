@@ -3,7 +3,7 @@
 #include "i8259.h"
 
 int32_t rtc_open() {
-    rtc_write(2);
+    set_rate(RATE);
     enable_irq(RTC_IRQ);
     return 0;
 }
@@ -19,7 +19,7 @@ int32_t rtc_read() {
     return 0;
 }
 
-int32_t rtc_write(void *buffer, int32_t bytes) {
+int32_t rtc_write(int *buffer, int32_t bytes) {
     char prev;
     int32_t freqency;
     if (buffer == NULL) return -1;
