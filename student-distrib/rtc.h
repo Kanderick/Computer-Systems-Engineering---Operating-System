@@ -7,12 +7,12 @@
 
 volatile unsigned int rtcFlag;
 
-int32_t rtc_open(void);
+int32_t rtc_open(uint8_t *filename);
 
-int32_t rtc_close(void);
+int32_t rtc_close(int32_t fd);
 
-int32_t rtc_read(void);
+int32_t rtc_read(int32_t fd, unsigned char *buffer, int32_t bytes);
 
-int32_t rtc_write(int *buffer, int32_t bytes);
+int32_t rtc_write(int32_t fd, unsigned char *buffer, int32_t bytes);
 
 #endif

@@ -2,15 +2,15 @@
 #include "device.h"
 #include "i8259.h"
 
-int32_t terminal_open() {
+int32_t terminal_open(uint8_t *filename) {
     return 0;
 }
 
-int32_t terminal_close() {
+int32_t terminal_close(int32_t fd) {
     return 0;
 }
 
-int32_t terminal_read(unsigned char *buffer, int32_t bytes) {
+int32_t terminal_read(int32_t fd, unsigned char *buffer, int32_t bytes) {
     if (buffer == NULL) return -1;
     if (bytes < 0) return -1;
     int i;
@@ -34,7 +34,7 @@ int32_t terminal_read(unsigned char *buffer, int32_t bytes) {
     return -1;
 }
 
-int32_t terminal_write(unsigned char *buffer, int32_t bytes) {
+int32_t terminal_write(int32_t fd, unsigned char *buffer, int32_t bytes) {
     if (buffer == NULL) return -1;
     if (bytes < 0) return -1;
     int i;

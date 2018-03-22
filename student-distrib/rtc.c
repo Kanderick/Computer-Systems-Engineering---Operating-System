@@ -2,24 +2,24 @@
 #include "device.h"
 #include "i8259.h"
 
-int32_t rtc_open() {
+int32_t rtc_open(uint8_t *filename) {
     set_rate(RATE);
     enable_irq(RTC_IRQ);
     return 0;
 }
 
-int32_t rtc_close() {
+int32_t rtc_close(int32_t fd) {
     return 0;
 }
 
-int32_t rtc_read() {
+int32_t rtc_read(int32_t fd, unsigned char *buffer, int32_t bytes) {
     sti();
     rtcFlag = 1;
     while (rtcFlag);
     return 0;
 }
 
-int32_t rtc_write(int *buffer, int32_t bytes) {
+int32_t rtc_write(int32_t fd, unsigned char *buffer, int32_t bytes) {
     char prev;
     int32_t freqency;
     if (buffer == NULL) return -1;
