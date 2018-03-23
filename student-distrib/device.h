@@ -19,7 +19,18 @@
 #define KEY_REG_DATA        0x60        /*keyboard data register*/
 #define MAX_RATE            0x0F        /*maximum rate*/
 #define RATE                15
-#define BUFF_SIZE           128
+#define BUFF_SIZE           128         /*keyboard buffer size*/
+#define LEFT_SHIFT_PRESS    0x2A
+#define RIGHT_SHIFT_PRESS   0x36
+#define LEFT_SHIFT_REL      0xAA
+#define RIGHT_SHIFT_REL     0xB6
+#define ALT_PRESS           0x38
+#define ALT_REL             0xB8
+#define CTRL_PRESS          0x1D
+#define CTRL_REL            0x9D
+#define CAPS_PRESS          0x3A
+#define L_PRESS             0x26
+#define BACKSPACE           0x0E
 
 /*print the pressed key onto the screen*/
 void keyboard_interrupt(void);
@@ -39,12 +50,16 @@ void init_rtc(void);
 /*change the rate of rtc freqency*/
 void set_rate(unsigned rate);
 
+/*get the keyboard buffer*/
 unsigned char *getBuffer(void);
 
+/*get the enter flag*/
 uint8_t getEnter(void);
 
+/*reset the enter flag*/
 void resetEnter(void);
 
+/*reset the keyboard buffer*/
 void resetBuffer(void);
 
 #endif

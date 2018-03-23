@@ -37,23 +37,24 @@ void keyboard_interrupt() {
             break;
         }
     } while(1);
-    if (scancode == 0x2A || scancode == 0x36) shiftFlag = 1; /* check whether the shift key is pressed */
-    if (scancode == 0xAA || scancode == 0xB6) shiftFlag = 0; /* check whether the shift key is released */
-    if (scancode == 0x1D) ctrlFlag = 1;
-    if (scancode == 0x9D) ctrlFlag = 0;
-    if (scancode == 0x38) altFlag = 1;
-    if (scancode == 0xB8) altFlag = 0;
-    if (scancode == 0x3A) {
-        if (capsFlag == 0) capsFlag = 1;
-        else capsFlag = 0;
+    if (scancode == LEFT_SHIFT_PRESS || scancode == RIGHT_SHIFT_PRESS) shiftFlag = 1; /* check whether the shift key is pressed */
+    if (scancode == LEFT_SHIFT_REL || scancode == RIGHT_SHIFT_REL) shiftFlag = 0; /* check whether the shift key is released */
+    if (scancode == CTRL_PRESS) ctrlFlag = 1; /*check whether the ctrl key is pressed*/
+    if (scancode == CTRL_REL) ctrlFlag = 0; /*check whether the ctrl key is released*/
+    if (scancode == ALT_PRESS) altFlag = 1;  /*check whether the alt key is pressed*/
+    if (scancode == ALT_REL) altFlag = 0;  /*check whether the alt key is released*/
+    if (scancode == CAPS_PRESS) {         /*check whether the capslock key is pressed*/
+        if (capsFlag == 0) capsFlag = 1;    /*if it in the case whrn capslock is off, set it to be on*/
+        else capsFlag = 0;      /*otherwise set it to be off*/
     }
-    if (scancode == 0x26 && ctrlFlag == 1) {
-        setCursor(0, 0);
-        clear();
-        ctrlFlag = 0;
+    /*the case of ctrl + l*/
+    if (scancode == L_PRESS && ctrlFlag == 1) {
+        setCursor(0, 0);    /*set the cursor to the beginning of the screen*/
+        clear();    /*clear the screen*/
+        ctrlFlag = 0;       /*reset the strl flag*/
         return;
     }
-    if (scancode == 0x0E) {
+    if (scancode == BACKSPACE) {        /*if the backspace key is pressed, delete a char in the buffer*/
         if (buffIdx != 0) {
             buffIdx --;
             keyBuffer[buffIdx] = '\0';
@@ -64,13 +65,13 @@ void keyboard_interrupt() {
     /* if the key pressed value is known, print it */
     if (pressedKey != 0) {
         printf("%c", pressedKey);
-        if (buffIdx < BUFF_SIZE) {
+        if (buffIdx < BUFF_SIZE) {      /*if the buffer is not full, put the char in to the buffer*/
             keyBuffer[buffIdx] = pressedKey;
             buffIdx ++;
         }
         else enterFlag = 1;
     }
-    if (pressedKey == 0) spKey(scancode);
+    if (pressedKey == 0) spKey(scancode);       /*if the key is not a normal key, check whether it is a special key*/
     moveCursor();
 }
 
@@ -141,7 +142,7 @@ unsigned char KB_decode(unsigned char scancode) {
             case 0x35: return '?';
         }
     }
-    if (shiftFlag ^ capsFlag) {
+    if (shiftFlag ^ capsFlag) {         /*deal with alpha letter cases*/
         switch(scancode) {
             case 0x10: return 'Q';
             case 0x11: return 'W';
@@ -201,7 +202,7 @@ unsigned char KB_decode(unsigned char scancode) {
             case 0x32: return 'm';
         }
     }
-    return 0;                 /*if the pressed key is unkown, print ?*/
+    return 0;                 /*if the pressed key is unkown, return 0*/
 }
 
 /*
@@ -279,12 +280,44 @@ void set_rate(unsigned rate) {
   outb((prev & 0xF0) | rate, RTC_REG_DATA);     /*write only our rate to A. Note, rate is the bottom 4 bits*/
 }
 
+/*
+ * getBuffer
+ *   DESCRIPTION: get the keyboard buffer
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: the keyboard buffer
+ *   SIDE EFFECTS: none
+ */
 unsigned char *getBuffer() {return keyBuffer;}
 
+/*
+ * getEnter
+ *   DESCRIPTION: get the enter flag
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: the enter flag
+ *   SIDE EFFECTS: none
+ */
 uint8_t getEnter() {return enterFlag;}
 
+/*
+ * resetEnter
+ *   DESCRIPTION: reset the enter flag
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: reset the enter flag
+ */
 void resetEnter() {enterFlag = 0;}
 
+/*
+ * resetBuffer
+ *   DESCRIPTION: reset the keyboard buffer
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: reset the keyboard buffer
+ */
 void resetBuffer() {
     int i;
     for (i = 0; i < BUFF_SIZE; i ++) keyBuffer[i] = '\0';

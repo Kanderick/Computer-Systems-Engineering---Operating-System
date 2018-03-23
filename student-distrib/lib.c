@@ -8,6 +8,13 @@
 #define NUM_ROWS    25
 #define ATTRIB      0x7
 #define MEM_SIZE    3840
+#define CUR_REG_ADDR    0x3D4       /*cursor address register*/
+#define CUR_REG_DATA    0x3D5       /*cursor data register*/
+#define CUR_MASK        0xFF
+#define BACKSPACE       0x0E
+#define DEL             0x53
+#define LEFT_ARROW      0x4B
+#define RIGHT_ARROW     0x4D
 
 static int screen_x;
 static int screen_y;
@@ -25,49 +32,87 @@ void clear(void) {
     }
 }
 
+/*
+ * setCursor
+ *   DESCRIPTION: change the position of the cursor to the
+                  target position
+ *   INPUTS: x -- the target position of x on the screen
+             y -- the target position of y on the screen
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: change the position of the cursor to the
+                   target position
+ */
 void setCursor(int x, int y) {
-    screen_x = x;
-    screen_y = y;
-    endStr = screen_x;
-    moveCursor();
+    screen_x = x;       /*the position x of next input*/
+    screen_y = y;       /*the position y of next input*/
+    endStr = screen_x;  /*the position of the end of the string in this line*/
+    moveCursor();       /*move the cursor to the right position*/
 }
 
+/*
+ * moveCursor
+ *   DESCRIPTION: move the cursor to the right position
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: move the cursor to the right position
+ */
 void moveCursor() {
-    uint16_t pos = screen_y * NUM_COLS + screen_x;
-	outb(0x0F, 0x3D4);
-	outb((uint8_t)(pos & 0xFF), 0x3D5);
-	outb(0x0E, 0x3D4);
-	outb((uint8_t)((pos >> 8) & 0xFF), 0x3D5);
+    uint16_t pos = screen_y * NUM_COLS + screen_x;      /*get the position of the cursor*/
+	outb(0x0F, CUR_REG_ADDR);
+	outb((uint8_t)(pos & CUR_MASK), CUR_REG_DATA);
+	outb(0x0E, CUR_REG_ADDR);
+	outb((uint8_t)((pos >> 8) & CUR_MASK), CUR_REG_DATA);
 }
 
+/*
+ * scrolling
+ *   DESCRIPTION: scroll the screen when it is necessary
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: scroll the screen when it is necessary
+ */
 void scrolling() {
     int32_t i;
-    if (screen_y == NUM_ROWS) {
-        memmove(video_mem, video_mem + (NUM_COLS << 1), MEM_SIZE);
-        screen_y = NUM_ROWS - 1;
-        for (i = (NUM_ROWS - 1) * NUM_COLS; i < NUM_ROWS * NUM_COLS; i ++) {
+    if (screen_y == NUM_ROWS) {     /*check whether it is necessary to scroll*/
+        memmove(video_mem, video_mem + (NUM_COLS << 1), MEM_SIZE);      /*move the whole screen up for 1 line*/
+        screen_y = NUM_ROWS - 1;        /*set the screen_y to the last line*/
+        for (i = (NUM_ROWS - 1) * NUM_COLS; i < NUM_ROWS * NUM_COLS; i ++) {        /*set the last line as blank*/
             *(uint8_t *)(video_mem + (i << 1)) = ' ';
             *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
         }
     }
 }
 
+/*
+ * spKey
+ *   DESCRIPTION: this function handle some special keys reactions,
+                  including backspace, del, left and right arrow
+ *   INPUTS: scancode -- the input from keyboard
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: handle some special keys reactions
+ */
 void spKey(unsigned char scancode) {
-    if (scancode == 0x53) {
+    if (scancode == DEL) {      /*the case of del*/
+        /*every block after the cursor in this line become the next block because of the del*/
         memmove(video_mem + ((NUM_COLS * screen_y + screen_x) << 1), video_mem + ((NUM_COLS * screen_y + screen_x + 1) << 1), (NUM_COLS - screen_x - 1) << 1);
-        endStr --;
+        endStr --;      /*left move the end of the string for one block*/
     }
-    if (scancode == 0x0E) {
-        if (screen_x == 0 && screen_y == 0) return;
-        screen_x --;
-        endStr --;
+    if (scancode == BACKSPACE) {        /*the case of backspace*/
+        if (screen_x == 0 && screen_y == 0) return;     /*if it is at the front of the screen, just return*/
+        screen_x --;        /*left move the cursor for one block*/
+        endStr --;      /*left move the end of the string for one block*/
+        /*every block after the cursor in this line become the next block because of the backspace*/
         memmove(video_mem + ((NUM_COLS * screen_y + screen_x) << 1), video_mem + ((NUM_COLS * screen_y + screen_x + 1) << 1), (NUM_COLS - screen_x - 1) << 1);
     }
-    if (scancode == 0x4B) {
-        if (screen_x > 0) screen_x --;
+    if (scancode == LEFT_ARROW) {       /*the case of left arrow*/
+        if (screen_x > 0) screen_x --;      /*left move the cursor for one block*/
     }
-    if (scancode == 0x4D) {
-        if (screen_x < endStr) screen_x ++;
+    if (scancode == RIGHT_ARROW) {      /*the case of right arrow*/
+        if (screen_x < endStr) screen_x ++;     /*if it is not the end of the string, right move the cursor by one block*/
     }
 }
 /* Standard printf().
@@ -217,15 +262,15 @@ void putc(uint8_t c) {
     if(c == '\n' || c == '\r') {
         screen_y++;
         screen_x = 0;
-        endStr = 0;
-        scrolling();
+        endStr = 0;     /*reset the end of the string*/
+        scrolling();        /*check and do scrolling*/
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
         endStr ++;
         screen_y = screen_y + (screen_x / NUM_COLS);
-        scrolling();
+        scrolling();    /*check and do scrolling*/
         if (screen_x >= NUM_COLS) {
             screen_x %= NUM_COLS;
             endStr = screen_x;
