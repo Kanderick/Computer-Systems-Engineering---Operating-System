@@ -16,7 +16,6 @@
 #define FILESYS_IMG_LEN         0x7c000
 #define BLOCK_SIZE_4KB          4096
 
-#define FA_SIZE                 8
 /*  This is the data structure that holds the dentry for each regular file,
  *  directory, or RTC access file. ECE391 file system has 63 dentry
  *  in total. They are placed in the first block, boot_block, in the
@@ -82,27 +81,6 @@ struct ece391_file_system{
 }__attribute((packed));
 typedef struct ece391_file_system ece391_file_system_t;
 
-typedef struct fileDescriptor {
-    struct fot *table;
-    uint32_t *inode;
-    uint32_t filePos;
-    uint32_t flags;
-} fd;
-
-typedef struct fileArray {
-    fd files[FA_SIZE];
-    uint32_t fullFlag;
-    uint32_t inode;
-} fa;
-
-typedef struct fileOperationTable {
-    uint32_t *fotOpen;
-    uint32_t *fotClose;
-    uint32_t *fotRead;
-    uint32_t *fotWrite;
-} fot;
-
-extern fot stdin, stdout, rtcTable, dirTable, regTable;
 // extern file system
 extern ece391_file_system_t   ece391FileSystem;
 // utility functions
