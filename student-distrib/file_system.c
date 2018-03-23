@@ -1,8 +1,3 @@
-/*  @ brif This file parses the given ece391 file system image
- *          and contains basic APIs to interact with files.
- *
- */
-
 #include "file_system.h"
 #include "lib.h"
 /* the hierarchy for ece391 file system */
@@ -184,6 +179,5 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     }
     // end of file is reached
     return 0;
+
 }
-// following are higher level APIs to interact with file system, these functions are expected to be called
-// by SYSTEM CALL
