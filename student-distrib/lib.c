@@ -254,6 +254,16 @@ int32_t puts(int8_t* s) {
     return index;
 }
 
+int32_t putbuf(int8_t* s, uint32_t len) {
+    register int32_t index = 0;
+    while (len != 0) {
+        putc(s[index]);
+        len--;
+        index++;
+    }
+    return index;
+}
+
 /* void putc(uint8_t c);
  * Inputs: uint_8* c = character to print
  * Return Value: void

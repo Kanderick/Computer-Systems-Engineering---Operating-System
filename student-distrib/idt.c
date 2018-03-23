@@ -60,7 +60,7 @@ void idt_init(unsigned index, unsigned gateType, void *handler) {
     SET_IDT_ENTRY(desc, handler);       /*set handler for this entry*/
     desc.seg_selector = KERNEL_CS;      /*Gate descriptors are in themselves “gates,” which
                                         hold pointers to procedure entry points in code segments
-    (                                   call, interrupt, and trap gates) */
+                                        (call, interrupt, and trap gates) */
     desc.size = 1;                      /*trap, call and task gate are 32 bits*/
     desc.present = 1;                   /*make it present*/
     switch(gateType) {                  /*fill up the reserved bits for each gate*/

@@ -3,6 +3,7 @@
 #include "lib.h"
 #include "idt.h"
 #include "paging.h"
+#include "file_system.h"
 
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
@@ -164,6 +165,25 @@ int invalid_opcode_test(){
 }
 
 /* Checkpoint 2 tests */
+int file_read_test_naive(){
+	dentry_t test;
+	uint8_t buffer[6000];
+	char name[] = "cat";
+	if(read_dentry_by_name((uint8_t *)name, &test)==-1){
+		printf("Name not found.\n");
+		return PASS;
+	}
+	else {
+		printf("File Name: %s\nFile type: %d\nInode Num: %d\n", name, test.filetype, test.inode_num);
+		if (test.filetype == 2){
+			read_data(test.inode_num, 0, buffer, 6000);
+			buffer[5999]=NULL;
+			putbuf((int8_t*)buffer, 6000);
+		}
+	}
+	return PASS;
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -182,4 +202,5 @@ void launch_tests(){
 	#if (EXCEPTION_TEST == 2)
 	TEST_OUTPUT("invalid_opcode_test", invalid_opcode_test());
 	#endif
+	file_read_test_naive();
 }
