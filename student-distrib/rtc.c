@@ -11,7 +11,7 @@
  *   RETURN VALUE: none
  *   SIDE EFFECTS: set the initial rate to 2Hz and open the rtc irq
  */
-int32_t rtc_open(const uint8_t *filename) {
+int32_t rtc_open(uint8_t *filename) {
     set_rate(RATE);     /*set the rate to 2Hz*/
     enable_irq(RTC_IRQ);
     return 0;
@@ -40,7 +40,7 @@ int32_t rtc_close(int32_t fd) {
  *   RETURN VALUE: none
  *   SIDE EFFECTS: wait until a rtc interrupt has completed
  */
-int32_t rtc_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
+int32_t rtc_read(int32_t fd, unsigned char *buffer, int32_t bytes) {
     sti();
     rtcFlag = 1;    /*set the rtc flag to 1*/
     while (rtcFlag);    /*check whether a rtc interrupt completed*/
@@ -58,12 +58,12 @@ int32_t rtc_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
  *   RETURN VALUE: none
  *   SIDE EFFECTS: set the rtc freqency to the input one
  */
-int32_t rtc_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
+int32_t rtc_write(int32_t fd, unsigned char *buffer, int32_t bytes) {
     char prev;
     int32_t freqency;
-    if (buf == NULL) return -1;      /*check whether the buffer is valid*/
-    if (nbytes != 4) return -1;      /*the freqency is a 4 bytes int*/
-    freqency = *buf;
+    if (buffer == NULL) return -1;      /*check whether the buffer is valid*/
+    if (bytes != 4) return -1;      /*the freqency is a 4 bytes int*/
+    freqency = *buffer;
     int rate = MAX_RATE;
     if (freqency > HIGHEST || freqency <= 1) return -1;     /*freqency is out of range*/
     if (freqency & (freqency - 1)) {        /*input is not power of 2*/
@@ -78,5 +78,5 @@ int32_t rtc_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
     prev = inb(RTC_REG_DATA);         /*get initial value of register A*/
     outb(SR_A, RTC_REG_NUM);      /*reset index to A*/
     outb((prev & 0xF0) | rate, RTC_REG_DATA);     /*write only our rate to A. Note, rate is the bottom 4 bits*/
-    return nbytes;
+    return sizeof(freqency);
 }
