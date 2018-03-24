@@ -165,25 +165,70 @@ int invalid_opcode_test(){
 }
 
 /* Checkpoint 2 tests */
+// NEED HEADER COMMENTS!!!!!!!!!!!!!!!!
+#define testBufferMaxLen		6000
 int file_read_test_naive(){
 	dentry_t test;
-	uint8_t buffer[6000];
-	char name[] = "cat";
+	uint8_t buffer[testBufferMaxLen];
+	uint32_t buflen;
+	char name[] = "fish";
 	if(read_dentry_by_name((uint8_t *)name, &test)==-1){
 		printf("Name not found.\n");
 		return PASS;
 	}
 	else {
 		printf("File Name: %s\nFile type: %d\nInode Num: %d\n", name, test.filetype, test.inode_num);
+	 	buflen = ece391FileSystem.ece391_inodes[test.inode_num].length;
+		if (buflen >= testBufferMaxLen)
+			buflen = testBufferMaxLen;
 		if (test.filetype == 2){
-			read_data(test.inode_num, 0, buffer, 6000);
-			buffer[5999]=NULL;
-			putbuf((int8_t*)buffer, 6000);
+			read_data(test.inode_num, 0, buffer, buflen);
+			putbuf((int8_t*)buffer, buflen);
 		}
 	}
 	return PASS;
 }
-
+int test_file_open_read_close(){
+	uint8_t name[] = "frame0.txt";
+	uint8_t name2[] = "verylargetextwithverylongname.txt";
+	uint8_t buffer[testBufferMaxLen];
+	int32_t read_len;
+	int32_t ii;
+	if (file_open(name) == -1){
+		printf("Open FAILED.\n");
+		return PASS;
+	}
+	printf("fd: %d \n", file_find(name));
+	for (ii = 0; ii < 19; ii++){
+		// print another 10 byte
+		read_len = file_read(file_find(name), buffer, 10) ;
+		if (read_len == -1){
+			printf("READ FAILED.\n");
+		}
+		else{
+			putbuf((int8_t*)buffer, read_len);
+		}
+	}
+	// open another file
+	if (file_open(name2) == -1){
+		printf("Open FAILED.\n");
+		file_close(file_find(name));
+	}
+	printf("fd: %d \n", file_find(name2));
+	for (ii = 0; ii < 2; ii++){
+		// print another 10 byte
+		read_len = file_read(file_find(name2), buffer, 10) ;
+		if (read_len == -1){
+			printf("READ FAILED.\n");
+		}
+		else{
+			putbuf((int8_t*)buffer, read_len);
+		}
+	}
+	file_close(file_find(name));
+	file_close(file_find(name2));
+	return PASS;
+}
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -202,5 +247,7 @@ void launch_tests(){
 	#if (EXCEPTION_TEST == 2)
 	TEST_OUTPUT("invalid_opcode_test", invalid_opcode_test());
 	#endif
-	file_read_test_naive();
+	// need macro
+	// file_read_test_naive();
+	test_file_open_read_close();
 }

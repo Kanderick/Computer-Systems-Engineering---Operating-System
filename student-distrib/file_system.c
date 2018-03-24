@@ -1,7 +1,13 @@
+/*  @ brif This file parses the given ece391 file system image
+ *          and contains basic APIs to interact with files.
+ *
+ */
+
 #include "file_system.h"
 #include "lib.h"
 /* the hierarchy for ece391 file system */
 ece391_file_system_t   ece391FileSystem;
+static file_status_array_t fileStatusArray;
 
 /* Need header */
 void init_file_system(unsigned int addr_start, unsigned int addr_end){
@@ -54,6 +60,8 @@ void init_file_system(unsigned int addr_start, unsigned int addr_end){
     // parsing the data blocks
     addr += BLOCK_SIZE_4KB*ece391FileSystem.ece391_boot_block->inode_count;
     ece391FileSystem.ece391_data_blocks = (data_block_t*) addr;
+    // initialze the file status array for open/close operation, only for Checkpoint 2
+    init_file_status_array(&fileStatusArray);
     return;
 }
 
@@ -74,14 +82,14 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t* dentry){
     }
     // check if input string name valid
     if(fname_len>FILE_NAME_LEN){
-        // printf("Input string too long.\n");
-        // return -1;
+        printf("Input string too long.\n");
+        return -1;
         fname_len=FILE_NAME_LEN;
     }
     // search for the input fname
     for(i = 0; i < ece391FileSystem.dir_count; i++){    /* traverse each directories */
         find_flag = 1;
-        for(j = 0; j < fname_len; j++){     /* traverse each directory's name string */
+        for(j = 0; j < fname_len; j++){     /* traverse each directory's name character */
             if(find_flag==0)
                 continue;
             if(fname[j]!=ece391FileSystem.ece391_boot_block->direntries[i].filename[j]) /* Need optimizing */
@@ -157,7 +165,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 
     // check if offset is in boundary
     if(offset >= ece391FileSystem.ece391_inodes[inode].length){
-        printf("invalid input offset. \n");
+        printf("The file has reach its end, nothing to read.\n");
         return -1;
     }
     copy_position = offset;
@@ -179,5 +187,171 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     }
     // end of file is reached
     return 0;
+}
 
+// following are higher level APIs to interact with file system, these functions are expected to be called
+void init_file_status_array(file_status_array_t* array){
+    uint32_t ii;    // traverse to initialize status file/dir array
+    for(ii = 0; ii < MAX_FILE_OPEN; ii++){
+        array->FILE_STATUS[ii] = STATUS_CLOSED;
+        array->DIR_STATUS[ii] = STATUS_OPENED;
+        array->FILE_OFFSET[ii] = 0;
+    }
+    return ;
+}
+// from SYSTEM CALL
+// following functions are for system call
+int32_t file_open    (const uint8_t* filename){
+    int32_t ii;    // traverse to check status file/dir array
+    int32_t i;     // traverse to check name string
+    int32_t new_fd = MAX_FILE_OPEN;  // if can open a file, this will record the fd
+    const int32_t file_name_length = strlen((int8_t*)filename);
+    int8_t already_open_flag = 0;
+    if (file_name_length > FILE_NAME_LEN ){
+        printf("Input string too long.\n");
+        return -1;
+    }
+    // traverse the open file array
+    for (ii = 0; ii < MAX_FILE_OPEN; ii++){
+        // check each opened file
+        if (fileStatusArray.FILE_STATUS[ii] == STATUS_OPENED){
+            already_open_flag = 1; // initialize as opened
+            // check if the name is the same
+            for (i = 0; i < file_name_length; i++){
+                if (filename[i] != fileStatusArray.FILE_TO_OPEN[ii].filename[i]){
+                    already_open_flag = 0;
+                    break;
+                }
+            }
+            // if it is the same, handle the error and return on failure
+            if (already_open_flag == 1){
+                printf("The file is already opened.\n");
+                return -1;
+            }
+        }
+        // try to update the new_fd for later use
+        else if (ii < new_fd)
+            new_fd = ii;
+
+    }
+    // if the file status array is full
+    if (new_fd == MAX_FILE_OPEN){
+        printf("The file processing array is full.\n");
+        return -1;
+    }
+    // now is OK to really try to look for the file in the ece391FILE_SYSTEM
+    if(read_dentry_by_name(filename, (fileStatusArray.FILE_TO_OPEN) + new_fd) == -1){  /* trying to copy dentry if exist*/
+        printf("The file does not exist.\n");
+        return -1;
+    }
+    // update the opened file's status
+    fileStatusArray.FILE_STATUS[new_fd] = STATUS_OPENED;
+    fileStatusArray.FILE_OFFSET[new_fd] = 0;
+    return 0;
+}
+
+int32_t file_close   (int32_t fd){
+    // check fd valid
+    if (fd >= MAX_FILE_OPEN || fd < 0){
+        printf("The input index is out of boundary. \n");
+        return -1;
+    }
+    // check if status is already closed
+    if (fileStatusArray.FILE_STATUS[fd] == STATUS_CLOSED){
+        printf("The file is already closed. \n");
+        return -1;
+    }
+    // close and return on success
+    fileStatusArray.FILE_STATUS[fd] = STATUS_CLOSED;
+    return 0;
+}
+
+// find fd for a input file name, return -1 on failure
+int32_t file_find    (const uint8_t* filename){
+    int32_t ii;    // traverse to check status file/dir array
+    int32_t i;     // traverse to check name string
+    const int32_t file_name_length = strlen((int8_t*) filename);
+    int8_t already_open_flag = 0;
+    if (file_name_length > FILE_NAME_LEN ){
+        printf("Input string too long.\n");
+        return -1;
+    }
+    // traverse the open file array
+    for (ii = 0; ii < MAX_FILE_OPEN; ii++){
+        // check each opened file
+        if (fileStatusArray.FILE_STATUS[ii] == STATUS_OPENED){
+            already_open_flag = 1; // initialize as opened
+            // check if the name is the same
+            for (i = 0; i < file_name_length; i++){
+                if (filename[i] != fileStatusArray.FILE_TO_OPEN[ii].filename[i]){
+                    already_open_flag = 0;
+                    break;
+                }
+            }
+            // if it is the same return the fd index
+            if (already_open_flag == 1)
+                return ii;
+        }
+    }
+    // return -1 if not found
+    return -1;
+}
+#define REG_FILE_TPYE       2
+int32_t file_read    (int32_t fd, void* buf, int32_t nbytes){
+    int32_t file_inode_num;
+    int32_t file_length;
+    uint32_t new_offset;
+    // check input fd valid
+    if (fd < 0 || fd >= MAX_FILE_OPEN){
+        printf("Input fd is invalid.\n");
+        return -1;
+    }
+    // check if the file is opened
+    if (fileStatusArray.FILE_STATUS[fd] == STATUS_CLOSED){
+        printf("The file is not opened.\n");
+        return -1;
+    }
+    // check file type
+    if (fileStatusArray.FILE_TO_OPEN[fd].filetype != REG_FILE_TPYE){
+        // currently cannot handle this, need improvement later
+        *((int8_t*) buf) = '\0';
+        return -1;
+    }
+    file_inode_num = fileStatusArray.FILE_TO_OPEN[fd].inode_num;
+    file_length = ece391FileSystem.ece391_inodes[file_inode_num].length;
+    new_offset = read_data(file_inode_num, fileStatusArray.FILE_OFFSET[fd],(int8_t*) buf, nbytes);
+    // if fail to read
+    if (new_offset == -1){
+        printf("File read fail.\n");
+        return -1;
+    }
+    // if reach end
+    else if (new_offset == 0){
+        // only copy a portion of data to buffer
+        new_offset = file_length - fileStatusArray.FILE_OFFSET[fd];
+        fileStatusArray.FILE_OFFSET[fd] += new_offset;
+        return new_offset;
+    }
+    // copy whole buffer
+    fileStatusArray.FILE_OFFSET[fd] += new_offset;
+    return new_offset;
+}
+int32_t file_write   (int32_t fd, const void* buf, int32_t nbytes){
+    // nothing to write
+    return 0;
+}
+
+
+
+extern int32_t dir_open    (const uint8_t* filename){
+    return 0;
+}
+extern int32_t dir_close   (int32_t fd){
+    return 0;
+}
+extern int32_t dir_read    (int32_t fd, void* buf, int32_t nbytes){
+    return 0;
+}
+extern int32_t dir_write   (int32_t fd, const void* buf, int32_t nbytes){
+    return 0;
 }

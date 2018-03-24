@@ -81,33 +81,53 @@ struct ece391_file_system{
     int32_t data_count;
 }__attribute((packed));
 typedef struct ece391_file_system ece391_file_system_t;
-
-typedef struct fileDescriptor {
-    struct fot *table;
-    uint32_t *inode;
-    uint32_t filePos;
-    uint32_t flags;
-} fd;
-
-typedef struct fileArray {
-    fd files[FA_SIZE];
-    uint32_t fullFlag;
-    uint32_t inode;
-} fa;
-
-typedef struct fileOperationTable {
-    uint32_t *fotOpen;
-    uint32_t *fotClose;
-    uint32_t *fotRead;
-    uint32_t *fotWrite;
-} fot;
-
-extern fot stdin, stdout, rtcTable, dirTable, regTable;
 // extern file system
 extern ece391_file_system_t   ece391FileSystem;
 // utility functions
 extern void init_file_system(unsigned int addr_start, unsigned int addr_end);
+/* needs header!!! */
 extern int32_t read_dentry_by_name(const uint8_t *fname, dentry_t* dentry);
+/* needs header!!! */
 extern int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry);
+/* needs header!!! */
 extern int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
+
+/* for check point 2 */
+#define MAX_FILE_OPEN   17
+#define STATUS_CLOSED   67      // 'C' indecates file closed
+#define STATUS_OPENED   79      // 'O' indicates file opened
+/* This is the file array to record file open/close status.
+ *
+ *  note: only for check point 3.2
+ */
+ struct file_status_array{
+    // files status
+    dentry_t FILE_TO_OPEN[MAX_FILE_OPEN];
+    uint8_t FILE_STATUS[MAX_FILE_OPEN];
+    uint32_t FILE_OFFSET[MAX_FILE_OPEN];
+    // directories status
+    dentry_t DIR_TO_OPEN[MAX_FILE_OPEN];
+    uint8_t DIR_STATUS[MAX_FILE_OPEN];
+ };
+ typedef struct file_status_array file_status_array_t;
+
+
+// following functions are for system call
+/* needs header!!! */
+extern void init_file_status_array(file_status_array_t* array);
+/* needs header!!! a neat helper function */
+extern int32_t file_find    (const uint8_t* filename);
+/* needs header!!! */
+extern int32_t file_read    (int32_t fd, void* buf, int32_t nbytes);
+/* needs header!!! */
+extern int32_t file_write   (int32_t fd, const void* buf, int32_t nbytes);
+/* needs header!!! */
+extern int32_t file_open    (const uint8_t* filename);
+/* needs header!!! */
+extern int32_t file_close   (int32_t fd);
+
+extern int32_t dir_read    (int32_t fd, void* buf, int32_t nbytes);
+extern int32_t dir_write   (int32_t fd, const void* buf, int32_t nbytes);
+extern int32_t dir_open    (const uint8_t* filename);
+extern int32_t dir_close   (int32_t fd);
 #endif
