@@ -49,8 +49,7 @@ void keyboard_interrupt() {
     }
     /*the case of ctrl + l*/
     if (scancode == L_PRESS && ctrlFlag == 1) {
-        setCursor(0, 0);    /*set the cursor to the beginning of the screen*/
-        clear();    /*clear the screen*/
+        clearScreen();    /*clear the screen*/
         ctrlFlag = 0;       /*reset the strl flag*/
         return;
     }

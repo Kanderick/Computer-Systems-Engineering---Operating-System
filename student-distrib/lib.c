@@ -18,7 +18,6 @@
 
 static int screen_x;
 static int screen_y;
-static int endStr;
 static char* video_mem = (char *)VIDEO;
 /* void clear(void);
  * Inputs: void
@@ -30,6 +29,19 @@ void clear(void) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
+}
+
+/*
+ * clearScreen
+ *   DESCRIPTION: clear the screen
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: clear the screen
+ */
+void clearScreen() {
+    clear();
+    setCursor(0, 0);
 }
 
 /*
@@ -46,7 +58,6 @@ void clear(void) {
 void setCursor(int x, int y) {
     screen_x = x;       /*the position x of next input*/
     screen_y = y;       /*the position y of next input*/
-    endStr = screen_x;  /*the position of the end of the string in this line*/
     moveCursor();       /*move the cursor to the right position*/
 }
 
@@ -84,6 +95,7 @@ void scrolling() {
             *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
         }
     }
+    moveCursor();
 }
 
 /*
@@ -99,20 +111,29 @@ void spKey(unsigned char scancode) {
     if (scancode == DEL) {      /*the case of del*/
         /*every block after the cursor in this line become the next block because of the del*/
         memmove(video_mem + ((NUM_COLS * screen_y + screen_x) << 1), video_mem + ((NUM_COLS * screen_y + screen_x + 1) << 1), (NUM_COLS - screen_x - 1) << 1);
-        endStr --;      /*left move the end of the string for one block*/
     }
     if (scancode == BACKSPACE) {        /*the case of backspace*/
         if (screen_x == 0 && screen_y == 0) return;     /*if it is at the front of the screen, just return*/
         screen_x --;        /*left move the cursor for one block*/
-        endStr --;      /*left move the end of the string for one block*/
         /*every block after the cursor in this line become the next block because of the backspace*/
         memmove(video_mem + ((NUM_COLS * screen_y + screen_x) << 1), video_mem + ((NUM_COLS * screen_y + screen_x + 1) << 1), (NUM_COLS - screen_x - 1) << 1);
+        if (screen_x < 0) {
+            screen_y --;
+            screen_x = NUM_COLS - 1;
+        }
     }
     if (scancode == LEFT_ARROW) {       /*the case of left arrow*/
-        if (screen_x > 0) screen_x --;      /*left move the cursor for one block*/
+        if (screen_x == 0 && screen_y == 0) return;     /*if it is at the front of the screen, just return*/
+            screen_x --;        /*left move the cursor for one block*/
+        if (screen_x < 0) {
+            screen_y --;
+            screen_x = NUM_COLS - 1;
+        }
     }
     if (scancode == RIGHT_ARROW) {      /*the case of right arrow*/
-        if (screen_x < endStr) screen_x ++;     /*if it is not the end of the string, right move the cursor by one block*/
+            screen_x ++;     /*if it is not the end of the string, right move the cursor by one block*/
+            screen_y = screen_y + (screen_x / NUM_COLS);
+            screen_x %= NUM_COLS;
     }
 }
 /* Standard printf().
@@ -272,19 +293,14 @@ void putc(uint8_t c) {
     if(c == '\n' || c == '\r') {
         screen_y++;
         screen_x = 0;
-        endStr = 0;     /*reset the end of the string*/
         scrolling();        /*check and do scrolling*/
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
-        endStr ++;
         screen_y = screen_y + (screen_x / NUM_COLS);
         scrolling();    /*check and do scrolling*/
-        if (screen_x >= NUM_COLS) {
-            screen_x %= NUM_COLS;
-            endStr = screen_x;
-        }
+        screen_x %= NUM_COLS;
     }
 }
 
