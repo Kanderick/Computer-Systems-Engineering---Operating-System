@@ -13,7 +13,7 @@ static uint8_t altFlag;
 static uint8_t capsFlag;
 static uint8_t keyFlag;
 static volatile uint8_t enterFlag;
-static unsigned char keyBuffer[BUFF_SIZE];
+static unsigned char keyBuffer[BUFF_SIZE + 1]; // +1 since we need to detect ENTER after filled
 static int buffIdx = 0;
 
 /*
@@ -331,5 +331,5 @@ void resetEnter() {
  */
 void resetBuffer() {
     int i;
-    for (i = 0; i < BUFF_SIZE; i ++) keyBuffer[i] = '\0';
+    for (i = 0; i < BUFF_SIZE+1; i ++) keyBuffer[i] = '\0'; // +1 since we need to detect ENTER after filled
 }
