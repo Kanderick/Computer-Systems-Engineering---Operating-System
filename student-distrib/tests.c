@@ -6,6 +6,7 @@
 #include "file_system.h"
 #include "rtc.h"
 #include "device.h"
+#include "terminal.h"
 
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
@@ -277,7 +278,26 @@ int rtc_test() {
 
 int terminal_test() {
 	TEST_HEADER;
-	
+
+	unsigned char buffer[140];				/* rtc_read buffer */
+	int32_t fd = 0; 							// Unused in CP 3.2
+	uint8_t *filename = (unsigned char *)"terminal";	// Unused in CP 3.2
+
+	terminal_open(filename);
+
+	printf("%d = [TEST] terminal_read\n", getEnter());
+	terminal_read(fd, buffer, 140);
+	printf("\n\n%d = 128 char reached.\n\n", getEnter());
+	terminal_write(fd, buffer, 140);
+	printf("\n\n");
+
+	printf("%d = [TEST] terminal_read\n", getEnter());
+	terminal_read(fd, buffer, 140);
+	printf("\n\n%d = 128 char reached.\n\n", getEnter());
+	terminal_write(fd, buffer, 140);
+	printf("\n");
+
+	terminal_close(fd);
 	return PASS;
 }
 
@@ -303,4 +323,6 @@ void launch_tests(){
 	// file_read_test_naive();
 	test_file_open_read_close();
 	// TEST_OUTPUT("rtc_test", rtc_test());
+	// clearScreen();
+	// TEST_OUTPUT("terminal_test", terminal_test());
 }

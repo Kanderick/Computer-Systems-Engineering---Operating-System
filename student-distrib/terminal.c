@@ -46,7 +46,7 @@ int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
     while (1) {
         keyBuffer = getBuffer();
         if (keyBuffer != NULL) {
-            while (!getEnter())
+            while (!getEnter()) {}
             resetEnter();
             cli();
             buffLen = strlen((int8_t *)keyBuffer);

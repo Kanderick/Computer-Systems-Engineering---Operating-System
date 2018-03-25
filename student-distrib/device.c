@@ -70,7 +70,6 @@ void keyboard_interrupt() {
             keyBuffer[buffIdx] = pressedKey;
             buffIdx ++;
         }
-        else enterFlag = 1;
     }
     if (pressedKey == 0) spKey(scancode);       /*if the key is not a normal key, check whether it is a special key*/
     moveCursor();
