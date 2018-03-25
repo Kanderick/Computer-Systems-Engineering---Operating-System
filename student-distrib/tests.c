@@ -250,8 +250,8 @@ int rtc_test() {
 	printf("[PASS] RTC Opened.\n");
 
 	printf("[TEST] rtc_write & read, print '1' in different frequency\n");
-	printf("Press SPACE to continue test...");
-	any_key_pressed();	// Press any key to conduct the frequency test
+	printf("Press ALT to continue test...");
+	key_pressed();	// Press alt key to conduct the frequency test
 	for (multiplier = 0; multiplier <= RTC_TEST_MAX_MULTIPLIER; multiplier++) {
 		clearScreen();
 		printf("Current Frequency: %dHz\n", frequency);
@@ -287,7 +287,7 @@ int terminal_test() {
 
 	printf("\n[TEST] terminal_read\n");
 	printf("Please type LESS than 128 characters, stop with ENTER.\n");
-	printf("Please try SHIFT, CAPSLOCK, BACKSPACE, DEL, and arrow keys:\n");
+	printf("Please try SHIFT, CAPSLOCK, and BACKSPACE:\n");
 	terminal_read(fd, buffer, TERMINAL_TEST_BUFFER);
 
 	printf("\n[TEST] terminal_write\n");
@@ -308,7 +308,7 @@ int terminal_test() {
 	printf("\n[TEST] Scrolling and clear screen\n");
 	printf("Please enter some random staff. Use CTRL+L to clear screen:\n");
 
-	return PASS; // Program should never reach here
+	return PASS;
 }
 
 /* Checkpoint 3 tests */

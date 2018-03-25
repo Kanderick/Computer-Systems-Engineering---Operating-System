@@ -11,7 +11,7 @@ static uint8_t shiftFlag;       /* check whether the shiftkey is pressed */
 static uint8_t ctrlFlag;
 static uint8_t altFlag;
 static uint8_t capsFlag;
-static uint8_t anykeyFlag;
+static uint8_t keyFlag;
 static volatile uint8_t enterFlag;
 static unsigned char keyBuffer[BUFF_SIZE];
 static int buffIdx = 0;
@@ -31,19 +31,23 @@ void keyboard_interrupt() {
     sti();                          /*restore the interrupt flag*/
     unsigned char scancode = 0;     /*initialize scancode*/
     unsigned char pressedKey = 0;   /*initialize pressedKey*/
-    while (!(inb(KEY_REG_STATUS) & 1));         /*check whether the first bit of status reg is set to one*/
-    do {
-        if (inb(KEY_REG_DATA) != scancode) {    /* check whether a key is pressed */
-            scancode = inb(KEY_REG_DATA);       /* read the key and put the value into scancode */
-            anykeyFlag = 1;
-            break;
-        }
-    } while(1);
+    //while (!(inb(KEY_REG_STATUS) & 1));         /*check whether the first bit of status reg is set to one*/
+    // do {
+    //     if (inb(KEY_REG_DATA) != scancode) {    /* check whether a key is pressed */
+    //         scancode = inb(KEY_REG_DATA);       /* read the key and put the value into scancode */
+    //         break;
+    //     }
+    //} while(1);
+    scancode = inb(KEY_REG_DATA);
+
     if (scancode == LEFT_SHIFT_PRESS || scancode == RIGHT_SHIFT_PRESS) shiftFlag = 1; /* check whether the shift key is pressed */
     if (scancode == LEFT_SHIFT_REL || scancode == RIGHT_SHIFT_REL) shiftFlag = 0; /* check whether the shift key is released */
     if (scancode == CTRL_PRESS) ctrlFlag = 1; /*check whether the ctrl key is pressed*/
     if (scancode == CTRL_REL) ctrlFlag = 0; /*check whether the ctrl key is released*/
-    if (scancode == ALT_PRESS) altFlag = 1;  /*check whether the alt key is pressed*/
+    if (scancode == ALT_PRESS) {
+        altFlag = 1;  /*check whether the alt key is pressed*/
+        keyFlag = 1;
+    }
     if (scancode == ALT_REL) altFlag = 0;  /*check whether the alt key is released*/
     if (scancode == CAPS_PRESS) {         /*check whether the capslock key is pressed*/
         if (capsFlag == 0) capsFlag = 1;    /*if it in the case whrn capslock is off, set it to be on*/
@@ -76,15 +80,15 @@ void keyboard_interrupt() {
 }
 
 /*
- * any_key_pressed
- *   DESCRIPTION: this function will wait until a key is pressed
+ * key_pressed
+ *   DESCRIPTION: this function will wait until key is pressed
  *   INPUTS: none
  *   RETURN VALUE: 1 when return
  *   SIDE EFFECTS: system will wait for a key stroke.
  */
-int any_key_pressed() {
-    while (anykeyFlag != 1) {}
-    anykeyFlag = 0;
+int key_pressed() {
+    while (keyFlag != 1) {}
+    keyFlag = 0;
     return 1;
 }
 
