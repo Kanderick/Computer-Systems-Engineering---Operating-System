@@ -15,6 +15,8 @@
 #define DEL             0x53
 #define LEFT_ARROW      0x4B
 #define RIGHT_ARROW     0x4D
+#define UP_ARROW        0x48
+#define DOWN_ARROW      0x50
 
 static int screen_x;
 static int screen_y;
@@ -110,13 +112,13 @@ void scrolling() {
 void spKey(unsigned char scancode) {
     if (scancode == DEL) {      /*the case of del*/
         /*every block after the cursor in this line become the next block because of the del*/
-        memmove(video_mem + ((NUM_COLS * screen_y + screen_x) << 1), video_mem + ((NUM_COLS * screen_y + screen_x + 1) << 1), (NUM_COLS - screen_x - 1) << 1);
+        memmove(video_mem + ((NUM_COLS * screen_y + screen_x) << 1), video_mem + ((NUM_COLS * screen_y + screen_x + 1) << 1), (NUM_COLS * NUM_ROWS - (NUM_COLS * screen_y + screen_x)) << 1);
     }
     if (scancode == BACKSPACE) {        /*the case of backspace*/
         if (screen_x == 0 && screen_y == 0) return;     /*if it is at the front of the screen, just return*/
         screen_x --;        /*left move the cursor for one block*/
         /*every block after the cursor in this line become the next block because of the backspace*/
-        memmove(video_mem + ((NUM_COLS * screen_y + screen_x) << 1), video_mem + ((NUM_COLS * screen_y + screen_x + 1) << 1), (NUM_COLS - screen_x - 1) << 1);
+        memmove(video_mem + ((NUM_COLS * screen_y + screen_x) << 1), video_mem + ((NUM_COLS * screen_y + screen_x + 1) << 1), (NUM_COLS * NUM_ROWS - (NUM_COLS * screen_y + screen_x)) << 1);
         if (screen_x < 0) {
             screen_y --;
             screen_x = NUM_COLS - 1;
@@ -134,6 +136,12 @@ void spKey(unsigned char scancode) {
             screen_x ++;     /*if it is not the end of the string, right move the cursor by one block*/
             screen_y = screen_y + (screen_x / NUM_COLS);
             screen_x %= NUM_COLS;
+    }
+    if (scancode == UP_ARROW) {
+        if (screen_y > 0) screen_y --;
+    }
+    if (scancode == DOWN_ARROW) {
+        if (screen_y < NUM_ROWS - 1) screen_y ++;
     }
 }
 /* Standard printf().
