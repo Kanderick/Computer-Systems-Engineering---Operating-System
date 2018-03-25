@@ -234,6 +234,22 @@ int test_file_open_read_close(){
 	return PASS;
 }
 
+int test_dir_open_read_close() {
+	uint8_t name[] = ".";
+	uint8_t buffer[32];
+
+	if (dir_open(name) == -1) {
+		printf("Open FAILED.\n");
+		return PASS;
+	}
+	printf("fd: %d \n", file_find(name));
+	while(0 == dir_read(file_find(name), buffer, 32)) {
+		//printf("Content in buffer is: %s.\n", buffer);
+	}
+	dir_close(file_find(name));
+	return PASS;
+}
+
 int rtc_test() {
 	clearScreen();
 	TEST_HEADER;
@@ -335,5 +351,6 @@ void launch_tests(){
 	#endif
 	// need macro
 	// file_read_test_naive();
-	test_file_open_read_close();
+	//test_file_open_read_close();
+	test_dir_open_read_close();
 }

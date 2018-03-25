@@ -100,17 +100,16 @@ extern int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t
  *
  *  note: only for check point 3.2
  */
- struct file_status_array{
-    // files status
+struct file_status_array{
+  // files status
     dentry_t FILE_TO_OPEN[MAX_FILE_OPEN];
     uint8_t FILE_STATUS[MAX_FILE_OPEN];
     uint32_t FILE_OFFSET[MAX_FILE_OPEN];
-    // directories status
-    dentry_t DIR_TO_OPEN[MAX_FILE_OPEN];
-    uint8_t DIR_STATUS[MAX_FILE_OPEN];
- };
- typedef struct file_status_array file_status_array_t;
-
+    uint32_t CURRENT_DIR_IDX;
+    uint8_t RTC_STATUS;
+};
+typedef struct file_status_array file_status_array_t;
+extern file_status_array_t fileStatusArray;
 
 // following functions are for system call
 /* needs header!!! */
