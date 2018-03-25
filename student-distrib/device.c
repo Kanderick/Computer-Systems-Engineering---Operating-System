@@ -54,8 +54,8 @@ void keyboard_interrupt() {
     if (scancode == BACKSPACE) {        /*if the backspace key is pressed, delete a char in the buffer*/
         if (buffIdx != 0) {
             keyBuffer[buffIdx] = '\0';
+            buffIdx --; // This fix the PAGE FAULT problem
         }
-        buffIdx --;
     }
     /* if a key is pressed, decode it into the char that should be print on the screen */
     if (scancode > 0x00 && scancode < 0x81) pressedKey = KB_decode(scancode);
