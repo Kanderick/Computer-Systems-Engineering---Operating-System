@@ -28,10 +28,12 @@ int divide_zero_test();
 int invalid_opcode_test();
 
 /* Checkpoint 2 tests */
+#define RTC_TERMINAL_TEST       1           /* Set to 1 to run RTC & Terminal test */
 #define RTC_TEST_SEC_PER_FRQ    3           /* Print 5 seconds each */
 #define RTC_TEST_MAX_MULTIPLIER 9           /* 1:4Hz, 2:8Hz, 3:16Hz, 4:32Hz, 5:64Hz, 6:128Hz, 7:256Hz, 8:512Hz, 9:1024Hzn */
 #define RTC_TEST_INITIAL_FRQ    2           /* Initial RTC frequency in Hz*/
 #define RTC_TEST_MAX_TICKS      2048        /* Maximum ticks to print '1' */
+#define TERMINAL_TEST_BUFFER    256         /* Buffer of Terminal read/write */
 
 int rtc_test();
 int terminal_test();

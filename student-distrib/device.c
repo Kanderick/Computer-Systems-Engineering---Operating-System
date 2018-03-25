@@ -57,9 +57,9 @@ void keyboard_interrupt() {
     }
     if (scancode == BACKSPACE) {        /*if the backspace key is pressed, delete a char in the buffer*/
         if (buffIdx != 0) {
-            buffIdx --;
             keyBuffer[buffIdx] = '\0';
         }
+        buffIdx --;
     }
     /* if a key is pressed, decode it into the char that should be print on the screen */
     if (scancode > 0x00 && scancode < 0x81) pressedKey = KB_decode(scancode);
@@ -68,8 +68,8 @@ void keyboard_interrupt() {
         printf("%c", pressedKey);
         if (buffIdx < BUFF_SIZE) {      /*if the buffer is not full, put the char in to the buffer*/
             keyBuffer[buffIdx] = pressedKey;
-            buffIdx ++;
         }
+        buffIdx ++;
     }
     if (pressedKey == 0) spKey(scancode);       /*if the key is not a normal key, check whether it is a special key*/
     moveCursor();
@@ -320,7 +320,10 @@ uint8_t getEnter() {return enterFlag;}
  *   RETURN VALUE: none
  *   SIDE EFFECTS: reset the enter flag
  */
-void resetEnter() {enterFlag = 0;}
+void resetEnter() {
+    enterFlag = 0;
+    buffIdx = 0;
+}
 
 /*
  * resetBuffer

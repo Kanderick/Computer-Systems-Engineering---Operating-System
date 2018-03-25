@@ -250,7 +250,7 @@ int rtc_test() {
 	printf("[PASS] RTC Opened.\n");
 
 	printf("[TEST] rtc_write & read, print '1' in different frequency\n");
-	printf("Press any key to continue test...");
+	printf("Press SPACE to continue test...");
 	any_key_pressed();	// Press any key to conduct the frequency test
 	for (multiplier = 0; multiplier <= RTC_TEST_MAX_MULTIPLIER; multiplier++) {
 		clearScreen();
@@ -279,26 +279,36 @@ int rtc_test() {
 int terminal_test() {
 	TEST_HEADER;
 
-	unsigned char buffer[140];				/* rtc_read buffer */
+	unsigned char buffer[TERMINAL_TEST_BUFFER];				/* rtc_read buffer */
 	int32_t fd = 0; 							// Unused in CP 3.2
 	uint8_t *filename = (unsigned char *)"terminal";	// Unused in CP 3.2
 
 	terminal_open(filename);
 
-	printf("%d = [TEST] terminal_read\n", getEnter());
-	terminal_read(fd, buffer, 140);
-	printf("\n\n%d = 128 char reached.\n\n", getEnter());
-	terminal_write(fd, buffer, 140);
-	printf("\n\n");
+	printf("\n[TEST] terminal_read\n");
+	printf("Please type LESS than 128 characters, stop with ENTER.\n");
+	printf("Please try SHIFT, CAPSLOCK, BACKSPACE, DEL, and arrow keys:\n");
+	terminal_read(fd, buffer, TERMINAL_TEST_BUFFER);
 
-	printf("%d = [TEST] terminal_read\n", getEnter());
-	terminal_read(fd, buffer, 140);
-	printf("\n\n%d = 128 char reached.\n\n", getEnter());
-	terminal_write(fd, buffer, 140);
+	printf("\n[TEST] terminal_write\n");
+	printf("Content in the buffer shold be the same as above:\n");
+	terminal_write(fd, buffer, TERMINAL_TEST_BUFFER);
+
+	printf("\n[TEST] Handle buffer overflow\n");
+	printf("Please type MORE than 128 characters, stop with ENTER:\n");
+	terminal_read(fd, buffer, TERMINAL_TEST_BUFFER);
+	printf("\nContent in the buffer should truncate to 128 characters:\n");
+	terminal_write(fd, buffer, TERMINAL_TEST_BUFFER);
 	printf("\n");
 
-	terminal_close(fd);
-	return PASS;
+	printf("\n[TEST] Handle unknown scancode\n");
+	printf("Please try F1-F12, nothing should happen. Stop with ENTER:\n");
+	terminal_read(fd, buffer, TERMINAL_TEST_BUFFER);
+
+	printf("\n[TEST] Scrolling and clear screen\n");
+	printf("Please enter some random staff. Use CTRL+L to clear screen:\n");
+
+	return PASS; // Program should never reach here
 }
 
 /* Checkpoint 3 tests */
@@ -319,10 +329,11 @@ void launch_tests(){
 	#if (EXCEPTION_TEST == 2)
 	TEST_OUTPUT("invalid_opcode_test", invalid_opcode_test());
 	#endif
+	#if (RTC_TERMINAL_TEST == 1)
+	TEST_OUTPUT("rtc_test", rtc_test());
+	terminal_test();
+	#endif
 	// need macro
 	// file_read_test_naive();
-	test_file_open_read_close();
-	// TEST_OUTPUT("rtc_test", rtc_test());
-	// clearScreen();
-	// TEST_OUTPUT("terminal_test", terminal_test());
+	// test_file_open_read_close();
 }
