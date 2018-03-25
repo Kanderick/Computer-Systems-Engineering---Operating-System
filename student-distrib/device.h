@@ -35,6 +35,9 @@
 /*print the pressed key onto the screen*/
 void keyboard_interrupt(void);
 
+/* Check if any key is pressed */
+int any_key_pressed();
+
 /*decode the signal received by data and return*/
 unsigned char KB_decode(unsigned char scancode);
 

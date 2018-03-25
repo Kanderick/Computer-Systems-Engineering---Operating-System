@@ -3,7 +3,8 @@
 
 #include "types.h"
 
-#define HIGHEST     1024
+#define HIGHEST         1024
+#define RTC_WRITE_MASK  0xF0
 
 volatile unsigned int rtcFlag;      /*check whether rtc is active*/
 

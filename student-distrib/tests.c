@@ -4,6 +4,8 @@
 #include "idt.h"
 #include "paging.h"
 #include "file_system.h"
+#include "rtc.h"
+#include "device.h"
 
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
@@ -165,8 +167,8 @@ int invalid_opcode_test(){
 }
 
 /* Checkpoint 2 tests */
-// NEED HEADER COMMENTS!!!!!!!!!!!!!!!!
-#define testBufferMaxLen		6000
+// NOTE NEED HEADER COMMENTS!!!!!!!!!!!!!!!!
+#define testBufferMaxLen		6000 // Move this to header file
 int file_read_test_naive(){
 	dentry_t test;
 	uint8_t buffer[testBufferMaxLen];
@@ -188,6 +190,7 @@ int file_read_test_naive(){
 	}
 	return PASS;
 }
+
 int test_file_open_read_close(){
 	uint8_t name[] = "frame0.txt";
 	uint8_t name2[] = "verylargetextwithverylongname.txt";
@@ -229,6 +232,55 @@ int test_file_open_read_close(){
 	file_close(file_find(name2));
 	return PASS;
 }
+
+int rtc_test() {
+	clearScreen();
+	TEST_HEADER;
+
+	unsigned char read_buf;						/* rtc_read buffer */
+	int32_t frequency = RTC_TEST_INITIAL_FRQ;	/* Initialize RTC freqency */
+	int32_t fd = 0; 							// Unused in CP 3.2
+	uint8_t *filename = (unsigned char *)"rtc";	// Unused in CP 3.2
+	int32_t ticks;								/* Ticks to print */
+	int8_t multiplier;							/* Act as a counter */
+
+	printf("[TEST] rtc_open\n");
+	rtc_open(filename);
+	printf("[PASS] RTC Opened.\n");
+
+	printf("[TEST] rtc_write & read, print '1' in different frequency\n");
+	printf("Press any key to continue test...");
+	any_key_pressed();	// Press any key to conduct the frequency test
+	for (multiplier = 0; multiplier <= RTC_TEST_MAX_MULTIPLIER; multiplier++) {
+		clearScreen();
+		printf("Current Frequency: %dHz\n", frequency);
+		ticks = frequency * RTC_TEST_SEC_PER_FRQ;	// Calculate loop ticks
+		if (ticks > RTC_TEST_MAX_TICKS) ticks = RTC_TEST_MAX_TICKS;	// Upper bound of ticks is defined
+		while(ticks != 0) {
+			if (!rtc_read(fd, &read_buf, 1))	// If received a rtc interrupt, print '1'
+				putc('1');
+			ticks --;
+		}
+		frequency = frequency * 2;	// Double the frequency
+		rtc_write(fd, (unsigned char *)&frequency, 4);
+	}
+	frequency = RTC_TEST_INITIAL_FRQ;	// Restore initial rtc frequency
+	rtc_write(fd, (unsigned char *)&frequency, 4);
+	clearScreen();
+
+	printf("[TEST] rtc_close\n");
+	rtc_close(fd);	// RTC close just return 0
+	printf("[PASS] RTC Closed.\n");
+
+	return PASS;	// If anything fail, code will segfault
+}
+
+int terminal_test() {
+	TEST_HEADER;
+	
+	return PASS;
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -250,4 +302,5 @@ void launch_tests(){
 	// need macro
 	// file_read_test_naive();
 	test_file_open_read_close();
+	// TEST_OUTPUT("rtc_test", rtc_test());
 }

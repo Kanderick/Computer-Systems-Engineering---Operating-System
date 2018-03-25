@@ -77,6 +77,6 @@ int32_t rtc_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
     outb(SR_A, RTC_REG_NUM);      /*set index to register A, disable NMI*/
     prev = inb(RTC_REG_DATA);         /*get initial value of register A*/
     outb(SR_A, RTC_REG_NUM);      /*reset index to A*/
-    outb((prev & 0xF0) | rate, RTC_REG_DATA);     /*write only our rate to A. Note, rate is the bottom 4 bits*/
+    outb((prev & RTC_WRITE_MASK) | rate, RTC_REG_DATA);     /*write only our rate to A. Note, rate is the bottom 4 bits*/
     return nbytes;
 }

@@ -11,6 +11,7 @@ static uint8_t shiftFlag;       /* check whether the shiftkey is pressed */
 static uint8_t ctrlFlag;
 static uint8_t altFlag;
 static uint8_t capsFlag;
+static uint8_t anykeyFlag;
 static volatile uint8_t enterFlag;
 static unsigned char keyBuffer[BUFF_SIZE];
 static int buffIdx = 0;
@@ -34,6 +35,7 @@ void keyboard_interrupt() {
     do {
         if (inb(KEY_REG_DATA) != scancode) {    /* check whether a key is pressed */
             scancode = inb(KEY_REG_DATA);       /* read the key and put the value into scancode */
+            anykeyFlag = 1;
             break;
         }
     } while(1);
@@ -75,6 +77,19 @@ void keyboard_interrupt() {
 }
 
 /*
+ * any_key_pressed
+ *   DESCRIPTION: this function will wait until a key is pressed
+ *   INPUTS: none
+ *   RETURN VALUE: 1 when return
+ *   SIDE EFFECTS: system will wait for a key stroke.
+ */
+int any_key_pressed() {
+    while (anykeyFlag != 1) {}
+    anykeyFlag = 0;
+    return 1;
+}
+
+/*
  * KB_decode
  *   DESCRIPTION: decode the signal received by data and return
  *   INPUTS: scancode -- the signal received by data port of keyboard
@@ -82,7 +97,6 @@ void keyboard_interrupt() {
  *   RETURN VALUE: the char that should be displayed on the screen
  *   SIDE EFFECTS: none
  */
-
 unsigned char KB_decode(unsigned char scancode) {
     switch(scancode) {
         case 0x1C: {
