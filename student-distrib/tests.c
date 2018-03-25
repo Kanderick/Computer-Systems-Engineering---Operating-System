@@ -168,6 +168,7 @@ int invalid_opcode_test(){
 }
 
 /* Checkpoint 2 tests */
+// this file tests three basic APIs to file system
 // NOTE NEED HEADER COMMENTS!!!!!!!!!!!!!!!!
 #define testBufferMaxLen		6000 // Move this to header file
 int file_read_test_naive(){
@@ -191,32 +192,67 @@ int file_read_test_naive(){
 	}
 	return PASS;
 }
-
+#define 	NAME_MAX_LEN		32 /* in ece391 file system, a file name has maximum 32 B length */
+#define 	PRINT_STRIDE		50 /* for easy testing, echo 50 bytes of file info uoto screen */
+// regular files ops test
 int test_file_open_read_close(){
-	uint8_t name[] = "frame0.txt";
+	uint8_t name1[] = "frame0.txt";
 	uint8_t name2[] = "verylargetextwithverylongname.txt";
 	uint8_t buffer[testBufferMaxLen];
 	int32_t read_len;
 	int32_t ii;
-	if (file_open(name) == -1){
+	/* NOTE open a txt file with a short name 					NOTE */
+	printf("[TEST] short name txt files open \n");
+	printf("[TEST] file open %s\n", name1);
+	// NOTE: PAUSE
+	if (file_open(name1) == -1)
 		printf("Open FAILED.\n");
-		return PASS;
-	}
-	printf("fd: %d \n", file_find(name));
-	for (ii = 0; ii < 19; ii++){
+	else
+		printf("Open SUCCEEDED.\n");
+	printf("[PASS] file opened %s\n", name1);
+	// NOTE: PAUSE
+	/* NOTE open a txt file with a illegally long name 			NOTE */
+	printf("[TEST] illegally long name txt files open \n");
+	printf("[TEST] file open %s\n", name2);
+	// NOTE: PAUSE
+	if (file_open(name1) == -1)
+		printf("Open FAILED.\n");
+	else
+		printf("Open SUCCEEDED.\n");
+	printf("[PASS] file should not be opened %s\n", name1);
+	// NOTE: PAUSE
+	/* NOTE legal long name operations 							NOTE */
+	name2[NAME_MAX_LEN] = '\0'; /* set name to leagal length*/
+	printf("[TEST] leagally long name txt files open \n");
+	printf("[TEST] file open %s\n", name2);
+	// NOTE: PAUSE
+	if (file_open(name1) == -1)
+		printf("Open FAILED.\n");
+	else
+		printf("Open SUCCEEDED.\n");
+	printf("[PASS] file should be opened %s\n", name1);
+	// NOTE: PAUSE
+	/* NOTE read a short txt file and echo on screen */
+	printf("[TEST] short name txt files read and echo on screen \n");
+	printf("[TEST] Every time a maximum of 50 bytes will be echoed \
+			on the sreen until end of file. Please press ALT for keep printing...\n");
+	// NOTE: PAUSE
+	printf("[TEST] filename: %s fd: %d \n", name1, file_find(name1));
+	read_len = PRINT_STRIDE;
+	while (read_len == PRINT_STRIDE){
 		// print another 10 byte
-		read_len = file_read(file_find(name), buffer, 10) ;
-		if (read_len == -1){
+		read_len = file_read(file_find(name1), buffer, PRINT_STRIDE) ;
+		if (read_len == -1)
 			printf("READ FAILED.\n");
-		}
-		else{
+		else
 			putbuf((int8_t*)buffer, read_len);
-		}
+		// NOTE: PAUSE
 	}
+	printf("[PASS] short file read succeeded %s\n", name1);
 	// open another file
 	if (file_open(name2) == -1){
 		printf("Open FAILED.\n");
-		file_close(file_find(name));
+		file_close(file_find(name2));
 	}
 	printf("fd: %d \n", file_find(name2));
 	for (ii = 0; ii < 2; ii++){
@@ -229,7 +265,7 @@ int test_file_open_read_close(){
 			putbuf((int8_t*)buffer, read_len);
 		}
 	}
-	file_close(file_find(name));
+	file_close(file_find(name2));
 	file_close(file_find(name2));
 	return PASS;
 }
@@ -249,7 +285,16 @@ int test_dir_open_read_close() {
 	dir_close(file_find(name));
 	return PASS;
 }
-
+/* rtc_test
+ * Purpose	Check if RTC works properly.
+ * Inputs	None
+ * Outputs	PASS/FAIL
+ * Side Effects
+ *		None
+ * Coverage
+ *		rtc open/read/write/close
+ * Files	rtc.c/h
+ */
 int rtc_test() {
 	clearScreen();
 	TEST_HEADER;
@@ -266,8 +311,8 @@ int rtc_test() {
 	printf("[PASS] RTC Opened.\n");
 
 	printf("[TEST] rtc_write & read, print '1' in different frequency\n");
-	printf("Press SPACE to continue test...");
-	any_key_pressed();	// Press any key to conduct the frequency test
+	printf("Press ALT to continue test...");
+	key_pressed();	// Press alt key to conduct the frequency test
 	for (multiplier = 0; multiplier <= RTC_TEST_MAX_MULTIPLIER; multiplier++) {
 		clearScreen();
 		printf("Current Frequency: %dHz\n", frequency);
@@ -292,18 +337,59 @@ int rtc_test() {
 	return PASS;	// If anything fail, code will segfault
 }
 
+/* terminal_test
+ * Purpose	Check terminal functionalities.
+ * Inputs	None
+ * Outputs	PASS/FAIL
+ * Side Effects
+ *		None
+ * Coverage
+ *		Terminal normal and abnormal open/read/write/close
+ * Files	terminal.c/h
+ */
 int terminal_test() {
+	printf("\n");
 	TEST_HEADER;
 
-	unsigned char buffer[TERMINAL_TEST_BUFFER];				/* rtc_read buffer */
-	int32_t fd = 0; 							// Unused in CP 3.2
+	int32_t flag;										/* Flag to check FAIL */
+	unsigned char buffer[TERMINAL_TEST_BUFFER];			/* rtc_read buffer */
+	int32_t fd = 0; 									// Unused in CP 3.2
 	uint8_t *filename = (unsigned char *)"terminal";	// Unused in CP 3.2
+	int result = PASS;									/* return result */
 
+	/* PART 1: Terminal Open test */
+	printf("[TEST] terminal_write without open\n");
+	flag = terminal_write(fd, buffer, TERMINAL_TEST_BUFFER);
+	if (flag == -1) printf("[PASS] Terminal cannot write without open.\n");
+	else {
+		printf("[FAIL] Terminal write without open.\n");
+		result = FAIL;
+	}
+
+	printf("\n[TEST] terminal_read without open\n");
+	flag = terminal_read(fd, buffer, TERMINAL_TEST_BUFFER);
+	if (flag == -1) printf("[PASS] Terminal cannot read without open.\n");
+	else {
+		printf("[FAIL] Terminal read without open.\n");
+		result = FAIL;
+	}
+
+	printf("\n[TEST] terminal_open\n");
 	terminal_open(filename);
+	printf("[PASS] Terminal opened.\n");
 
+	printf("\n[TEST] terminal_open again\n");
+	flag = terminal_open(filename);
+	if (flag == -1) printf("[PASS] Terminal didn't open again.\n");
+	else {
+		printf("[FAIL] Terminal opened twice.\n");
+		result = FAIL;
+	}
+
+	/* PART 2: Test normal terminal operations */
 	printf("\n[TEST] terminal_read\n");
 	printf("Please type LESS than 128 characters, stop with ENTER.\n");
-	printf("Please try SHIFT, CAPSLOCK, BACKSPACE, DEL, and arrow keys:\n");
+	printf("Please try SHIFT, CAPSLOCK, and BACKSPACE:\n");
 	terminal_read(fd, buffer, TERMINAL_TEST_BUFFER);
 
 	printf("\n[TEST] terminal_write\n");
@@ -322,9 +408,28 @@ int terminal_test() {
 	terminal_read(fd, buffer, TERMINAL_TEST_BUFFER);
 
 	printf("\n[TEST] Scrolling and clear screen\n");
-	printf("Please enter some random staff. Use CTRL+L to clear screen:\n");
+	printf("Please enter some random staff. Use CTRL+L to clear screen. Stop with ENTER:\n");
+	terminal_read(fd, buffer, TERMINAL_TEST_BUFFER);
 
-	return PASS; // Program should never reach here
+	/* PART 3: Terminal Close Test */
+	printf("\n[TEST] terminal_close\n");
+	terminal_close(fd);
+	printf("[PASS] Terminal closed.\n");
+
+	printf("\n[TEST] terminal_close again\n");
+	flag = terminal_close(fd);
+	if (flag == -1) printf("[PASS] terminal didn't close again.\n");
+	else {
+		printf("[FAIL] Terminal closed twice.\n");
+		result = FAIL;
+	}
+
+	/* Hold the test to see the result */
+	printf("\nPress ALT to continue test...");
+	key_pressed();	// Press alt key to conduct the frequency test
+	printf("\n");
+
+	return result;
 }
 
 /* Checkpoint 3 tests */
@@ -347,7 +452,7 @@ void launch_tests(){
 	#endif
 	#if (RTC_TERMINAL_TEST == 1)
 	TEST_OUTPUT("rtc_test", rtc_test());
-	terminal_test();
+	TEST_OUTPUT("terminal_test", terminal_test());
 	#endif
 	// need macro
 	// file_read_test_naive();
