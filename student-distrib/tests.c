@@ -278,12 +278,29 @@ int rtc_test() {
 
 int terminal_test() {
 	TEST_HEADER;
-
+	int32_t flag;
 	unsigned char buffer[TERMINAL_TEST_BUFFER];				/* rtc_read buffer */
 	int32_t fd = 0; 							// Unused in CP 3.2
 	uint8_t *filename = (unsigned char *)"terminal";	// Unused in CP 3.2
 
+	printf("\n[TEST] terminal_read without open.\n");
+	flag = terminal_write(fd, buffer, TERMINAL_TEST_BUFFER);
+	if (flag == -1) printf("[PASS] terminal not read.\n");
+	else return FAIL;
+
+	printf("\n[TEST] terminal_read without open.\n");
+	flag = terminal_read(fd, buffer, TERMINAL_TEST_BUFFER);
+	if (flag == -1) printf("[PASS] terminal not read.\n");
+	else return FAIL;
+
+	printf("[TEST] terminal_open\n");
 	terminal_open(filename);
+	printf("[PASS] terminal Opened.\n");
+
+	printf("[TEST] terminal_open twice.\n");
+	flag = terminal_open(filename);
+	if (flag == -1) printf("[PASS] terminal not open again.\n");
+	else return FAIL;
 
 	printf("\n[TEST] terminal_read\n");
 	printf("Please type LESS than 128 characters, stop with ENTER.\n");
@@ -307,6 +324,15 @@ int terminal_test() {
 
 	printf("\n[TEST] Scrolling and clear screen\n");
 	printf("Please enter some random staff. Use CTRL+L to clear screen:\n");
+
+	printf("[TEST] terminal_close\n");
+	rtc_close(fd);
+	printf("[PASS] terminal Closed.\n");
+
+	printf("[TEST] terminal_close twice.\n");
+	flag = rtc_close(fd);
+	if (flag == -1) printf("[PASS] terminal not close again.\n");
+	else return FAIL;
 
 	return PASS;
 }

@@ -31,15 +31,7 @@ void keyboard_interrupt() {
     sti();                          /*restore the interrupt flag*/
     unsigned char scancode = 0;     /*initialize scancode*/
     unsigned char pressedKey = 0;   /*initialize pressedKey*/
-    //while (!(inb(KEY_REG_STATUS) & 1));         /*check whether the first bit of status reg is set to one*/
-    // do {
-    //     if (inb(KEY_REG_DATA) != scancode) {    /* check whether a key is pressed */
-    //         scancode = inb(KEY_REG_DATA);       /* read the key and put the value into scancode */
-    //         break;
-    //     }
-    //} while(1);
     scancode = inb(KEY_REG_DATA);
-
     if (scancode == LEFT_SHIFT_PRESS || scancode == RIGHT_SHIFT_PRESS) shiftFlag = 1; /* check whether the shift key is pressed */
     if (scancode == LEFT_SHIFT_REL || scancode == RIGHT_SHIFT_REL) shiftFlag = 0; /* check whether the shift key is released */
     if (scancode == CTRL_PRESS) ctrlFlag = 1; /*check whether the ctrl key is pressed*/

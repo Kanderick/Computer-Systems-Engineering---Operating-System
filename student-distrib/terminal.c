@@ -2,7 +2,7 @@
 #include "device.h"
 #include "i8259.h"
 
-static volatile uint8_t terminalFlag;
+static volatile uint8_t terminalFlag = 0;
 
 /*
  * terminal_open
@@ -13,7 +13,10 @@ static volatile uint8_t terminalFlag;
  *   SIDE EFFECTS: open the terminal file
  */
 int32_t terminal_open(const uint8_t *filename) {
-    if (terminalFlag == 1) return -1;
+    if (terminalFlag == 1) {
+        printf("terminal has already opened\n");
+        return -1;
+    }
     terminalFlag = 1;
     return 0;
 }
@@ -27,7 +30,10 @@ int32_t terminal_open(const uint8_t *filename) {
  *   SIDE EFFECTS: close the terminal file
  */
 int32_t terminal_close(int32_t fd) {
-    if (terminalFlag == 0) return -1;
+    if (terminalFlag == 0) {
+        printf("terminal has already closed\n");
+        return -1;
+    }
     terminalFlag = 0;
     return 0;
 }
@@ -44,7 +50,10 @@ int32_t terminal_close(int32_t fd) {
  *   SIDE EFFECTS: read the keyboard to the target buffer
  */
 int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
-    if (terminalFlag == 0) return -1;
+    if (terminalFlag == 0) {
+        printf("terminal is not yet opened\n");
+        return -1;
+    }
     if (buf == NULL) return -1;
     if (nbytes < 0) return -1;
     int i;
@@ -80,7 +89,10 @@ int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
  *   SIDE EFFECTS: print the char in target buffer onto the screen
  */
 int32_t terminal_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
-    if (terminalFlag == 0) return -1;
+    if (terminalFlag == 0) {
+        printf("terminal is not yet opened\n");
+        return -1;
+    }
     if (buf == NULL) return -1;
     if (nbytes < 0) return -1;
     int i;
