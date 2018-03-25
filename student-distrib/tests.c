@@ -168,6 +168,7 @@ int invalid_opcode_test(){
 }
 
 /* Checkpoint 2 tests */
+// this file tests three basic APIs to file system
 // NOTE NEED HEADER COMMENTS!!!!!!!!!!!!!!!!
 #define testBufferMaxLen		6000 // Move this to header file
 int file_read_test_naive(){
@@ -191,32 +192,67 @@ int file_read_test_naive(){
 	}
 	return PASS;
 }
-
+#define 	NAME_MAX_LEN		32 /* in ece391 file system, a file name has maximum 32 B length */
+#define 	PRINT_STRIDE		50 /* for easy testing, echo 50 bytes of file info uoto screen */
+// regular files ops test
 int test_file_open_read_close(){
-	uint8_t name[] = "frame0.txt";
+	uint8_t name1[] = "frame0.txt";
 	uint8_t name2[] = "verylargetextwithverylongname.txt";
 	uint8_t buffer[testBufferMaxLen];
 	int32_t read_len;
 	int32_t ii;
-	if (file_open(name) == -1){
+	/* NOTE open a txt file with a short name 					NOTE */
+	printf("[TEST] short name txt files open \n");
+	printf("[TEST] file open %s\n", name1);
+	// NOTE: PAUSE
+	if (file_open(name1) == -1)
 		printf("Open FAILED.\n");
-		return PASS;
-	}
-	printf("fd: %d \n", file_find(name));
-	for (ii = 0; ii < 19; ii++){
+	else
+		printf("Open SUCCEEDED.\n");
+	printf("[PASS] file opened %s\n", name1);
+	// NOTE: PAUSE
+	/* NOTE open a txt file with a illegally long name 			NOTE */
+	printf("[TEST] illegally long name txt files open \n");
+	printf("[TEST] file open %s\n", name2);
+	// NOTE: PAUSE
+	if (file_open(name1) == -1)
+		printf("Open FAILED.\n");
+	else
+		printf("Open SUCCEEDED.\n");
+	printf("[PASS] file should not be opened %s\n", name1);
+	// NOTE: PAUSE
+	/* NOTE legal long name operations 							NOTE */
+	name2[NAME_MAX_LEN] = '\0'; /* set name to leagal length*/
+	printf("[TEST] leagally long name txt files open \n");
+	printf("[TEST] file open %s\n", name2);
+	// NOTE: PAUSE
+	if (file_open(name1) == -1)
+		printf("Open FAILED.\n");
+	else
+		printf("Open SUCCEEDED.\n");
+	printf("[PASS] file should be opened %s\n", name1);
+	// NOTE: PAUSE
+	/* NOTE read a short txt file and echo on screen */
+	printf("[TEST] short name txt files read and echo on screen \n");
+	printf("[TEST] Every time a maximum of 50 bytes will be echoed \
+			on the sreen until end of file. Please press ALT for keep printing...\n");
+	// NOTE: PAUSE
+	printf("[TEST] filename: %s fd: %d \n", name1, file_find(name1));
+	read_len = PRINT_STRIDE;
+	while (read_len == PRINT_STRIDE){
 		// print another 10 byte
-		read_len = file_read(file_find(name), buffer, 10) ;
-		if (read_len == -1){
+		read_len = file_read(file_find(name1), buffer, PRINT_STRIDE) ;
+		if (read_len == -1)
 			printf("READ FAILED.\n");
-		}
-		else{
+		else
 			putbuf((int8_t*)buffer, read_len);
-		}
+		// NOTE: PAUSE
 	}
+	printf("[PASS] short file read succeeded %s\n", name1);
 	// open another file
 	if (file_open(name2) == -1){
 		printf("Open FAILED.\n");
-		file_close(file_find(name));
+		file_close(file_find(name2));
 	}
 	printf("fd: %d \n", file_find(name2));
 	for (ii = 0; ii < 2; ii++){
@@ -229,7 +265,7 @@ int test_file_open_read_close(){
 			putbuf((int8_t*)buffer, read_len);
 		}
 	}
-	file_close(file_find(name));
+	file_close(file_find(name2));
 	file_close(file_find(name2));
 	return PASS;
 }

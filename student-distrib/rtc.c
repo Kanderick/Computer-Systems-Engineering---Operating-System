@@ -1,6 +1,12 @@
 #include "rtc.h"
 #include "device.h"
 #include "i8259.h"
+#include "file_system.h"
+#define CHECK_FAIL       -1          /* this is the open/close-failed code indicates a failure on open a file */
+#define RTC_NAME_LEN           4     /* rtc file name length  */
+#define RTC_CLOSED   67              /* 'C' indecates file closed */
+#define RTC_OPENED   79              /* 'O' indicates file opened */
+// uint8_t RTC_STATUS;
 
 /*
  * rtc_open
@@ -12,6 +18,25 @@
  *   SIDE EFFECTS: set the initial rate to 2Hz and open the rtc irq
  */
 int32_t rtc_open(const uint8_t *filename) {
+    int32_t ii = 0; // check input filename's string
+    const uint8_t rtc_fname[RTC_NAME_LEN] = "rtc";
+    /* check file name, give warnings on mis-spelling */
+    if (filename == NULL)
+        printf("ece391_WARNING::rtc_open has invalid filename, we implement this warning :)");
+    else
+        while(ii < RTC_NAME_LEN){
+            if (filename[ii]!=rtc_fname[ii]){
+                printf("ece391_WARNING::rtc_open has invalid filename, we implement this warning :)");
+                break;
+            }
+            ii++;
+        }
+    /* check if it is already opened */
+    if (file_open(rtc_fname) == CHECK_FAIL ){    /* try to open the rtc file */
+        /* handle the error and return on failure */
+        printf("rtc file is failed to open.\n");
+        return -1;
+    }
     set_rate(RATE);     /*set the rate to 2Hz*/
     enable_irq(RTC_IRQ);
     return 0;
@@ -26,7 +51,19 @@ int32_t rtc_open(const uint8_t *filename) {
  *   SIDE EFFECTS: close the rtc file
  */
 int32_t rtc_close(int32_t fd) {
-    return 0;
+    /* calculate the correct fd */
+    int32_t c_fd = file_find((uint8_t *) "rtc");
+    /* check if the rtc file is opened */
+    if(c_fd == -1){
+        printf("rtc file is not opened yet, failed to close. \n");
+        return -1;
+    }
+    /* check if the input fd is correct. Give warning on conflict. */
+    else if(fd != c_fd){
+        printf("ece391_WARNING::Input fd is not correct. The correct one is %d, we implement this warning :)\n", c_fd);
+    }
+    /* safe to close rtc now */
+    return file_close(c_fd);
 }
 
 /*
