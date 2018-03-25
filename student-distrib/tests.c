@@ -335,5 +335,5 @@ void launch_tests(){
 	#endif
 	// need macro
 	// file_read_test_naive();
-	// test_file_open_read_close();
+	test_file_open_read_close();
 }
