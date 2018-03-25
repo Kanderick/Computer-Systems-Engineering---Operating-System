@@ -14,7 +14,7 @@ static volatile uint8_t terminalFlag = 0;
  */
 int32_t terminal_open(const uint8_t *filename) {
     if (terminalFlag == 1) {
-        printf("terminal has already opened\n");
+        printf("Terminal has already opened.\n");
         return -1;
     }
     terminalFlag = 1;
@@ -31,7 +31,7 @@ int32_t terminal_open(const uint8_t *filename) {
  */
 int32_t terminal_close(int32_t fd) {
     if (terminalFlag == 0) {
-        printf("terminal has already closed\n");
+        printf("Terminal has already closed.\n");
         return -1;
     }
     terminalFlag = 0;
@@ -51,7 +51,7 @@ int32_t terminal_close(int32_t fd) {
  */
 int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
     if (terminalFlag == 0) {
-        printf("terminal is not yet opened\n");
+        printf("Terminal is not yet opened.\n");
         return -1;
     }
     if (buf == NULL) return -1;
@@ -90,7 +90,7 @@ int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
  */
 int32_t terminal_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
     if (terminalFlag == 0) {
-        printf("terminal is not yet opened\n");
+        printf("Terminal is not yet opened.\n");
         return -1;
     }
     if (buf == NULL) return -1;

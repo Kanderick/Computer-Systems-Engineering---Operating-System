@@ -234,6 +234,16 @@ int test_file_open_read_close(){
 	return PASS;
 }
 
+/* rtc_test
+ * Purpose	Check if RTC works properly.
+ * Inputs	None
+ * Outputs	PASS/FAIL
+ * Side Effects
+ *		None
+ * Coverage
+ *		rtc open/read/write/close
+ * Files	rtc.c/h
+ */
 int rtc_test() {
 	clearScreen();
 	TEST_HEADER;
@@ -276,32 +286,56 @@ int rtc_test() {
 	return PASS;	// If anything fail, code will segfault
 }
 
+/* terminal_test
+ * Purpose	Check terminal functionalities.
+ * Inputs	None
+ * Outputs	PASS/FAIL
+ * Side Effects
+ *		None
+ * Coverage
+ *		Terminal normal and abnormal open/read/write/close
+ * Files	terminal.c/h
+ */
 int terminal_test() {
+	printf("\n");
 	TEST_HEADER;
-	int32_t flag;
-	unsigned char buffer[TERMINAL_TEST_BUFFER];				/* rtc_read buffer */
-	int32_t fd = 0; 							// Unused in CP 3.2
+
+	int32_t flag;										/* Flag to check FAIL */
+	unsigned char buffer[TERMINAL_TEST_BUFFER];			/* rtc_read buffer */
+	int32_t fd = 0; 									// Unused in CP 3.2
 	uint8_t *filename = (unsigned char *)"terminal";	// Unused in CP 3.2
+	int result = PASS;									/* return result */
 
-	printf("\n[TEST] terminal_read without open.\n");
+	/* PART 1: Terminal Open test */
+	printf("[TEST] terminal_write without open\n");
 	flag = terminal_write(fd, buffer, TERMINAL_TEST_BUFFER);
-	if (flag == -1) printf("[PASS] terminal not read.\n");
-	else return FAIL;
+	if (flag == -1) printf("[PASS] Terminal cannot write without open.\n");
+	else {
+		printf("[FAIL] Terminal write without open.\n");
+		result = FAIL;
+	}
 
-	printf("\n[TEST] terminal_read without open.\n");
+	printf("\n[TEST] terminal_read without open\n");
 	flag = terminal_read(fd, buffer, TERMINAL_TEST_BUFFER);
-	if (flag == -1) printf("[PASS] terminal not read.\n");
-	else return FAIL;
+	if (flag == -1) printf("[PASS] Terminal cannot read without open.\n");
+	else {
+		printf("[FAIL] Terminal read without open.\n");
+		result = FAIL;
+	}
 
-	printf("[TEST] terminal_open\n");
+	printf("\n[TEST] terminal_open\n");
 	terminal_open(filename);
-	printf("[PASS] terminal Opened.\n");
+	printf("[PASS] Terminal opened.\n");
 
-	printf("[TEST] terminal_open twice.\n");
+	printf("\n[TEST] terminal_open again\n");
 	flag = terminal_open(filename);
-	if (flag == -1) printf("[PASS] terminal not open again.\n");
-	else return FAIL;
+	if (flag == -1) printf("[PASS] Terminal didn't open again.\n");
+	else {
+		printf("[FAIL] Terminal opened twice.\n");
+		result = FAIL;
+	}
 
+	/* PART 2: Test normal terminal operations */
 	printf("\n[TEST] terminal_read\n");
 	printf("Please type LESS than 128 characters, stop with ENTER.\n");
 	printf("Please try SHIFT, CAPSLOCK, and BACKSPACE:\n");
@@ -323,18 +357,28 @@ int terminal_test() {
 	terminal_read(fd, buffer, TERMINAL_TEST_BUFFER);
 
 	printf("\n[TEST] Scrolling and clear screen\n");
-	printf("Please enter some random staff. Use CTRL+L to clear screen:\n");
+	printf("Please enter some random staff. Use CTRL+L to clear screen. Stop with ENTER:\n");
+	terminal_read(fd, buffer, TERMINAL_TEST_BUFFER);
 
-	printf("[TEST] terminal_close\n");
-	rtc_close(fd);
-	printf("[PASS] terminal Closed.\n");
+	/* PART 3: Terminal Close Test */
+	printf("\n[TEST] terminal_close\n");
+	terminal_close(fd);
+	printf("[PASS] Terminal closed.\n");
 
-	printf("[TEST] terminal_close twice.\n");
-	flag = rtc_close(fd);
-	if (flag == -1) printf("[PASS] terminal not close again.\n");
-	else return FAIL;
+	printf("\n[TEST] terminal_close again\n");
+	flag = terminal_close(fd);
+	if (flag == -1) printf("[PASS] terminal didn't close again.\n");
+	else {
+		printf("[FAIL] Terminal closed twice.\n");
+		result = FAIL;
+	}
 
-	return PASS;
+	/* Hold the test to see the result */
+	printf("\nPress ALT to continue test...");
+	key_pressed();	// Press alt key to conduct the frequency test
+	printf("\n");
+
+	return result;
 }
 
 /* Checkpoint 3 tests */
@@ -357,7 +401,7 @@ void launch_tests(){
 	#endif
 	#if (RTC_TERMINAL_TEST == 1)
 	TEST_OUTPUT("rtc_test", rtc_test());
-	terminal_test();
+	TEST_OUTPUT("terminal_test", terminal_test());
 	#endif
 	// need macro
 	// file_read_test_naive();
