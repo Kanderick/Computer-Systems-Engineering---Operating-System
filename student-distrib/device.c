@@ -11,7 +11,7 @@ static uint8_t shiftFlag;       /* check whether the shiftkey is pressed */
 static uint8_t ctrlFlag;
 static uint8_t altFlag;
 static uint8_t capsFlag;
-static uint8_t keyFlag;
+static volatile uint8_t keyFlag;
 static volatile uint8_t enterFlag;
 static unsigned char keyBuffer[BUFF_SIZE + 1]; // +1 since we need to detect ENTER after filled
 static int buffIdx = 0;

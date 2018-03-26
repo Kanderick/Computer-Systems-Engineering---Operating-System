@@ -9,7 +9,15 @@
 ece391_file_system_t   ece391FileSystem;
 file_status_array_t fileStatusArray;
 
-/* Need header */
+/*
+ * init_file_system
+ *   DESCRIPTION: initialized out own ece391_file_system structure
+ *   INPUTS: addr_start -- starting address of the fileimg
+             addr_end -- ending address of the fileimg
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: copys the information of the fileimg into local datastructure
+ */
 void init_file_system(unsigned int addr_start, unsigned int addr_end){
     unsigned int addr;
     printf("\n\n\nCHECK_POINT_1\n");
@@ -65,7 +73,15 @@ void init_file_system(unsigned int addr_start, unsigned int addr_end){
     return;
 }
 
-/* Need header */
+/*
+ * read_dentry_by_name
+ *   DESCRIPTION: finds the dentry corresponding to the filename
+ *   INPUTS: fname -- filename we are searching for
+             dentry -- the emtpy pre-allocated dentry pointer to copy information into
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 for success and -1 for fail
+ *   SIDE EFFECTS: copys the dentry informaiton for the desired filename
+ */
 int32_t read_dentry_by_name(const uint8_t *fname, dentry_t* dentry){
     unsigned int i, j;
     // Initialize find flag and index
@@ -115,7 +131,15 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t* dentry){
     return read_dentry_by_index(index, dentry);
 }
 
-/* Need header */
+/*
+ * read_dentry_by_index
+ *   DESCRIPTION: finds the dentry corresponding to the index
+ *   INPUTS: index -- index we are searching for
+             dentry -- the emtpy pre-allocated dentry pointer to copy information into
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 for success and -1 for fail
+ *   SIDE EFFECTS: copys the dentry informaiton for the desired index
+ */
 int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry){
     unsigned int i;
     // check if the file system is initialized
@@ -144,7 +168,17 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry){
 }
 
 #define MAX_BLOCK_INDEX         1023        // in inodes' 4kB's memory has 1023 block numbers at large
-/* Need header */
+/*
+ * read_data
+ *   DESCRIPTION: copys length bytes of information into the buffer
+ *   INPUTS: inode -- inode containing the data
+             offset -- offset to start reading from
+             buf -- buffer to copy data into
+             length -- number of bytes to copy
+ *   OUTPUTS: none
+ *   RETURN VALUE: -1 for fail and non-negative number for actual number of bytes read into buffer
+ *   SIDE EFFECTS: none
+ */
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length){
     uint32_t buf_index = 0;
     uint32_t data_block_index = 0;
@@ -205,6 +239,14 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 }
 
 // following are higher level APIs to interact with file system, these functions are expected to be called
+/*
+ * init_file_status_array
+ *   DESCRIPTION: initialized the fileStatusArray structure
+ *   INPUTS: array -- the fileStatusArray we want to initailize
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: none
+ */
 void init_file_status_array(file_status_array_t* array){
     uint32_t ii;    // traverse to initialize status file/dir array
     for(ii = 0; ii < MAX_FILE_OPEN; ii++){
@@ -215,8 +257,17 @@ void init_file_status_array(file_status_array_t* array){
     }
     return;
 }
-// from SYSTEM CALL
+// for SYSTEM CALL
 // following functions are for system call
+
+/*
+ * file_open
+ *   DESCRIPTION: opens a non-directory file
+ *   INPUTS: filename -- the file we want to open
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 on success and -1 on failure
+ *   SIDE EFFECTS: none
+ */
 int32_t file_open    (const uint8_t* filename){
     int32_t ii;    // traverse to check status file/dir array
     int32_t i;     // traverse to check name string
@@ -275,6 +326,14 @@ int32_t file_open    (const uint8_t* filename){
     return 0;
 }
 
+/*
+ * file_close
+ *   DESCRIPTION: closes a non-directory file
+ *   INPUTS: fd -- the file index in the fileStatusArray of the file we want to close
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 on success and -1 on failure
+ *   SIDE EFFECTS: none
+ */
 int32_t file_close   (int32_t fd){
     // check fd valid
     if (fd >= MAX_FILE_OPEN || fd < 0){
@@ -293,7 +352,14 @@ int32_t file_close   (int32_t fd){
     return 0;
 }
 
-// find fd for a input file name, return -1 on failure
+/*
+ * file_find
+ *   DESCRIPTION: finds the fd for a file, used to find the correct fd to pass into file_read or dir_read function
+ *   INPUTS: filename -- the file we want to find
+ *   OUTPUTS: none
+ *   RETURN VALUE: -1 on failure and non-negative index of the fd we finded
+ *   SIDE EFFECTS: none
+ */
 int32_t file_find    (const uint8_t* filename){
     int32_t ii;    // traverse to check status file/dir array
     int32_t i;     // traverse to check name string
@@ -323,7 +389,19 @@ int32_t file_find    (const uint8_t* filename){
     // return -1 if not found
     return -1;
 }
+
 #define REG_FILE_TPYE       2
+
+/*
+ * file_read
+ *   DESCRIPTION: reads nbytes of informatin from the non-directory file into the buffer, redirects to rtc_read if the input file is rtx file
+ *   INPUTS: fd -- the file index we want to read
+             buf -- the buffer to copy information into
+             nbytes -- number of bytes to read
+ *   OUTPUTS: none
+ *   RETURN VALUE: -1 on failure and non-negative actual number of bytes we read
+ *   SIDE EFFECTS: none
+ */
 int32_t file_read    (int32_t fd, void* buf, int32_t nbytes){
     int32_t file_inode_num;
     int32_t file_length;
@@ -363,6 +441,17 @@ int32_t file_read    (int32_t fd, void* buf, int32_t nbytes){
     fileStatusArray.FILE_OFFSET[fd] += new_offset;
     return new_offset;
 }
+
+/*
+ * file_write
+ *   DESCRIPTION: read-only filesystem, nothing to do
+ *   INPUTS: fd -- the file index we want to write
+             buf -- the buffer to write from
+             nbytes -- number fo bytes to write
+ *   OUTPUTS: none
+ *   RETURN VALUE: -1 on failure
+ *   SIDE EFFECTS: none
+ */
 int32_t file_write   (int32_t fd, const void* buf, int32_t nbytes){
     // nothing to write
     return -1;
@@ -370,6 +459,14 @@ int32_t file_write   (int32_t fd, const void* buf, int32_t nbytes){
 
 
 /*need header*/
+/*
+ * dir_open
+ *   DESCRIPTION: opens a directory file
+ *   INPUTS: filename -- the file we want to open
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 on success and -1 on failure
+ *   SIDE EFFECTS: none
+ */
 extern int32_t dir_open    (const uint8_t* filename){
   int32_t ii;    // traverse to check status file/dir array
   int32_t new_fd = MAX_FILE_OPEN;  // if can open a file, this will record the fd
@@ -416,7 +513,14 @@ extern int32_t dir_open    (const uint8_t* filename){
   return 0;
 }
 
-/*need header*/
+/*
+ * dir_close
+ *   DESCRIPTION: closes a directory file
+ *   INPUTS: fd -- the file index in the fileStatusArray of the file we want to close
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 on success and -1 on failure
+ *   SIDE EFFECTS: none
+ */
 extern int32_t dir_close   (int32_t fd){
   // check fd valid
   if (fd >= MAX_FILE_OPEN || fd < 0){
@@ -434,9 +538,17 @@ extern int32_t dir_close   (int32_t fd){
   return 0;
 }
 
-/*need header*/
+/*
+ * dir_read
+ *   DESCRIPTION: reads nbytes of informatin from the directory file into the buffer
+ *   INPUTS: fd -- the file index we want to read
+             buf -- the buffer to copy information into
+             nbytes -- number of bytes to read
+ *   OUTPUTS: none
+ *   RETURN VALUE: -1 on failure and 0 on success
+ *   SIDE EFFECTS: none
+ */
 extern int32_t dir_read    (int32_t fd, void* buf, int32_t nbytes){
-
     /*index to copy to buffer*/
     int32_t i;
     /*size of a particular file*/
@@ -460,19 +572,22 @@ extern int32_t dir_read    (int32_t fd, void* buf, int32_t nbytes){
       return -1;
     }
 
+    /*read the current file and copy its dentry information*/
     if (read_dentry_by_index(fileStatusArray.CURRENT_DIR_IDX, &temp_dentry) == -1) {
       return -1;
     }
 
     (fileStatusArray.CURRENT_DIR_IDX)++;
 
+    /*copy filename into the buffer*/
     for (i = 0; i < FILE_NAME_LEN; i++) {
       ((int8_t*)buf)[i] = temp_dentry.filename[i];
     }
 
     if (temp_dentry.filetype != 2) filesize = 0;
     else filesize = ece391FileSystem.ece391_inodes[temp_dentry.inode_num].length;
-    //printf("Filename: %s, Filetype: %d.\n", temp_dentry.filename, temp_dentry.filetype);
+
+    /*prints out the filename, filetype, and filesize of the current file in the directory*/
     printf("Filename: ");
     for (i = 0; i < FILE_NAME_LEN; i++) {
       if (temp_dentry.filename[i] == '\0') break;
@@ -482,7 +597,16 @@ extern int32_t dir_read    (int32_t fd, void* buf, int32_t nbytes){
     return 0;
 }
 
-/*need header*/
+/*
+ * dir_write
+ *   DESCRIPTION: read-only filesystem, nothing to do
+ *   INPUTS: fd -- the file index we want to write
+             buf -- the buffer to write from
+             nbytes -- number fo bytes to write
+ *   OUTPUTS: none
+ *   RETURN VALUE: -1 on failure
+ *   SIDE EFFECTS: none
+ */
 extern int32_t dir_write   (int32_t fd, const void* buf, int32_t nbytes){
     return -1;
 }
