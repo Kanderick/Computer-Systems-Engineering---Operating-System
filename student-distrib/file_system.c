@@ -4,6 +4,7 @@
  */
 
 #include "file_system.h"
+#include "rtc.h"
 #include "lib.h"
 /* the hierarchy for ece391 file system */
 ece391_file_system_t   ece391FileSystem;
@@ -214,7 +215,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
             data_block_index ++;
         }
         // check if data_block_index is out of inodes' block boundary
-        if (data_block_index > MAX_BLOCK_INDEX){
+        if (data_block_index >= MAX_BLOCK_INDEX){
             printf("data block index is out of inode block boundary, failed to keep reading. \n");
             return -1;
         }
@@ -390,8 +391,6 @@ int32_t file_find    (const uint8_t* filename){
     return -1;
 }
 
-#define REG_FILE_TPYE       2
-
 /*
  * file_read
  *   DESCRIPTION: reads nbytes of informatin from the non-directory file into the buffer, redirects to rtc_read if the input file is rtx file
@@ -418,11 +417,15 @@ int32_t file_read    (int32_t fd, void* buf, int32_t nbytes){
         return -1;
     }
     // check file type
-    if (fileStatusArray.FILE_TO_OPEN[fd].filetype != REG_FILE_TPYE){
-        // currently cannot handle this, need improvement later
+    if (fileStatusArray.FILE_TO_OPEN[fd].filetype == DIR_FILE_TYPE){
         *((int8_t*) buf) = '\0';
         return -1;
     }
+
+    if (fileStatusArray.FILE_TO_OPEN[fd].filetype == RTC_FILE_TYPE){
+        return rtc_read(fd, buf, nbytes);
+    }
+
     // check input buf pointer is valid
     if (buf == NULL) {
       printf("Input buf is NULL.\n");
@@ -453,7 +456,15 @@ int32_t file_read    (int32_t fd, void* buf, int32_t nbytes){
  *   SIDE EFFECTS: none
  */
 int32_t file_write   (int32_t fd, const void* buf, int32_t nbytes){
-    // nothing to write
+    /*check valid fd*/
+    if (fd < 0 || fd > MAX_FILE_OPEN) {
+      printf("ece391_WARNING::fd out of range.\n");
+    }
+    // redirect to rtc_write if the fd is rtc type
+    else if (fileStatusArray.FILE_TO_OPEN[fd].filetype == RTC_FILE_TYPE) {
+      return rtc_write(fd, buf, nbytes);
+    }
+
     return -1;
 }
 
@@ -467,7 +478,7 @@ int32_t file_write   (int32_t fd, const void* buf, int32_t nbytes){
  *   RETURN VALUE: 0 on success and -1 on failure
  *   SIDE EFFECTS: none
  */
-extern int32_t dir_open    (const uint8_t* filename){
+int32_t dir_open    (const uint8_t* filename){
   int32_t ii;    // traverse to check status file/dir array
   int32_t new_fd = MAX_FILE_OPEN;  // if can open a file, this will record the fd
   int8_t already_open_flag = 0;
@@ -521,7 +532,7 @@ extern int32_t dir_open    (const uint8_t* filename){
  *   RETURN VALUE: 0 on success and -1 on failure
  *   SIDE EFFECTS: none
  */
-extern int32_t dir_close   (int32_t fd){
+int32_t dir_close   (int32_t fd){
   // check fd valid
   if (fd >= MAX_FILE_OPEN || fd < 0){
       printf("The input index is out of boundary. \n");
@@ -548,7 +559,7 @@ extern int32_t dir_close   (int32_t fd){
  *   RETURN VALUE: -1 on failure and 0 on success
  *   SIDE EFFECTS: none
  */
-extern int32_t dir_read    (int32_t fd, void* buf, int32_t nbytes){
+int32_t dir_read    (int32_t fd, void* buf, int32_t nbytes){
     /*index to copy to buffer*/
     int32_t i;
     /*size of a particular file*/
@@ -607,6 +618,6 @@ extern int32_t dir_read    (int32_t fd, void* buf, int32_t nbytes){
  *   RETURN VALUE: -1 on failure
  *   SIDE EFFECTS: none
  */
-extern int32_t dir_write   (int32_t fd, const void* buf, int32_t nbytes){
+int32_t dir_write   (int32_t fd, const void* buf, int32_t nbytes){
     return -1;
 }

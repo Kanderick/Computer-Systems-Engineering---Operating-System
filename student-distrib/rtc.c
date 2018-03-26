@@ -74,10 +74,24 @@ int32_t rtc_close(int32_t fd) {
              buffer -- the buffer contains the freqency
              bytes -- the number of bytes that need to be read in
  *   OUTPUTS: none
- *   RETURN VALUE: none
+ *   RETURN VALUE: -1 on failure, 0 on success
  *   SIDE EFFECTS: wait until a rtc interrupt has completed
  */
 int32_t rtc_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
+    /*if file not opened, return -1*/
+    if (fileStatusArray.RTC_STATUS == STATUS_CLOSED) {
+      printf("Error: File not opened yet.\n");
+      return -1;
+    }
+
+    /*check valid fd*/
+    if (fd < 0 || fd > MAX_FILE_OPEN) {
+      printf("ece391_WARNING::fd out of range.\n");
+    }
+    else if(fileStatusArray.FILE_TO_OPEN[fd].filetype != 0) {
+      printf("ece391_WARNING::fd provided does not match an rtc file.\n");
+    }
+
     sti();
     rtcFlag = 1;    /*set the rtc flag to 1*/
     while (rtcFlag);    /*check whether a rtc interrupt completed*/
@@ -98,6 +112,21 @@ int32_t rtc_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
 int32_t rtc_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
     char prev;
     int32_t freqency;
+
+    /*if file not opened, return -1*/
+    if (fileStatusArray.RTC_STATUS == STATUS_CLOSED) {
+      printf("Error: File not opened yet.\n");
+      return -1;
+    }
+
+    /*check valid fd*/
+    if (fd < 0 || fd > MAX_FILE_OPEN) {
+      printf("ece391_WARNING::fd out of range.\n");
+    }
+    else if(fileStatusArray.FILE_TO_OPEN[fd].filetype != RTC_FILE_TYPE) {
+      printf("ece391_WARNING::fd provided does not match an rtc file.\n");
+    }
+
     if (buf == NULL) return -1;      /*check whether the buffer is valid*/
     if (nbytes != 4) return -1;      /*the freqency is a 4 bytes int*/
     freqency = *buf;

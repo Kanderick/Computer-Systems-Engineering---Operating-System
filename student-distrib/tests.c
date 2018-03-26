@@ -194,7 +194,17 @@ int file_read_test_naive(){
 }
 #define 	NAME_MAX_LEN		32 /* in ece391 file system, a file name has maximum 32 B length */
 #define 	PRINT_STRIDE		50 /* for easy testing, echo 50 bytes of file info uoto screen */
-// regular files ops test
+
+/* test_file_open_read_close
+ * Purpose	// regular files ops test
+ * Inputs	None
+ * Outputs	PASS/FAIL
+ * Side Effects
+ *
+ * Coverage
+ *		// regular files ops test
+ * Files	filesyetem.c/h
+ */
 int test_file_open_read_close(){
 	uint8_t name1[] = "frame0.txt";
 	uint8_t name2[] = "verylargetextwithverylongname.txt";
@@ -354,7 +364,17 @@ int test_file_open_read_close(){
 
 #define PRINT_STRIDE_EXE		1000
 #define test_exe_num			4   // tset ops on 4 exe files
-// excutable files ops test
+
+/* test_file_open_read_close_exe
+ * Purpose	// excutable files ops test
+ * Inputs	None
+ * Outputs	PASS/FAIL
+ * Side Effects
+ *
+ * Coverage
+ *		 excutable files ops test
+ * Files	filesyetem.c/h
+ */
 int test_file_open_read_close_exe(){
 	uint8_t name1[] = "cat";
 	uint8_t name2[] = "counter";
@@ -433,7 +453,16 @@ int test_file_open_read_close_exe(){
 	return PASS;
 }
 
-
+/* test_dir_open_read_close
+ * Purpose	// directory files ops test
+ * Inputs	None
+ * Outputs	PASS/FAIL
+ * Side Effects
+ *
+ * Coverage
+ *		 // directory files ops test
+ * Files	filesyetem.c/h
+ */
 int test_dir_open_read_close() {
 	uint8_t name[] = ".";
 	uint8_t buffer[32];

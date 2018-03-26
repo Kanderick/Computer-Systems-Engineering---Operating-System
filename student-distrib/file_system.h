@@ -16,6 +16,11 @@
 #define FILESYS_IMG_LEN         0x7c000
 #define BLOCK_SIZE_4KB          4096
 
+// filetypes
+#define RTC_FILE_TYPE       0
+#define DIR_FILE_TYPE       1
+#define REG_FILE_TPYE       2
+
 #define FA_SIZE                 8
 /*  This is the data structure that holds the dentry for each regular file,
  *  directory, or RTC access file. ECE391 file system has 63 dentry
