@@ -143,11 +143,12 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry){
 
 }
 
+#define MAX_BLOCK_INDEX         1023        // in inodes' 4kB's memory has 1023 block numbers at large
 /* Need header */
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length){
     uint32_t buf_index = 0;
     uint32_t data_block_index = 0;
-    uint32_t data_byte_index=0;
+    uint32_t data_byte_index = 0;
     uint32_t copy_position;
     // check if the file system is initialized
     if(ece391FileSystem.ece391_boot_block == NULL || \
@@ -166,17 +167,31 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     // check if offset is in boundary
     if(offset >= ece391FileSystem.ece391_inodes[inode].length){
         printf("The file has reach its end, nothing to read.\n");
-        return -1;
+        return 0; // should return Zero
     }
+    // start to copy the string
     copy_position = offset;
     data_block_index = offset / DATA_BLOCK_LEN_;
     data_byte_index = offset % DATA_BLOCK_LEN_;
+    // if not reach end, keep copying
     while(copy_position < ece391FileSystem.ece391_inodes[inode].length){
         if(data_byte_index == DATA_BLOCK_LEN_){
             data_byte_index = 0;
             data_block_index ++;
         }
+        // check if data_block_index is out of inodes' block boundary
+        if (data_block_index > MAX_BLOCK_INDEX){
+            printf("data block index is out of inode block boundary, failed to keep reading. \n");
+            return -1;
+        }
+        // check if data block num is out of ece391 file system boundary
+        if (ece391FileSystem.ece391_inodes[inode].data_block_num[data_block_index] >= ece391FileSystem.data_count ){
+            printf("Inode contains corrupted info and trys to access the memory that is out of the boundary of ece391 file syste, failed to keep reading.");
+            return 0;
+        }
+        // copy this byte
         buf[buf_index] = ece391FileSystem.ece391_data_blocks[ece391FileSystem.ece391_inodes[inode].data_block_num[data_block_index]].data_byte[data_byte_index];
+        // prepare to copy next byte
         length--;
         copy_position++;
         data_byte_index++;
@@ -185,8 +200,8 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
         if(length==0)
             return buf_index;
     }
-    // end of file is reached
-    return 0;
+    // end of file is reached, return the number of bytes copyed
+    return ece391FileSystem.ece391_inodes[inode].length - offset;
 }
 
 // following are higher level APIs to interact with file system, these functions are expected to be called
@@ -344,14 +359,7 @@ int32_t file_read    (int32_t fd, void* buf, int32_t nbytes){
         printf("File read fail.\n");
         return -1;
     }
-    // if reach end
-    else if (new_offset == 0){
-        // only copy a portion of data to buffer
-        new_offset = file_length - fileStatusArray.FILE_OFFSET[fd];
-        fileStatusArray.FILE_OFFSET[fd] += new_offset;
-        return new_offset;
-    }
-    // copy whole buffer
+    // update the offset array in the status array
     fileStatusArray.FILE_OFFSET[fd] += new_offset;
     return new_offset;
 }

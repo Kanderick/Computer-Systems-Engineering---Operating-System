@@ -33,7 +33,7 @@ int invalid_opcode_test();
 /* Checkpoint 2 tests */
 /* TEST SWITCHES */
 #define RTC_TERMINAL_TEST       1           /* Set to 1 to run RTC & Terminal test*/
-
+#define FILE_SYSTEM_TEST        1           /* Set to 1 to run file system test*/
 /* CONSTANTS */
 #define RTC_TEST_SEC_PER_FRQ    3           /* Print 3 seconds each */
 #define RTC_TEST_MAX_MULTIPLIER 7           /* 1:4Hz, 2:8Hz, 3:16Hz, 4:32Hz, 5:64Hz, 6:128Hz, 7:256Hz, 8:512Hz, 9:1024Hzn */
