@@ -348,7 +348,7 @@ int32_t file_close   (int32_t fd){
     }
     // close and return on success
     fileStatusArray.FILE_STATUS[fd] = STATUS_CLOSED;
-    if (fileStatusArray.FILE_TO_OPEN[fd].filetype == 0)
+    if (fileStatusArray.FILE_TO_OPEN[fd].filetype == RTC_FILE_TYPE)
       fileStatusArray.RTC_STATUS = STATUS_CLOSED;
     return 0;
 }

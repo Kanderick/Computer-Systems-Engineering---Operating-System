@@ -88,7 +88,7 @@ int32_t rtc_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
     if (fd < 0 || fd > MAX_FILE_OPEN) {
       printf("ece391_WARNING::fd out of range.\n");
     }
-    else if(fileStatusArray.FILE_TO_OPEN[fd].filetype != 0) {
+    else if(fileStatusArray.FILE_TO_OPEN[fd].filetype != RTC_FILE_TYPE) {
       printf("ece391_WARNING::fd provided does not match an rtc file.\n");
     }
 

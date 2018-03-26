@@ -526,6 +526,10 @@ int rtc_test() {
 	rtc_open(filename);
 	printf("[PASS] RTC Opened.\n");
 
+	printf("[TEST] rtc_open again\n");
+	if (file_open(filename) == -1) printf("[PASS] RTC did not open again.\n");
+	else printf("[FAIL] RTC did open again.\n");
+
 	printf("[TEST] rtc_write & read, print '1' in different frequency\n");
 	printf("\nPress ALT to continue test...");
 	key_pressed();	// Press alt key to conduct the frequency test
@@ -549,6 +553,10 @@ int rtc_test() {
 	printf("[TEST] rtc_close\n");
 	rtc_close(fd);	// RTC close just return 0
 	printf("[PASS] RTC Closed.\n");
+
+	printf("[TEST] rtc_close again\n");
+	if (file_close(fd) == -1) printf("[PASS] RTC did not close again.\n");
+	else printf("[FAIL] RTC did close again.\n");
 
 	return PASS;	// If anything fail, code will segfault
 }
