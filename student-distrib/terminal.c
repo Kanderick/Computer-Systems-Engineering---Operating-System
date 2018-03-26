@@ -13,7 +13,7 @@ static volatile uint8_t terminalFlag = 0;
  *   SIDE EFFECTS: open the terminal file
  */
 int32_t terminal_open(const uint8_t *filename) {
-    if (terminalFlag == 1) {
+    if (terminalFlag == 1) {        /*check whether the terminal is open*/
         printf("Terminal has already opened.\n");
         return -1;
     }
@@ -30,7 +30,7 @@ int32_t terminal_open(const uint8_t *filename) {
  *   SIDE EFFECTS: close the terminal file
  */
 int32_t terminal_close(int32_t fd) {
-    if (terminalFlag == 0) {
+    if (terminalFlag == 0) {        /*check whether the terminal is closed*/
         printf("Terminal has already closed.\n");
         return -1;
     }
@@ -50,28 +50,28 @@ int32_t terminal_close(int32_t fd) {
  *   SIDE EFFECTS: read the keyboard to the target buffer
  */
 int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
-    if (terminalFlag == 0) {
+    if (terminalFlag == 0) {             /*check whether the terminal is open*/
         printf("Terminal is not yet opened.\n");
         return -1;
     }
-    if (buf == NULL) return -1;
-    if (nbytes < 0) return -1;
+    if (buf == NULL) return -1;         /*check whether the buffer is valid*/
+    if (nbytes < 0) return -1;          /*check whether nbytes is valid*/
     int i;
     unsigned char *keyBuffer;
     uint32_t buffLen;
     while (1) {
-        keyBuffer = getBuffer();
+        keyBuffer = getBuffer();        /*get the key buffer*/
         if (keyBuffer != NULL) {
-            while (!getEnter()) {}
-            resetEnter();
+            while (!getEnter()) {}      /*wait for enter*/
+            resetEnter();               /*reset the enter flag*/
             cli();
-            buffLen = strlen((int8_t *)keyBuffer);
-            for (i = 0; i < nbytes; i ++) buf[i] = '\0';
-            if (buffLen < nbytes) nbytes = buffLen;
-            memcpy(buf, keyBuffer, nbytes);
-            resetBuffer();
+            buffLen = strlen((int8_t *)keyBuffer);              /*get the length of the string*/
+            for (i = 0; i < nbytes; i ++) buf[i] = '\0';        /*initialze the target buffer*/
+            if (buffLen < nbytes) nbytes = buffLen;             /*check the length of the string that should be copied*/
+            memcpy(buf, keyBuffer, nbytes);                     /*memory copy of the buffer*/
+            resetBuffer();                                      /*reset the key buffer*/
             sti();
-            return nbytes;
+            return nbytes;                                      /*return the number of bytes that copied*/
         }
     }
     return -1;
@@ -89,15 +89,15 @@ int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
  *   SIDE EFFECTS: print the char in target buffer onto the screen
  */
 int32_t terminal_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
-    if (terminalFlag == 0) {
+    if (terminalFlag == 0) {             /*check whether the terminal is open*/
         printf("Terminal is not yet opened.\n");
         return -1;
     }
-    if (buf == NULL) return -1;
-    if (nbytes < 0) return -1;
+    if (buf == NULL) return -1;         /*check whether the buffer is valid*/
+    if (nbytes < 0) return -1;          /*check whether nbytes is valid*/
     int i;
-    uint32_t buffLen = strlen((int8_t *)buf);
-    if (buffLen < nbytes) nbytes = buffLen;
-    for (i = 0; i < nbytes; i ++) printf("%c", buf[i]);
-    return nbytes;
+    uint32_t buffLen = strlen((int8_t *)buf);               /*get the length of the string*/
+    if (buffLen < nbytes) nbytes = buffLen;                 /*check the length of the string that should be copied*/
+    for (i = 0; i < nbytes; i ++) printf("%c", buf[i]);     /*print the string in the buffer onto screen*/
+    return nbytes;                                          /*return the number of bytes printed*/
 }
