@@ -88,13 +88,14 @@ struct ece391_file_system{
 typedef struct ece391_file_system ece391_file_system_t;
 // extern file system
 extern ece391_file_system_t   ece391FileSystem;
-// utility functions
+// utility
+/*Initializes the local ece391_file_system structure*/
 extern void init_file_system(unsigned int addr_start, unsigned int addr_end);
-/* needs header!!! */
+/* copys dentry information of a file indicated by filename */
 extern int32_t read_dentry_by_name(const uint8_t *fname, dentry_t* dentry);
-/* needs header!!! */
+/* copys dentry information of a file indicated by the file index in the boot block */
 extern int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry);
-/* needs header!!! */
+/* copys length bytes of information of a file from offset of the corresponding inode into buffer*/
 extern int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
 
 /* for check point 2 */
@@ -117,21 +118,24 @@ typedef struct file_status_array file_status_array_t;
 extern file_status_array_t fileStatusArray;
 
 // following functions are for system call
-/* needs header!!! */
+/*Initializes the local file_status_array*/
 extern void init_file_status_array(file_status_array_t* array);
-/* needs header!!! a neat helper function */
+/* A neat helper function that return the file descriptor of the file indicated by filename*/
 extern int32_t file_find    (const uint8_t* filename);
-/* needs header!!! */
+/* read function for non-directory files */
 extern int32_t file_read    (int32_t fd, void* buf, int32_t nbytes);
-/* needs header!!! */
+/* write function for non-directory files */
 extern int32_t file_write   (int32_t fd, const void* buf, int32_t nbytes);
-/* needs header!!! */
+/* open function for non-directory files */
 extern int32_t file_open    (const uint8_t* filename);
-/* needs header!!! */
+/* close function for non-directory files */
 extern int32_t file_close   (int32_t fd);
-
+/* read function for directory files */
 extern int32_t dir_read    (int32_t fd, void* buf, int32_t nbytes);
+/* write function for directory files */
 extern int32_t dir_write   (int32_t fd, const void* buf, int32_t nbytes);
+/* open function for directory files */
 extern int32_t dir_open    (const uint8_t* filename);
+/* close function for directory files */
 extern int32_t dir_close   (int32_t fd);
 #endif
