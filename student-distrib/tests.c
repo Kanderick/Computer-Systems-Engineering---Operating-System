@@ -581,6 +581,9 @@ int terminal_test() {
 	uint8_t *filename = (unsigned char *)"terminal";	// Unused in CP 3.2
 	int result = PASS;									/* return result */
 
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+
 	/* PART 1: Terminal Open test */
 	printf("[TEST] terminal_write without open\n");
 	flag = terminal_write(fd, buffer, TERMINAL_TEST_BUFFER);
@@ -610,6 +613,9 @@ int terminal_test() {
 		result = FAIL;
 	}
 
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+
 	/* PART 2: Test normal terminal operations */
 	printf("\n[TEST] terminal_read\n");
 	printf("Please type LESS than 128 characters, stop with ENTER.\n");
@@ -632,8 +638,11 @@ int terminal_test() {
 	terminal_read(fd, buffer, TERMINAL_TEST_BUFFER);
 
 	printf("\n[TEST] Scrolling and clear screen\n");
-	printf("Please enter some random staff. Use CTRL+L to clear screen. Stop with ENTER:\n");
+	printf("Please enter some random stuff. Use CTRL+L to clear screen. Stop with ENTER:\n");
 	terminal_read(fd, buffer, TERMINAL_TEST_BUFFER);
+
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
 
 	/* PART 3: Terminal Close Test */
 	printf("\n[TEST] terminal_close\n");
@@ -661,6 +670,16 @@ int terminal_test() {
 /* Checkpoint 5 tests */
 
 /* Test suite entry point */
+/* launch_tests
+ * Purpose	Launch all the tests.
+ * Inputs	None
+ * Outputs	None
+ * Side Effects
+ *		Lauch all the tests.
+ * Coverage
+ *		Terminal normal and abnormal, file system normal and abnormal, rtc normal and abnormal open/read/write/close
+ * Files	terminal.c/h
+ */
 void launch_tests(){
 	#if (IDT_TEST == 1)
 	TEST_OUTPUT("idt_test", idt_test());

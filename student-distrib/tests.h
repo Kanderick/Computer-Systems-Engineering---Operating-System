@@ -40,8 +40,9 @@ int invalid_opcode_test();
 #define RTC_TEST_INITIAL_FRQ    2           /* Initial RTC frequency in Hz*/
 #define RTC_TEST_MAX_TICKS      2048        /* Maximum ticks to print '1' */
 #define TERMINAL_TEST_BUFFER    256         /* Buffer of Terminal read/write */
-
+/* rtc test */
 int rtc_test();
+/* terminal test */ 
 int terminal_test();
 
 /* Checkpoint 3 tests */
