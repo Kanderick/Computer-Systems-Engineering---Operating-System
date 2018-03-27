@@ -282,7 +282,11 @@ int32_t puts(int8_t* s) {
     }
     return index;
 }
-
+/* int32_t putbuf(int8_t* s, uint32_t len);
+ *   Inputs: int_8* s = pointer to a string of characters
+ *      len:  uint32_t len, the length of string to copy
+ *   Return Value: Number of bytes written
+ *    Function: Output a string to the console */
 int32_t putbuf(int8_t* s, uint32_t len) {
     register int32_t index = 0;
     while (len != 0) {
