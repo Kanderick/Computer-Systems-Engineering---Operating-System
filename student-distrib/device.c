@@ -245,7 +245,11 @@ void rtc_interrupt() {
 #if (RTC_TEST == 1)
     test_interrupts();
 #endif
-    rtcFlag = 0;
+    // invoking ticks
+    rtcFlag++;
+    // make the rtcFlag in the proper range
+    if (rtcFlag > HIGHEST)
+        rtcFlag = 1;
 }
 
 /*
@@ -267,7 +271,7 @@ void init_rtc() {
     outb(prev | PERIOD, RTC_REG_DATA);      /*write the previous value ORed with 0x40. This turns on bit 6 of register B*/
     outb(SR_C, RTC_REG_NUM);        /*select register C*/
     inb(RTC_REG_DATA);      /*throw away contents*/
-    set_rate(RATE - 1);     /*set the rate*/
+    set_rate(DEFAULT_RATE);     /*set the rate*/
 }
 
 /*

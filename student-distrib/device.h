@@ -18,7 +18,8 @@
 #define KEY_REG_STATUS      0x64        /*keyboard status register*/
 #define KEY_REG_DATA        0x60        /*keyboard data register*/
 #define MAX_RATE            0x0F        /*maximum rate*/
-#define RATE                15
+#define RATE                15          /*2Hz rate*/
+#define DEFAULT_RATE        6           /*1024Hz rate*/
 #define BUFF_SIZE           128         /*keyboard buffer size*/
 #define LEFT_SHIFT_PRESS    0x2A
 #define RIGHT_SHIFT_PRESS   0x36

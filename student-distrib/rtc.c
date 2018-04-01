@@ -37,7 +37,8 @@ int32_t rtc_open(const uint8_t *filename) {
         printf("rtc file is failed to open.\n");
         return -1;
     }
-    set_rate(RATE);     /*set the rate to 2Hz*/
+    // set_rate(RATE);     /*set the rate to 2Hz*/
+    rtcRelativeFreq = HIGHEST / 2; /*set the rate to 2Hz*/
     enable_irq(RTC_IRQ);
     return 0;
 }
@@ -93,8 +94,8 @@ int32_t rtc_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
     }
 
     sti();
-    rtcFlag = 1;    /*set the rtc flag to 1*/
-    while (rtcFlag);    /*check whether a rtc interrupt completed*/
+    rtcFlag = 0;    /*set the rtc flag to 1*/
+    while (rtcFlag<rtcRelativeFreq);    /*check whether a rtc interrupt completed*/
     return 0;
 }
 
@@ -110,7 +111,8 @@ int32_t rtc_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
  *   SIDE EFFECTS: set the rtc freqency to the input one
  */
 int32_t rtc_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
-    char prev;
+    // char prev;               should not use when virtulizing rtc
+    // int rate = MAX_RATE;
     int32_t freqency;
 
     /*if file not opened, return -1*/
@@ -130,19 +132,20 @@ int32_t rtc_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
     if (buf == NULL) return -1;      /*check whether the buffer is valid*/
     if (nbytes != 4) return -1;      /*the freqency is a 4 bytes int*/
     freqency = *buf;
-    int rate = MAX_RATE;
+
     if (freqency > HIGHEST || freqency <= 1) return -1;     /*freqency is out of range*/
     if (freqency & (freqency - 1)) {        /*input is not power of 2*/
         printf("input is not power of 2");
         return -1;
     }
-    while (freqency != 1) {         /*convert the freqency to rate*/
-        freqency /= 2;
-        rate --;
-    }
-    outb(SR_A, RTC_REG_NUM);      /*set index to register A, disable NMI*/
-    prev = inb(RTC_REG_DATA);         /*get initial value of register A*/
-    outb(SR_A, RTC_REG_NUM);      /*reset index to A*/
-    outb((prev & RTC_WRITE_MASK) | rate, RTC_REG_DATA);     /*write only our rate to A. Note, rate is the bottom 4 bits*/
+    rtcRelativeFreq = HIGHEST / freqency;
+    // while (freqency != 1) {         /*convert the freqency to rate*/
+    //     freqency /= 2;
+    //     rate --;
+    // }
+    // outb(SR_A, RTC_REG_NUM);      /*set index to register A, disable NMI*/
+    // prev = inb(RTC_REG_DATA);         /*get initial value of register A*/
+    // outb(SR_A, RTC_REG_NUM);      /*reset index to A*/
+    // outb((prev & RTC_WRITE_MASK) | rate, RTC_REG_DATA);     /*write only our rate to A. Note, rate is the bottom 4 bits*/
     return nbytes;
 }
