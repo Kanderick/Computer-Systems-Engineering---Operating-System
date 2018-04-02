@@ -2,6 +2,7 @@
 #define FILE_SYSTEM
 
 #include "types.h"
+#include "system_call.h"
 // dentry parameters
 #define FILE_NAME_LEN           32
 #define DENTRY_RESERVED         24
@@ -98,14 +99,15 @@ extern int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry);
 /* copys length bytes of information of a file from offset of the corresponding inode into buffer*/
 extern int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
 
-/* for check point 2 */
+/* for check point 2
 #define MAX_FILE_OPEN   17
 #define STATUS_CLOSED   67      // 'C' indecates file closed
 #define STATUS_OPENED   79      // 'O' indicates file opened
+
 /* This is the file array to record file open/close status.
  *
  *  note: only for check point 3.2
- */
+
 struct file_status_array{
   // files status
     dentry_t FILE_TO_OPEN[MAX_FILE_OPEN];
@@ -116,6 +118,10 @@ struct file_status_array{
 };
 typedef struct file_status_array file_status_array_t;
 extern file_status_array_t fileStatusArray;
+ */
+
+ // this file array pointer should points to current PCB's file array
+extern fileArray_t* fileStatusArray;
 
 // following functions are for system call
 /*Initializes the local file_status_array*/
@@ -123,17 +129,17 @@ extern void init_file_status_array(file_status_array_t* array);
 /* A neat helper function that return the file descriptor of the file indicated by filename*/
 extern int32_t file_find    (const uint8_t* filename);
 /* read function for non-directory files */
-extern int32_t file_read    (int32_t fd, void* buf, int32_t nbytes);
+extern int32_t file_read    (int32_t fd, unsigned char* buf, int32_t nbytes);
 /* write function for non-directory files */
-extern int32_t file_write   (int32_t fd, const void* buf, int32_t nbytes);
+extern int32_t file_write   (int32_t fd, const unsigned char* buf, int32_t nbytes);
 /* open function for non-directory files */
 extern int32_t file_open    (const uint8_t* filename);
 /* close function for non-directory files */
 extern int32_t file_close   (int32_t fd);
 /* read function for directory files */
-extern int32_t dir_read    (int32_t fd, void* buf, int32_t nbytes);
+extern int32_t dir_read    (int32_t fd, unsigned char* buf, int32_t nbytes);
 /* write function for directory files */
-extern int32_t dir_write   (int32_t fd, const void* buf, int32_t nbytes);
+extern int32_t dir_write   (int32_t fd, const unsigned char* buf, int32_t nbytes);
 /* open function for directory files */
 extern int32_t dir_open    (const uint8_t* filename);
 /* close function for directory files */

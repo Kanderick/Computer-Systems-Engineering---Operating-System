@@ -14,12 +14,14 @@ void init_process_manager(process_manager_t* processManager){
     // initialze the process_status in the processManager
     for (ii = 0; ii < MAX_PROCESS_NUM; ii++)
         processManager->process_status[ii] = PROCESS_NOT_EXIST;
+    // NOTE just for convinience, call init_file_operation_jumptables here
+    init_file_operation_jumptables();
 }
 
 // NOTE: this function should only be called when a current process wants to have a child process
 int8_t init_pcb(process_manager_t* processManager){
     uint32_t ii; // for traverse array in processManager
-    int8_t ret_pid = -1;
+    int8_t ret_pid = -1;    // init pid to be invalid
     // check if the passed-in pointer is valid
     if (processManager == NULL)
         return ret_pid;

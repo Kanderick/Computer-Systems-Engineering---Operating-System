@@ -1,4 +1,8 @@
+#ifndef PCB_H
+#define PCB_H
+
 #include "paging.h"     // for paging info to add
+#include "system_call.h"    // for init operation jumptables
 
 #define MAX_PROCESS_NUM     2     // for now, set the process number upper limit to 2
 // following two are for ece391_process_manager.process_status
@@ -25,13 +29,13 @@ struct process_control_block {
 typedef struct process_control_block pcb_t;
 
 typedef struct process_manager{
-// NOTE: (pid-1) is the index of this array, and this is a !pointer! array
-// each element points to the position of a PCB
-pcb_t* process_position[MAX_PROCESS_NUM];
-// This array indicates each process presents or not
-uint8_t process_status[MAX_PROCESS_NUM];
-// indicates current process, -1 on no process
-int8_t curr_pid;
+    // NOTE: (pid-1) is the index of this array, and this is a !pointer! array
+    // each element points to the position of a PCB
+    pcb_t* process_position[MAX_PROCESS_NUM];
+    // This array indicates each process presents or not
+    uint8_t process_status[MAX_PROCESS_NUM];
+    // indicates current process, -1 on no process
+    int8_t curr_pid;
 }process_manager_t;
 
 // this is the ece391 process/task manager, all the process info can be found in this data structure
@@ -42,3 +46,5 @@ void init_process_manager(process_manager_t* processManager);
 
 // this function init a new process, return a pid and -1 on failure
 int8_t init_pcb(process_manager_t* processManager);
+
+#endif

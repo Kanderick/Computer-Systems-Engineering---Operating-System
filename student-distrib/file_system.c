@@ -8,7 +8,11 @@
 #include "lib.h"
 /* the hierarchy for ece391 file system */
 ece391_file_system_t   ece391FileSystem;
-file_status_array_t fileStatusArray;
+
+// file_status_array_t fileStatusArray; this is only for CP_3.2
+
+// this file array pointer should points to current PCB's file array
+fileArray_t* fileStatusArray;
 
 /*
  * init_file_system
@@ -69,8 +73,6 @@ void init_file_system(unsigned int addr_start, unsigned int addr_end){
     // parsing the data blocks
     addr += BLOCK_SIZE_4KB*ece391FileSystem.ece391_boot_block->inode_count;
     ece391FileSystem.ece391_data_blocks = (data_block_t*) addr;
-    // initialze the file status array for open/close operation, only for Checkpoint 2
-    init_file_status_array(&fileStatusArray);
     return;
 }
 
@@ -247,7 +249,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
  *   OUTPUTS: none
  *   RETURN VALUE: none
  *   SIDE EFFECTS: none
- */
+
 void init_file_status_array(file_status_array_t* array){
     uint32_t ii;    // traverse to initialize status file/dir array
     for(ii = 0; ii < MAX_FILE_OPEN; ii++){
@@ -258,6 +260,7 @@ void init_file_status_array(file_status_array_t* array){
     }
     return;
 }
+ */
 // for SYSTEM CALL
 // following functions are for system call
 
@@ -288,7 +291,7 @@ int32_t file_open    (const uint8_t* filename){
     // traverse the open file array
     for (ii = 0; ii < MAX_FILE_OPEN; ii++){
         // check each opened file
-        if (fileStatusArray.FILE_STATUS[ii] == STATUS_OPENED){
+        if (fileStatusArray->files[ii].flag == STATUS_OPENED){
             already_open_flag = 1; // initialize as opened
             // check if the name is the same
             for (i = 0; i < file_name_length; i++){

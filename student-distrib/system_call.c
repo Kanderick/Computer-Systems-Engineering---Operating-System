@@ -5,8 +5,12 @@
 #include "paging.h"
 #include "lib.h"
 
-static fileArray_t array;
-
+// these following variables act as function jumptables for different files; static is thus safe
+static fileOperationTable_t inTable;    // 'stdin' jumptable
+static fileOperationTable_t outTable;   // 'stdout' jumptable
+static fileOperationTable_t rtcTable;   // 'rtc' jumptable
+static fileOperationTable_t dirTable;   // directory jumptable
+static fileOperationTable_t regTable;   // regular files jumptable
 
 int32_t open(const uint8_t *filename) {
     int i;
@@ -72,19 +76,63 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
     return -1;
 }
 
-void init_fot(void) {
-    inTable.fotOpen = (oFunc)&terminal_open;
-    inTable.fotClose = (cFunc)&terminal_close;
-    inTable.fotRead = (rFunc)&terminal_read;
-    inTable.fotWrite = NULL;
+int32_t halt (uint8_t status);
+int32_t execute (const uint8 t* command);
+// the following funcions are not implemented
+int32_t getargs (uint8_t* buf, int32_t nbytes);
+int32_t vidmap (uint8_t** screen_start);
+int32_t set_handler (int32_t signum, void* handler_address);
+int32_t sigreturn (void);
 
-    outTable.fotOpen = (oFunc)&terminal_open;
-    outTable.fotClose = (cFunc)&terminal_close;
-    outTable.fotRead = NULL;
-    outTable.fotWrite = (wFunc)&terminal_write;
+// this funcion initilize the file array, automatically open the
+// terminal open/close
+// this function is called by PCB
+void init_fileArray(fileArray_t* new_file_array){
+    int32_t ii; // for traverse the file array
+    // open stdin automatically
+    new_file_array->files[0].table = &inTable;
+    new_file_array->files[0].inode = NULL;  // no such file exist in
+    new_file_array->files[0].filePos = 0;
+    new_file_array->files[0].flag = STATUS_OPENED;
+    // open stdout automatically
+    new_file_array->files[1].table = &outTable;
+    new_file_array->files[1].inode = NULL;  // no such file exist in
+    new_file_array->files[1].filePos = 0;
+    new_file_array->files[1].flag = FILE_EXIST;
+    // traverse array to set rest files' status
+    for (ii = 2; ii < FA_SIZE; ii++)
+        new_file_array->files[ii].flag = STATUS_CLOSED;
+    // make sure that the all the drivers are interacting with the correct file array
+    fileStatusArray = new_file_array;
 
-    rtcTable.fotOpen = (oFunc)&rtc_open;
-    rtcTable.fotClose = (cFunc)&rtc_close;
-    rtcTable.fotRead = (rFunc)&rtc_read;
-    rtcTable.fotWrite = (wFunc)&rtc_write;
+}
+// this function should be called once,
+// NOTE can is called in function : void init_process_manager(process_manager_t* processManager)
+void init_file_operation_jumptables(void){
+    // init the local jumptables
+    // 'stdin' jumptable
+    inTable.oFunc = &terminal_open;
+    inTable.cFunc = &terminal_close;
+    inTable.rFunc = &terminal_read;
+    inTable.wFunc = NULL;
+    // 'stdout' jumptable
+    outTable.oFunc = &terminal_open;
+    outTable.cFunc = &terminal_close;
+    outTable.rFunc = NULL;
+    outTable.wFunc = &terminal_write;
+    // 'rtc' jumptable
+    rtcTable.oFunc = &rtc_open;
+    rtcTable.cFunc = &rtc_close;
+    rtcTable.rFunc = &rtc_read;
+    rtcTable.wFunc = &rtc_write;
+    // directory jumptable
+    dirTable.oFunc = &dir_open;
+    dirTable.cFunc = &dir_close;
+    dirTable.rFunc = &dir_read;
+    dirTable.wFunc = &dir_write;
+    // regular files jumptable
+    regTable.oFunc = &file_open;
+    regTable.cFunc = &file_close;
+    regTable.rFunc = &file_read;
+    regTable.wFunc = &file_write;
 }
