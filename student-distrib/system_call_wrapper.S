@@ -1,5 +1,5 @@
-/*
-donot forget to uncomment  line 45 in idt.h file
+
+/* NOTE donot forget to uncomment  line 45 in idt.c file */
 .text
 .globl system_call_wrapper
 
@@ -23,4 +23,3 @@ fail:
     iret
 system_call_jump_table:
     .long halt, execute, read, write, open, close, getargs, vidmap, set_handler, sigreturn
-*/
