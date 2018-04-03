@@ -41,6 +41,9 @@ typedef struct process_manager{
 // this is the ece391 process/task manager, all the process info can be found in this data structure
 extern process_manager_t ece391_process_manager;
 
+uint32_t pop_process();
+
+uint32_t push_process(int8_t new_pid);
 // this function initializes the ece391init_process_manager
 void init_process_manager(process_manager_t* processManager);
 

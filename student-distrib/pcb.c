@@ -53,3 +53,18 @@ int8_t init_pcb(process_manager_t* processManager){
     }
     return ret_pid;
 }
+
+uint32_t pop_process() {
+    if (curr_pid == -1) return -1;
+    ece391_process_manager.process_status[curr_pid] = PROCESS_NOT_EXIST;
+    ece391_process_manager.curr_pid = process_position[curr_pid]->parent_pid;
+    return 0;
+}
+
+uint32_t push_process(int8_t new_pid) {
+    ece391_process_manager.process_status[new_pid] = PROCESS_EXIST;
+    ece391_process_manager.curr_pid = new_pid;
+    return 0;
+}
+
+uint32_t push_process();

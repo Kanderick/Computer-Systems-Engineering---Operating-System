@@ -15,63 +15,63 @@ static fileOperationTable_t regTable;   // regular files jumptable
 int32_t open(const uint8_t *filename) {
     int i;
     dentry_t dentry;
+    int8_t fullFlag;
     if (filename == NULL) return -1;
     if (read_dentry_by_name(filename, &dentry) == -1) return -1;
-    /* WTF is this */
     if (filename == (uint8_t *)"stdin") return 0;
     if (filename == (uint8_t *)"stdout") return 1;
-    array.fullFlag = 1;
+    fullFlag = 1;
     for (i = 2; i < 8; i ++) {
-        if(array.files[i].flags == 0) {
-            array.fullFlag = 0;
-            array.files[i].flags = 1;
+        if(ece391_process_manager.process_position[curr_pid]->file_array.files[i].flags == 0) {
+            fullFlag = 0;
+            ece391_process_manager.process_position[curr_pid]->file_array.files[i].flags = 1;
             break;
         }
     }
-    if (array.fullFlag == 1) return -1;
+    if (fullFlag == 1) return -1;
     switch (dentry.filetype) {
         case 0:
-            array.files[i].table = &rtcTable;
-            array.files[i].inode = NULL;
-            array.files[i].filePos = 0;
+            ece391_process_manager.process_position[curr_pid]->file_array.files[i].table = &rtcTable;
+            ece391_process_manager.process_position[curr_pid]->file_array.files[i].inode = NULL;
+            ece391_process_manager.process_position[curr_pid]->file_array.files[i].filePos = 0;
             break;
-        // case 1:
-        //     array.files[i].table = &dirTable;
-        //     array.files[i].inode = NULL;
-        //     array.files[i].filePos = 0;
-        //     break;
-        // case 2:
-        //     array.inode = (uint32_t *)(ece391FileSystem.ece391_boot_block + BLOCK_SIZE_4KB * (dentry.inode_num + 1));
-        //     array.files[i].table = &regTable;
-        //     array.files[i].inode = array.inode;
-        //     array.files[i].filePos = 0;
-        //     break;
+        case 1:
+            ece391_process_manager.process_position[curr_pid]->file_array.files[i].table = &dirTable;
+            ece391_process_manager.process_position[curr_pid]->file_array.files[i].inode = NULL;
+            ece391_process_manager.process_position[curr_pid]->file_array.files[i].filePos = 0;
+            break;
+        case 2:
+            ece391_process_manager.process_position[curr_pid]->file_array.inode = (uint32_t *)(ece391FileSystem.ece391_boot_block + BLOCK_SIZE_4KB * (dentry.inode_num + 1));
+            ece391_process_manager.process_position[curr_pid]->file_array.files[i].table = &regTable;
+            ece391_process_manager.process_position[curr_pid]->file_array.files[i].inode = array.inode;
+            ece391_process_manager.process_position[curr_pid]->file_array.files[i].filePos = 0;
+            break;
     }
-    array.files[i].table->fotOpen(filename);
+    ece391_process_manager.process_position[curr_pid]->file_array.files[i].table->fotOpen(filename);
     return i;
 }
 
 int32_t close(int32_t fd) {
-    if (array.files[fd].flags == 0) return -1;
-    if (array.files[fd].table != NULL)
-        array.files[fd].table->fotClose(fd);
-    array.files[fd].table = NULL;
-    array.files[fd].inode = NULL;
-    array.files[fd].filePos = 0;
-    array.files[fd].flags = 0;
+    if (ece391_process_manager.process_position[curr_pid]->file_array.files[fd].flags == 0) return -1;
+    if (ece391_process_manager.process_position[curr_pid]->file_array.files[fd].table != NULL)
+        ece391_process_manager.process_position[curr_pid]->file_array.files[fd].table->fotClose(fd);
+    ece391_process_manager.process_position[curr_pid]->file_array.files[fd].table = NULL;
+    ece391_process_manager.process_position[curr_pid]->file_array.files[fd].inode = NULL;
+    ece391_process_manager.process_position[curr_pid]->file_array.files[fd].filePos = 0;
+    ece391_process_manager.process_position[curr_pid]->file_array.files[fd].flags = 0;
     return 0;
 }
 
 int32_t read(int32_t fd, void *buf, int32_t nbytes) {
     if (fd >= 0 && fd < 8) {
-        return array.files[fd].table->fotRead(fd, buf, nbytes);
+        return ece391_process_manager.process_position[curr_pid]->file_array.files[fd].table->fotRead(fd, buf, nbytes);
     }
     return -1;
 }
 
 int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
     if (fd >= 0 && fd < 8) {
-        return array.files[fd].table->fotWrite(fd, buf, nbytes);
+        return ece391_process_manager.process_position[curr_pid]->file_array.files[fd].table->fotWrite(fd, buf, nbytes);
     }
     return -1;
 }
