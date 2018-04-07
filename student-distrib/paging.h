@@ -31,6 +31,9 @@
 #define KERNEL_START            0x00400000
 #define VIDEO_START             0x000B8000
 #define VIDEO_VIRTUAL           0xB8
+#define USER_START_VIRTUAL      0x08000000
+#define PDEIDX_128MB            32
+#define USER_IMAGE_START        0x08048000
 
 /* Control Registers' Flag Masks */
 #define CR0_PG_FLAG             0x80000000
@@ -48,5 +51,11 @@ extern pte_t page_table_0[PAGE_TABLE_SIZE];
 
 /* Global Function */
 extern void init_paging(void);
+
+//map the 128MB virtual address to the corresponding physical address
+extern void user_page_mapping(uint8_t pid);
+
+//unmaps the 128MB virtual address of the process
+extern void user_page_unmapping(uint8_t pid);
 
 #endif

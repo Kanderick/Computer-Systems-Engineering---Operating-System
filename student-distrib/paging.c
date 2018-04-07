@@ -162,3 +162,35 @@ void init_paging(void) {
     /* Set CR0 bit 31*/
     set_in_cr0(CR0_PG_FLAG);    /* Assert Page Table is turned on */
 }
+
+/* user_page_mapping
+ * Purpose	map the 128MB virtual address to the corresponding physical address
+ * Inputs	pid(the current process number, the first program pid is 1)
+ * Outputs	None
+ * Side Effects flushes tlb
+ */
+void user_page_mapping(uint8_t pid) {
+
+  pde_t page_128mb;
+  if (pid >= 1) {
+    page_128mb = ((pid + 1) * _4MB) | PAFE_SIZE_MASK | R_W_MASK | PRESENT_MASK;
+    //map the virtual 128mb to the corresponding physical address
+    page_directory[PDEIDX_128MB] = page_128mb;
+    write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
+  }
+}
+
+/* user_page_unmapping
+ * Purpose	unmap the 128MB virtual address of the process, used when halting the current process
+ * Inputs	pid(the current process number, the first program pid is 1)
+ * Outputs	None
+ * Side Effects flushes tlb
+ */
+void user_page_unmapping(uint8_t pid) {
+
+  if (pid >= 1) {
+    //unmaps the virtual 128mb
+    page_directory[PDEIDX_128MB] = 0;
+    write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
+  }
+}
