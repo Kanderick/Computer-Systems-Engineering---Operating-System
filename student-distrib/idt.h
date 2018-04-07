@@ -172,4 +172,6 @@ extern void exception_XF_wrapper(void);
 /*unkown_int_wrapper to call the related function to execute following instruction*/
 extern void unkown_int_wrapper(void);
 
+extern void system_call_wrapper(void);
+
 #endif
