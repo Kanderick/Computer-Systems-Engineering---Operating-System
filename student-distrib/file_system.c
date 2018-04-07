@@ -240,6 +240,20 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     // end of file is reached, return the number of bytes copyed
     return ece391FileSystem.ece391_inodes[inode].length - offset;
 }
+/*
+ * get_file_length
+ *   DESCRIPTION: get the filelength by filename
+ *   INPUTS: fname: a string pointer of the desired filename
+ *   OUTPUTS: none
+ *   RETURN VALUE: filelength in bytes. -1 for fail or invalid file type
+ *   SIDE EFFECTS: none
+ */
+extern int32_t get_file_length(const uint8_t *fname) {
+  dentry_t dentry;
+  if (read_dentry_by_name(fname, &dentry) == -1) return -1;
+  if (dentry.filetype != REG_FILE_TPYE) return -1;
+  return ece391FileSystem.ece391_inodes[dentry.inode_num].length;
+}
 
 // following are higher level APIs to interact with file system, these functions are expected to be called
 /*
