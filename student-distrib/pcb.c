@@ -1,4 +1,5 @@
 #include "pcb.h"
+#include "system_call.h"    // for init operation jumptables
 
 // this is the ece391 process/task manager, all the process info can be found in this data structure
 process_manager_t ece391_process_manager;
@@ -19,7 +20,7 @@ void init_process_manager(process_manager_t* processManager){
 }
 
 // NOTE: this function should only be called when a current process wants to have a child process
-// return the pid_number that is initialized or -1 on failure 
+// return the pid_number that is initialized or -1 on failure
 int8_t init_pcb(process_manager_t* processManager){
     uint32_t ii; // for traverse array in processManager
     int8_t ret_pid = -1;    // init pid to be invalid
@@ -36,8 +37,8 @@ int8_t init_pcb(process_manager_t* processManager){
             // init the file_array
             init_fileArray(&(processManager->process_position[ii]->file_array));
             // update the kernel stack for this process
-            processManager->process_position[ii]->ebp = (pcb_t*) (PCB_BASE_ADDR - ii*PCB_SEG_LENGTH);
-            processManager->process_position[ii]->esp = (pcb_t*) (PCB_BASE_ADDR - ii*PCB_SEG_LENGTH);
+            processManager->process_position[ii]->ebp =  (PCB_BASE_ADDR - ii*PCB_SEG_LENGTH);
+            processManager->process_position[ii]->esp =  (PCB_BASE_ADDR - ii*PCB_SEG_LENGTH);
             // load parent pid
             processManager->process_position[ii]->parent_pid = processManager->curr_pid;
             // check if to
@@ -56,16 +57,14 @@ int8_t init_pcb(process_manager_t* processManager){
 }
 
 uint32_t pop_process() {
-    if (curr_pid == -1) return -1;
-    ece391_process_manager.process_status[curr_pid] = PROCESS_NOT_EXIST;
-    ece391_process_manager.curr_pid = process_position[curr_pid]->parent_pid;
+    if (ece391_process_manager.curr_pid == -1) return -1;
+    ece391_process_manager.process_status[ece391_process_manager.curr_pid-1] = PROCESS_NOT_EXIST;
+    ece391_process_manager.curr_pid = ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->parent_pid;
     return 0;
 }
 
 uint32_t push_process(int8_t new_pid) {
-    ece391_process_manager.process_status[new_pid] = PROCESS_EXIST;
+    ece391_process_manager.process_status[new_pid-1] = PROCESS_EXIST;
     ece391_process_manager.curr_pid = new_pid;
     return 0;
 }
-
-uint32_t push_process();

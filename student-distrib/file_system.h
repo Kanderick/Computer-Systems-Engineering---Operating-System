@@ -2,7 +2,7 @@
 #define FILE_SYSTEM
 
 #include "types.h"
-#include "system_call.h"
+//#include "system_call.h"
 // dentry parameters
 #define FILE_NAME_LEN           32
 #define DENTRY_RESERVED         24
@@ -16,7 +16,9 @@
 // file system parameter
 #define FILESYS_IMG_LEN         0x7c000
 #define BLOCK_SIZE_4KB          4096
-
+// following functions are for system call
+#define FD_LOW   2 // user has no priviledge to close fd 0, 1 or non-exist file
+#define FD_UPPER  7 // any fd is greater then 7 is invalid
 // filetypes
 #define RTC_FILE_TYPE       0
 #define DIR_FILE_TYPE       1
@@ -106,7 +108,7 @@ extern int32_t get_file_length(int32_t fd);
 #define STATUS_CLOSED   67      // 'C' indecates file closed
 #define STATUS_OPENED   79      // 'O' indicates file opened
 
-/* This is the file array to record file open/close status.
+ This is the file array to record file open/close status.
  *
  *  note: only for check point 3.2
 
@@ -123,13 +125,12 @@ extern file_status_array_t fileStatusArray;
  */
 
  // this file array pointer should points to current PCB's file array
-extern fileArray_t* fileStatusArray;
 
 // following functions are for system call
 /*Initializes the local file_status_array*/
-extern void init_file_status_array(file_status_array_t* array);
+//extern void init_file_status_array(file_status_array_t* array);
 /* A neat helper function that return the file descriptor of the file indicated by filename*/
-extern int32_t file_find    (const uint8_t* filename);
+// extern int32_t file_find    (const uint8_t* filename);
 /* read function for non-directory files */
 extern int32_t file_read    (int32_t fd, unsigned char* buf, int32_t nbytes);
 /* write function for non-directory files */

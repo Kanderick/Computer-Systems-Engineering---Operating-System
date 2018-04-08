@@ -195,6 +195,7 @@ int file_read_test_naive(){
 #define 	NAME_MAX_LEN		32 /* in ece391 file system, a file name has maximum 32 B length */
 #define 	PRINT_STRIDE		50 /* for easy testing, echo 50 bytes of file info uoto screen */
 
+#if (FILE_SYSTEM_TEST == 1)
 /* test_file_open_read_close
  * Purpose	// regular files ops test
  * Inputs	None
@@ -501,6 +502,7 @@ int test_dir_open_read_close() {
 	printf("[PASS] dir close %s\n", name);
 	return PASS;
 }
+#endif
 /* rtc_test
  * Purpose	Check if RTC works properly.
  * Inputs	None

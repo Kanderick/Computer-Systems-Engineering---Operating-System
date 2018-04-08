@@ -1,8 +1,13 @@
 #ifndef PCB_H
 #define PCB_H
 
-#include "paging.h"     // for paging info to add
-#include "system_call.h"    // for init operation jumptables
+#include "types.h"
+
+// total number of files a single PCB is holding
+#define FA_SIZE                 8
+#define STATUS_CLOSED   67      // 'C' indecates file closed
+#define STATUS_OPENED   79      // 'O' indicates file opened
+// include "pcb.h" after FA_SIZE to avoid error
 
 #define MAX_PROCESS_NUM     2     // for now, set the process number upper limit to 2
 // following two are for ece391_process_manager.process_status
@@ -11,8 +16,32 @@
 // constant for initialzing pcb
 #define PCB_BASE_ADDR       0x800000    // the base address for storing PCB, 8MB
 #define PCB_SEG_LENGTH      0x2000      // each segment should be offset from the base, 8KB
+
+// the file operation table should be contained in each file struct in the file array
+typedef struct fileOperationTable {
+    // definition of file operation table function pointers, currently we only have four
+    int32_t (*oFunc)(const uint8_t *filename);
+    int32_t (*cFunc)(int32_t fd);
+    int32_t (*rFunc)(int32_t fd, unsigned char *buf, int32_t nbytes);
+    int32_t (*wFunc)(int32_t fd, const unsigned char *buf, int32_t nbytes);
+} fileOperationTable_t;
+
+// the file struct in the file array
+typedef struct ece391_file {
+    fileOperationTable_t *table;
+    uint32_t  inode;
+    uint32_t filePos;
+    uint32_t flags;
+} ece391_file_t;
+
+// the file array should be used and initialze whenever a new PCB is init
+typedef struct fileArray {
+    ece391_file_t files[FA_SIZE];
+    // reserved for other variables
+} fileArray_t;
+
 // make it packed to spare space for kernel stack
-struct process_control_block {
+typedef struct process_control_block {
     /* the file array for each process */
     fileArray_t file_array;
     /* parent process statics */
@@ -25,8 +54,8 @@ struct process_control_block {
     // int8_t pid;          NOTE: no need for store pid again
     /* reserved for paging info */
     uint32_t page_directory_index;
-}  __attribute((packed));
-typedef struct process_control_block pcb_t;
+}pcb_t;
+
 
 typedef struct process_manager{
     // NOTE: (pid-1) is the index of this array, and this is a !pointer! array

@@ -1,20 +1,20 @@
 #include "loader.h"
 #include "file_system.h"
+#include "lib.h"
 
 /* NOTE Limitation of this loader is that it assumes that and executable is always smaller than 4MB, which is specified in the MP3.3 documentation. However, this loader can be more flexible with a more complexed paging initialization strategy. */
 
 /* check_executable_validity
  * Purpose Check if an file is a valid executable image.
- * Inputs  filename User program file name.
+ * Inputs  fd   User program fd #
  * Outputs Error message when necessary.
  * Return  -1   when file is not a valid executable
  *         1    when file is a valid
  * Side Effects None
  * NOTE call before load_user_image
  */
-int8_t check_executable_validity(const uint8_t* filename) {
+int8_t check_executable_validity(int32_t fd) {
     /* Check if file opened */
-    int32_t fd = file_find(filename);
     if (fd < 0) {
         ERROR_MSG;
         printf("File not opened.\n");
@@ -50,19 +50,18 @@ int8_t check_executable_validity(const uint8_t* filename) {
 
  /* load_user_image
   * Purpose Load an user executable image into proper memory location.
-  * Inputs  filename User program file name.
+  * Inputs  fd  User program fd #
   * Outputs Error message when necessary.
   * Return  Starting Address of the executable if valid,
   *         NULL if invalid or error occured.
   * Side Effects None
   * NOTE call after check_executable_validity
   */
-uint32_t* load_user_image(const uint8_t* filename) {
-    /* Get fd number */
-    int32_t fd = file_find(filename);   // File open check is not necessary since called check_executable_validity before.
+uint32_t* load_user_image(int32_t fd) {
+    // File open check is not necessary since we called check_executable_validity before.
 
     /* Get file length, check if it exceed maximum allowable image size */
-    int32_t nbytes = get_file_length(filename);
+    int32_t nbytes = get_file_length(fd);
     if (nbytes > LOAD_EXE_MAX_SIZE) {
         ERROR_MSG;
         printf("Executable image size exceed maximum allowance. Size %dB, %dB allowed.\n", nbytes, LOAD_EXE_MAX_SIZE);
@@ -74,7 +73,7 @@ uint32_t* load_user_image(const uint8_t* filename) {
     }
 
     /* Read file data into proper location */
-    uint32_t* buffer = (uint32_t*)LOAD_EXE_START_ADDR;
+    uint8_t* buffer = (uint8_t*)LOAD_EXE_START_ADDR;
     int32_t read_bytes = file_read(fd, buffer, nbytes);
     if (read_bytes == -1) {
         ERROR_MSG;
@@ -87,7 +86,7 @@ uint32_t* load_user_image(const uint8_t* filename) {
     }
 
     /* Get program starting address */
-    uint32_t* starting_addr = (uint32_t*)buffer[EXE_START_COUNT];
+    uint32_t* starting_addr = (uint32_t*) ((uint32_t*)buffer)[EXE_START_COUNT];
     /* Check if we got an starting address after EXE_START_ADDR, before the end of the page */
     if (((uint32_t)starting_addr < LOAD_EXE_START_ADDR) || (uint32_t)starting_addr > LOAD_PAGE_END_ADDR) {
         ERROR_MSG;
