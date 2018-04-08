@@ -2,6 +2,11 @@
 #include "file_system.h"
 #include "lib.h"
 
+/* Magic number at the beginning of an executable file */
+const uint8_t EXE_IDENTIFIER_TABLE[EXE_IDENTIFIER_SIZE] = {
+    0x7F, 0x45, 0x4C, 0x46
+};
+
 /* NOTE Limitation of this loader is that it assumes that and executable is always smaller than 4MB, which is specified in the MP3.3 documentation. However, this loader can be more flexible with a more complexed paging initialization strategy. */
 
 /* check_executable_validity

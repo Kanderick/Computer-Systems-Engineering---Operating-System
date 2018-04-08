@@ -38,7 +38,7 @@ int32_t rtc_open(const uint8_t *filename) {
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].filePos = HIGHEST / 2; /*set the rate to 2Hz*/
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].flags = STATUS_OPENED;
     enable_irq(RTC_IRQ);
-    return 0;
+    return new_fd;
 }
 
 /*

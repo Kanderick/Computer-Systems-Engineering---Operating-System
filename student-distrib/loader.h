@@ -18,10 +18,7 @@
 #define EXE_IDENTIFIER_SIZE     4           // Four magic numbers to determine if a file is an executable
 #define EXE_START_COUNT         (24/4)      // Byte 24-27 from the EXE start addr
 
-/* Magic number at the beginning of an executable file */
-const uint8_t EXE_IDENTIFIER_TABLE[EXE_IDENTIFIER_SIZE] = {
-    0x7F, 0x45, 0x4C, 0x46
-};
+
 
 /* Check if a file is a valid executable file */
 extern int8_t check_executable_validity(int32_t fd);

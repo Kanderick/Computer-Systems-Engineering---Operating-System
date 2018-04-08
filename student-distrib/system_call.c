@@ -6,6 +6,7 @@
 #include "lib.h"
 #include "loader.h"
 #include "pcb.h"
+#include "x86_desc.h"
 
 // these following variables act as function jumptables for different files; static is thus safe
 static fileOperationTable_t inTable;    // 'stdin' jumptable
@@ -35,6 +36,7 @@ int32_t open(const uint8_t *filename) {
         printf("Process wants to open invalid file.\n");
         return -1;
     }
+    printf("\nCP_0\n");
     // check if file status array has spare spot for new file to open
     fullFlag = 1;
     for (i = FD_PARAM_LOW; i <= FD_PARAM_UPPER; i ++) {
@@ -43,7 +45,9 @@ int32_t open(const uint8_t *filename) {
             fullFlag = 0;
             switch (dentry.filetype) {
                 case 0:
+                    printf("\nCP_1%#x\n", (rtcTable.oFunc));
                     fd = (*(rtcTable.oFunc))(filename);
+                    printf("\nCP_2%d\n",fd);
                     (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table = &rtcTable;
                     break;
                 case 1:
@@ -58,6 +62,7 @@ int32_t open(const uint8_t *filename) {
             break;
         }
     }
+
     // if no space, then return on error
     if (fullFlag == 1) {
         printf("Process file_array is full.\n");
@@ -101,7 +106,7 @@ int32_t read(int32_t fd, void *buf, int32_t nbytes) {
         *((int8_t*) buf) = '\0';
         return -1;
     }
-    if (fd <= 0 || fd > FD_PARAM_UPPER) {
+    if (fd < 0 || fd > FD_PARAM_UPPER) {
         printf("Process read has bad parameter.\n");
         *((int8_t*) buf) = '\0';
         return -1;
@@ -125,7 +130,7 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
         printf("Process tries to write to a already closed file.\n");
         return -1;
     }
-    if (fd <= 0 || fd > FD_PARAM_UPPER) {
+    if (fd < 0 || fd > FD_PARAM_UPPER) {
         printf("Process read has bad parameter.\n");
         return -1;
     }
@@ -140,57 +145,61 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
 
 int32_t halt (uint8_t status) {return 0;}
 int32_t execute (const uint8_t* command) {
-    /*check for bad input command*/
-    if (command == NULL) {
-      printf("ERROR: command does not exist.\n")
-      return -1;
-    }
-
-    uint8_t *filename;
-    uint32_t idx = 0;
-    int16_t cur_ds;
-
-    while (command[idx] != ' ' && command[idx] != '/0')
-        idx++;
-    memcpy(filename, command, idx);
-
-    /*checks whether the file is executable*/
-    if (check_executable_validity(filename) == -1) {
-      printf("ERROR: the file specified is inexecutable.\n");
-      return -1;
-    }
-
-    /*initialize a pcb for the current process, get the process number*/
-    int8_t pid = init_pcb(&ece391_process_manager);
-    if (pid < 1) {
-      printf("ERROR: unable to create a new pcb.\n");
-      return -1;
-    }
-
-    /*initialized user level paging*/
-    user_page_mapping(pid);
-
-    /*stores current process ebp, esp into the process manager*/
-    asm volatile("movl %%ebp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->ebp));
-    asm volatile("movl %%esp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp));
-
-    /*copy the user image to the user level page*/
-    uint32_t* execute_start = load_user_image(filename);
-
-    /*code for context switch*/
-    tss.esp0 = PCB_BASE_ADDR - new_pid * PCB_SEG_LENGTH - 4;
-    tss.ss0 = KERNEL_DS;
-
-    /*code for setting up stack for iret*/
-    //use the exexute_start to setup eip
-    asm volatile("movw %%ds,%0\n\t" :"=r" (cur_ds));
-    asm volatile("movw %0,%%ds": :"r" (USER_DS));
-    asm volatile("pushw %0\n\t" : :"g" (USER_DS));
-    asm volatile("pushl %%esp\n\t" : :);
-    asm volatile("pushfl\n\t" : :);
-    asm volatile("pushw %0\n\t" : :"g" (USER_CS));
-    asm volatile("pushl %0\n\t" : :"g" (execute_start));
-    asm volatile("iret" : :);
+    // /*check for bad input command*/
+    // if (command == NULL) {
+    //   printf("ERROR: command does not exist.\n");
+    //   return -1;
+    // }
+    //
+    // uint8_t *filename;
+    // uint32_t idx = 0;
+    // int16_t cur_ds;
+    //
+    // while (command[idx] != ' ' && command[idx] != '\0') {
+    //     idx++;
+    //     if (idx > 128) // NOTE magic number here
+    //         break;
+    // }
+    // memcpy(filename, command, idx);
+    //
+    // /*checks whether the file is executable*/
+    // if (check_executable_validity(filename) == -1) {
+    //     printf("ERROR: the file specified is inexecutable.\n");
+    //     return -1;
+    // }
+    //
+    // /*initialize a pcb for the current process, get the process number*/
+    // int8_t pid = init_pcb(&ece391_process_manager);
+    // if (pid < 1) {
+    //     printf("ERROR: unable to create a new pcb.\n");
+    //     return -1;
+    // }
+    //
+    // /*initialized user level paging*/
+    // user_page_mapping(pid);
+    //
+    // /*stores current process ebp, esp into the process manager*/
+    // asm volatile("movl %%ebp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->ebp));
+    // asm volatile("movl %%esp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp));
+    //
+    // /*copy the user image to the user level page*/
+    // uint32_t* execute_start = load_user_image(filename);
+    //
+    // /*code for context switch*/
+    // tss.esp0 = PCB_BASE_ADDR - pid * PCB_SEG_LENGTH - 4;
+    // tss.ss0 = KERNEL_DS;
+    //
+    // /*code for setting up stack for iret*/
+    // //use the exexute_start to setup eip
+    // asm volatile("movw %%ds,%0\n\t" :"=r" (cur_ds));
+    // asm volatile("movw %0,%%ds": :"r" (USER_DS));
+    // asm volatile("pushw %0\n\t" : :"g" (USER_DS));
+    // asm volatile("pushl %%esp\n\t" : :);
+    // asm volatile("pushfl\n\t" : :);
+    // asm volatile("pushw %0\n\t" : :"g" (USER_CS));
+    // asm volatile("pushl %0\n\t" : :"g" (execute_start));
+    // asm volatile("iret" : :);
+    return 0;
 }
 
 // the following funcions are not implemented
