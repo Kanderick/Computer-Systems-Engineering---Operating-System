@@ -5,16 +5,15 @@
 
 /* check_executable_validity
  * Purpose Check if an file is a valid executable image.
- * Inputs  filename User program file name.
+ * Inputs  fd   User program fd #
  * Outputs Error message when necessary.
  * Return  -1   when file is not a valid executable
  *         1    when file is a valid
  * Side Effects None
  * NOTE call before load_user_image
  */
-int8_t check_executable_validity(const uint8_t* filename) {
+int8_t check_executable_validity(int32_t fd) {
     /* Check if file opened */
-    int32_t fd = file_find(filename);
     if (fd < 0) {
         ERROR_MSG;
         printf("File not opened.\n");
@@ -50,19 +49,18 @@ int8_t check_executable_validity(const uint8_t* filename) {
 
  /* load_user_image
   * Purpose Load an user executable image into proper memory location.
-  * Inputs  filename User program file name.
+  * Inputs  fd  User program fd #
   * Outputs Error message when necessary.
   * Return  Starting Address of the executable if valid,
   *         NULL if invalid or error occured.
   * Side Effects None
   * NOTE call after check_executable_validity
   */
-uint32_t* load_user_image(const uint8_t* filename) {
-    /* Get fd number */
-    int32_t fd = file_find(filename);   // File open check is not necessary since called check_executable_validity before.
+uint32_t* load_user_image(int32_t fd) {
+    // File open check is not necessary since we called check_executable_validity before.
 
     /* Get file length, check if it exceed maximum allowable image size */
-    int32_t nbytes = get_file_length(filename);
+    int32_t nbytes = get_file_length(fd);
     if (nbytes > LOAD_EXE_MAX_SIZE) {
         ERROR_MSG;
         printf("Executable image size exceed maximum allowance. Size %dB, %dB allowed.\n", nbytes, LOAD_EXE_MAX_SIZE);
