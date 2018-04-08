@@ -23,6 +23,10 @@ extern static uint8_t EXE_IDENTIFIER_TABLE[EXE_IDENTIFIER_SIZE] = {
     0x7F, 0x45, 0x4C, 0x46
 };
 
+/* Check if a file is a valid executable file */
+extern int8_t check_executable_validity(const uint8_t* filename);
+
+/* Load the user executable image into proper memory location and return the starting address of the executable */
 extern uint32_t* load_user_image(const uint8_t* filename);
 
 #endif
