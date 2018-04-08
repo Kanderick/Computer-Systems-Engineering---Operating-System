@@ -24,9 +24,9 @@ const uint8_t EXE_IDENTIFIER_TABLE[EXE_IDENTIFIER_SIZE] = {
 };
 
 /* Check if a file is a valid executable file */
-extern int8_t check_executable_validity(int32_t fd);
+extern int8_t check_executable_validity(uint8_t* filename);
 
 /* Load the user executable image into proper memory location and return the starting address of the executable */
-extern uint32_t* load_user_image(int32_t fd);
+extern uint32_t* load_user_image(uint8_t* filename);
 
 #endif
