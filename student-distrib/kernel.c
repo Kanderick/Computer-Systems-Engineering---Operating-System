@@ -12,7 +12,7 @@
 #include "device.h"
 #include "paging.h"
 #include "file_system.h"
-
+#include "pcb.h"
 #define RUN_TESTS
 
 /* Macros. */
@@ -160,6 +160,8 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Init the paging */
     init_paging();
 
+    /* Init processManager */
+    init_process_manager(&ece391_process_manager);
     {
         /* Initialize devices, memory, filesystem, enable device interrupts on the
          * PIC, any other initialization stuff... */

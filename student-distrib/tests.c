@@ -7,7 +7,8 @@
 #include "rtc.h"
 #include "device.h"
 #include "terminal.h"
-
+#include "system_call.h"
+#include "pcb.h"
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
 	printf("[TEST %s] Running %s at %s:%d\n", __FUNCTION__, __FUNCTION__, __FILE__, __LINE__)
@@ -668,6 +669,121 @@ int terminal_test() {
 }
 
 /* Checkpoint 3 tests */
+
+#if (PCB_TEST == 1)
+int PCB_file_terminal_rtc_test(){
+	TEST_HEADER;
+	uint8_t name1[] = "frame0.txt";
+	uint8_t name2[] = "verylargetextwithverylongname.txt";
+	uint8_t buffer[testBufferMaxLen];
+	uint8_t pid1 = init_pcb(&ece391_process_manager);
+	unsigned char read_buf;						/* rtc_read buffer */
+	int32_t frequency = RTC_TEST_INITIAL_FRQ;	/* Initialize RTC freqency */
+	int32_t fd_1 = 0;
+	int32_t fd_2 = 0;
+	uint8_t *filename = (unsigned char *)"rtc";
+	uint8_t *filename_ter = (unsigned char *)"terminal";	// Unused in CP 3.2
+	int32_t ticks;								/* Ticks to print */
+	int8_t multiplier;							/* Act as a counter */
+
+	ece391_process_manager.curr_pid = pid1;
+	clearScreen();
+	TEST_HEADER;
+
+	printf("[TEST] rtc_open\n");
+	fd_1 = open(filename);
+	printf("[PASS] fd:%d RTC Opened.\n", fd_1);
+	fd_2 = open(filename);
+	printf("[TEST] fd:%d rtc_open again\n", fd_2);
+
+	printf("[TEST] rtc_write & read, print '1' in different frequency\n");
+	printf("\nPress ALT to continue test...");
+	key_pressed();	// Press alt key to conduct the frequency test
+	for (multiplier = 0; multiplier <= RTC_TEST_MAX_MULTIPLIER; multiplier++) {
+		clearScreen();
+		printf("f_d1: Current Frequency: %dHz\n", frequency);
+		ticks = frequency * RTC_TEST_SEC_PER_FRQ;	// Calculate loop ticks
+		if (ticks > RTC_TEST_MAX_TICKS) ticks = RTC_TEST_MAX_TICKS;	// Upper bound of ticks is defined
+		while(ticks != 0) {
+			if (!read(fd_1, &read_buf, 1))	// If received a rtc interrupt, print '1'
+				putc('1');
+			ticks --;
+		}
+		frequency = frequency * 2;	// Double the frequency
+		write(fd_1, (unsigned char *)&frequency, 4);
+	}
+	frequency = RTC_TEST_INITIAL_FRQ;
+	for (multiplier = 0; multiplier <= RTC_TEST_MAX_MULTIPLIER; multiplier++) {
+		clearScreen();
+		printf("f_d2: Current Frequency: %dHz\n", frequency);
+		ticks = frequency * RTC_TEST_SEC_PER_FRQ;	// Calculate loop ticks
+		if (ticks > RTC_TEST_MAX_TICKS) ticks = RTC_TEST_MAX_TICKS;	// Upper bound of ticks is defined
+		while(ticks != 0) {
+			if (!read(fd_2, &read_buf, 1))	// If received a rtc interrupt, print '1'
+				putc('1');
+			ticks --;
+		}
+		frequency = frequency * 2;	// Double the frequency
+		write(fd_2, (unsigned char *)&frequency, 4);
+	}
+	frequency = RTC_TEST_INITIAL_FRQ;	// Restore initial rtc frequency
+	write(fd_1, (unsigned char *)&frequency, 4);
+	clearScreen();
+
+	printf("[TEST] rtc_close\n");
+	close(fd_1);	// RTC close just return 0
+	printf("[PASS] RTC Closed.\n");
+
+	printf("[TEST] rtc_close again\n");
+	if (close(fd_1) == -1) printf("[PASS] RTC did not close again.\n");
+	else printf("[FAIL] RTC did close again.\n");
+
+	printf("[TEST] rtc_close\n");
+	close(fd_2);	// RTC close just return 0
+	printf("[PASS] RTC Closed.\n");
+
+	printf("\n");
+	TEST_HEADER;
+
+	fd_1 = 0; 									// read
+	fd_2 = 1;									// write
+
+	/* PART 1: Terminal Open test */
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+
+	/* PART 2: Test normal terminal operations */
+	printf("\n[TEST] terminal_read\n");
+	printf("Please type LESS than 128 characters, stop with ENTER.\n");
+	printf("Please try SHIFT, CAPSLOCK, and BACKSPACE:\n");
+	read(fd_1, buffer, TERMINAL_TEST_BUFFER);
+
+	printf("\n[TEST] terminal_write\n");
+	printf("Content in the buffer shold be the same as above:\n");
+	write(fd_2, buffer, TERMINAL_TEST_BUFFER);
+
+	printf("\n[TEST] Handle buffer overflow\n");
+	printf("Please type MORE than 128 characters, stop with ENTER:\n");
+	read(fd_1, buffer, TERMINAL_TEST_BUFFER);
+	printf("\nContent in the buffer should truncate to 128 characters:\n");
+	write(fd_2, buffer, TERMINAL_TEST_BUFFER);
+	printf("\n");
+
+	printf("\n[TEST] Handle unknown scancode\n");
+	printf("Please try F1-F12, nothing should happen. Stop with ENTER:\n");
+	read(fd_1, buffer, TERMINAL_TEST_BUFFER);
+
+	printf("\n[TEST] Scrolling and clear screen\n");
+	printf("Please enter some random stuff. Use CTRL+L to clear screen. Stop with ENTER:\n");
+	read(fd_1, buffer, TERMINAL_TEST_BUFFER);
+
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+
+
+	return PASS;
+}
+#endif
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -704,5 +820,8 @@ void launch_tests(){
 	TEST_OUTPUT("txt_file_ops_test", test_file_open_read_close());
 	TEST_OUTPUT("exe_file_ops_test", test_file_open_read_close_exe());
 	TEST_OUTPUT("dir_ops_test", test_dir_open_read_close());
+	#endif
+	#if (PCB_TEST == 1)
+	TEST_OUTPUT("pcb_ops_test", PCB_file_terminal_rtc_test());
 	#endif
 }

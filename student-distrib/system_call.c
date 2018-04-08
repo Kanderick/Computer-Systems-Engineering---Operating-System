@@ -6,6 +6,7 @@
 #include "lib.h"
 #include "loader.h"
 #include "pcb.h"
+#include "x86_desc.h"
 
 // these following variables act as function jumptables for different files; static is thus safe
 static fileOperationTable_t inTable;    // 'stdin' jumptable
@@ -35,6 +36,7 @@ int32_t open(const uint8_t *filename) {
         printf("Process wants to open invalid file.\n");
         return -1;
     }
+    printf("\nCP_0\n");
     // check if file status array has spare spot for new file to open
     fullFlag = 1;
     for (i = FD_PARAM_LOW; i <= FD_PARAM_UPPER; i ++) {
@@ -43,7 +45,9 @@ int32_t open(const uint8_t *filename) {
             fullFlag = 0;
             switch (dentry.filetype) {
                 case 0:
+                    printf("\nCP_1%#x\n", (rtcTable.oFunc));
                     fd = (*(rtcTable.oFunc))(filename);
+                    printf("\nCP_2%d\n",fd);
                     (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table = &rtcTable;
                     break;
                 case 1:
@@ -58,6 +62,7 @@ int32_t open(const uint8_t *filename) {
             break;
         }
     }
+
     // if no space, then return on error
     if (fullFlag == 1) {
         printf("Process file_array is full.\n");
@@ -101,7 +106,7 @@ int32_t read(int32_t fd, void *buf, int32_t nbytes) {
         *((int8_t*) buf) = '\0';
         return -1;
     }
-    if (fd <= 0 || fd > FD_PARAM_UPPER) {
+    if (fd < 0 || fd > FD_PARAM_UPPER) {
         printf("Process read has bad parameter.\n");
         *((int8_t*) buf) = '\0';
         return -1;
@@ -125,7 +130,7 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
         printf("Process tries to write to a already closed file.\n");
         return -1;
     }
-    if (fd <= 0 || fd > FD_PARAM_UPPER) {
+    if (fd < 0 || fd > FD_PARAM_UPPER) {
         printf("Process read has bad parameter.\n");
         return -1;
     }
@@ -144,11 +149,13 @@ int32_t halt (uint8_t status) {
     pop_process();
     asm volatile("movzbl %%bl,%%ebx\n\t" : :);
     asm volatile("jmp EXE_RETURN" : :);
+    printf("error\n");
+    return 0;       //prevent warning
 }
 int32_t execute (const uint8_t* command) {
     /*check for bad input command*/
     if (command == NULL) {
-      printf("ERROR: command does not exist.\n")
+      printf("ERROR: command does not exist.\n");
       return -1;
     }
 
@@ -156,9 +163,9 @@ int32_t execute (const uint8_t* command) {
     uint32_t idx = 0;
     int16_t cur_ds;
     int32_t temp;
-    int328_t par_pid;
+    int8_t par_pid;
 
-    while (command[idx] != ' ' && command[idx] != '/0')
+    while (command[idx] != ' ' && command[idx] != '\0')
         idx++;
     memcpy(filename, command, idx);
 
@@ -196,9 +203,10 @@ int32_t execute (const uint8_t* command) {
     //use the exexute_start to setup eip
     asm volatile("movl %%ebp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_ebp));
     asm volatile("movl %%esp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_esp));
-    ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_pid) = par_pid;
+    ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_pid = par_pid;
     asm volatile("movw %%ds,%0\n\t" :"=r" (cur_ds));
-    asm volatile("movw %0,%%ds": :"r" (USER_DS));
+    asm volatile("movw %0,%%ax\n\t": :"g" (USER_DS));
+    asm volatile("movw %%ax,%%ds\n\t": :);
     asm volatile("pushw %0\n\t" : :"g" (USER_DS));
     asm volatile("pushl %0\n\t" : :"g" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp));
     asm volatile("pushfl\n\t" : :);
@@ -212,7 +220,7 @@ int32_t execute (const uint8_t* command) {
     asm volatile("iret" : :);
     asm volatile("EXE_RETURN:");
     asm volatile("movl %%ebx,%0\n\t" :"=r" (temp));
-    return tmp;
+    return temp;
 }
 
 // the following funcions are not implemented
