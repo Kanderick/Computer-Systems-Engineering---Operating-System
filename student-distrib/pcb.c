@@ -19,7 +19,7 @@ void init_process_manager(process_manager_t* processManager){
 }
 
 // NOTE: this function should only be called when a current process wants to have a child process
-// return the pid_number that is initialized or -1 on failure 
+// return the pid_number that is initialized or -1 on failure
 int8_t init_pcb(process_manager_t* processManager){
     uint32_t ii; // for traverse array in processManager
     int8_t ret_pid = -1;    // init pid to be invalid
@@ -67,5 +67,3 @@ uint32_t push_process(int8_t new_pid) {
     ece391_process_manager.curr_pid = new_pid;
     return 0;
 }
-
-uint32_t push_process();

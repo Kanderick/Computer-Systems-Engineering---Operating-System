@@ -18,27 +18,23 @@
  *   SIDE EFFECTS: set the initial rate to 2Hz and open the rtc irq
  */
 int32_t rtc_open(const uint8_t *filename) {
-    int32_t ii = 0; // check input filename's string
-    const uint8_t rtc_fname[RTC_NAME_LEN] = "rtc";
-    /* check file name, give warnings on mis-spelling */
-    if (filename == NULL)
-        printf("ece391_WARNING::rtc_open has invalid filename, we implement this warning :)");
-    else
-        while(ii < RTC_NAME_LEN){
-            if (filename[ii]!=rtc_fname[ii]){
-                printf("ece391_WARNING::rtc_open has invalid filename, we implement this warning :)");
+    int32_t ii;    // traverse to check status file/dir array
+    int32_t new_fd = -1;  // if can open a file, this will record the fd
+    dentry_t dentry;    // check dentry
+    // traverse the open file array
+    for (ii = FD_LOW; ii <= FD_UPPER; ii++){
+        // check each opened file
+        if (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[ii].flags == STATUS_CLOSED){
+                new_fd = ii;
                 break;
-            }
-            ii++;
         }
-    /* check if it is already opened */
-    if (file_open(rtc_fname) == CHECK_FAIL ){    /* try to open the rtc file */
-        /* handle the error and return on failure */
-        printf("rtc file is failed to open.\n");
-        return -1;
     }
-    // set_rate(RATE);     /*set the rate to 2Hz*/
-    rtcRelativeFreq = HIGHEST / 2; /*set the rate to 2Hz*/
+    // copy to local dentry for init file in file_array
+    read_dentry_by_name(filename, &dentry);
+    // update the opened file's status
+    ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].inode = 0xFFFF;
+    ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].filePos = HIGHEST / 2; /*set the rate to 2Hz*/
+    ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].flags = STATUS_OPENED;
     enable_irq(RTC_IRQ);
     return 0;
 }
@@ -52,19 +48,7 @@ int32_t rtc_open(const uint8_t *filename) {
  *   SIDE EFFECTS: close the rtc file
  */
 int32_t rtc_close(int32_t fd) {
-    /* calculate the correct fd */
-    int32_t c_fd = file_find((uint8_t *) "rtc");
-    /* check if the rtc file is opened */
-    if(c_fd == -1){
-        printf("rtc file is not opened yet, failed to close. \n");
-        return -1;
-    }
-    /* check if the input fd is correct. Give warning on conflict. */
-    else if(fd != c_fd){
-        printf("ece391_WARNING::Input fd is not correct. The correct one is %d, we implement this warning :)\n", c_fd);
-    }
-    /* safe to close rtc now */
-    return file_close(c_fd);
+    return 0;
 }
 
 /*
@@ -79,20 +63,7 @@ int32_t rtc_close(int32_t fd) {
  *   SIDE EFFECTS: wait until a rtc interrupt has completed
  */
 int32_t rtc_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
-    /*if file not opened, return -1*/
-    if (fileStatusArray.RTC_STATUS == STATUS_CLOSED) {
-      printf("Error: File not opened yet.\n");
-      return -1;
-    }
-
-    /*check valid fd*/
-    if (fd < 0 || fd > MAX_FILE_OPEN) {
-      printf("ece391_WARNING::fd out of range.\n");
-    }
-    else if(fileStatusArray.FILE_TO_OPEN[fd].filetype != RTC_FILE_TYPE) {
-      printf("ece391_WARNING::fd provided does not match an rtc file.\n");
-    }
-
+    unsigned int rtcRelativeFreq = (unsigned int)(ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].filePos);
     sti();
     rtcFlag = 0;    /*set the rtc flag to 1*/
     while (rtcFlag<rtcRelativeFreq);    /*check whether a rtc interrupt completed*/
@@ -115,20 +86,6 @@ int32_t rtc_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
     // int rate = MAX_RATE;
     int32_t freqency;
 
-    /*if file not opened, return -1*/
-    if (fileStatusArray.RTC_STATUS == STATUS_CLOSED) {
-      printf("Error: File not opened yet.\n");
-      return -1;
-    }
-
-    /*check valid fd*/
-    if (fd < 0 || fd > MAX_FILE_OPEN) {
-      printf("ece391_WARNING::fd out of range.\n");
-    }
-    else if(fileStatusArray.FILE_TO_OPEN[fd].filetype != RTC_FILE_TYPE) {
-      printf("ece391_WARNING::fd provided does not match an rtc file.\n");
-    }
-
     if (buf == NULL) return -1;      /*check whether the buffer is valid*/
     if (nbytes != 4) return -1;      /*the freqency is a 4 bytes int*/
     freqency = *buf;
@@ -138,7 +95,7 @@ int32_t rtc_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
         printf("input is not power of 2");
         return -1;
     }
-    rtcRelativeFreq = HIGHEST / freqency;
+    ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].filePos = HIGHEST / freqency;
     // while (freqency != 1) {         /*convert the freqency to rate*/
     //     freqency /= 2;
     //     rate --;

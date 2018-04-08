@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "file_system.h"
+#include "pcb.h"
 // total number of files a single PCB is holding
 #define FA_SIZE                 8
 #define STATUS_CLOSED   67      // 'C' indecates file closed
@@ -19,7 +20,7 @@ typedef struct fileOperationTable {
 // the file struct in the file array
 typedef struct ece391_file {
     fileOperationTable_t *table;
-    inode_t *inode;
+    uint32_t  inode;
     uint32_t filePos;
     uint32_t flags;
 } ece391_file_t;
@@ -40,7 +41,7 @@ void init_file_operation_jumptables(void);
 
 // declare all the function to prevent system_call wrapper from complaining
 int32_t halt (uint8_t status);
-int32_t execute (const uint8 t* command);
+int32_t execute (const uint8_t* command);
 int32_t read (int32_t fd, void* buf, int32_t nbytes);
 int32_t write (int32_t fd, const void* buf, int32_t nbytes);
 int32_t open (const uint8_t* filename);

@@ -310,7 +310,7 @@ int32_t file_open(const uint8_t* filename){
     // copy to local dentry for init file in file_array
     read_dentry_by_name(filename, &dentry);
     // update the opened file's status
-    ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].inode = &(ece391FileSystem.ece391_inodes[dentry.inode_num]);
+    ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].inode = dentry.inode_num;
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].filePos = 0;
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].flags = STATUS_OPENED;
     // assign jumptables in system_call
@@ -322,7 +322,7 @@ int32_t file_open(const uint8_t* filename){
  *   DESCRIPTION: closes a non-directory file
  *   INPUTS: fd -- the file index in the fileStatusArray of the file we want to close
  *   OUTPUTS: none
- *   RETURN VALUE: 0 on success 
+ *   RETURN VALUE: 0 on success
  *   SIDE EFFECTS: none
  */
 int32_t file_close   (int32_t fd){
@@ -337,35 +337,35 @@ int32_t file_close   (int32_t fd){
  *   RETURN VALUE: -1 on failure and non-negative index of the fd we finded
  *   SIDE EFFECTS: none
  */
-int32_t file_find    (const uint8_t* filename){
-    int32_t ii;    // traverse to check status file/dir array
-    int32_t i;     // traverse to check name string
-    const int32_t file_name_length = strlen((int8_t*) filename);
-    int8_t already_open_flag = 0;
-    if (file_name_length > FILE_NAME_LEN ){
-        printf("Input string too long.\n");
-        return -1;
-    }
-    // traverse the open file array
-    for (ii = 0; ii < MAX_FILE_OPEN; ii++){
-        // check each opened file
-        if (fileStatusArray.FILE_STATUS[ii] == STATUS_OPENED){
-            already_open_flag = 1; // initialize as opened
-            // check if the name is the same
-            for (i = 0; i < file_name_length; i++){
-                if (filename[i] != fileStatusArray.FILE_TO_OPEN[ii].filename[i]){
-                    already_open_flag = 0;
-                    break;
-                }
-            }
-            // if it is the same return the fd index
-            if (already_open_flag == 1)
-                return ii;
-        }
-    }
-    // return -1 if not found
-    return -1;
-}
+// int32_t file_find    (const uint8_t* filename){
+//     int32_t ii;    // traverse to check status file/dir array
+//     int32_t i;     // traverse to check name string
+//     const int32_t file_name_length = strlen((int8_t*) filename);
+//     int8_t already_open_flag = 0;
+//     if (file_name_length > FILE_NAME_LEN ){
+//         printf("Input string too long.\n");
+//         return -1;
+//     }
+//     // traverse the open file array
+//     for (ii = 0; ii < MAX_FILE_OPEN; ii++){
+//         // check each opened file
+//         if (fileStatusArray.FILE_STATUS[ii] == STATUS_OPENED){
+//             already_open_flag = 1; // initialize as opened
+//             // check if the name is the same
+//             for (i = 0; i < file_name_length; i++){
+//                 if (filename[i] != fileStatusArray.FILE_TO_OPEN[ii].filename[i]){
+//                     already_open_flag = 0;
+//                     break;
+//                 }
+//             }
+//             // if it is the same return the fd index
+//             if (already_open_flag == 1)
+//                 return ii;
+//         }
+//     }
+//     // return -1 if not found
+//     return -1;
+// }
 
 /*
  * file_read
@@ -382,36 +382,17 @@ int32_t file_read    (int32_t fd, void* buf, int32_t nbytes){
     int32_t file_length;
     uint32_t new_offset;
 
-    // check input fd valid
-    if (fd < 0 || fd >= MAX_FILE_OPEN){
-        printf("Input fd is invalid.\n");
-        return -1;
-    }
-    // check if the file is opened
-    if (fileStatusArray.FILE_STATUS[fd] == STATUS_CLOSED){
-        printf("The file is not opened.\n");
-        return -1;
-    }
-    // check file type
-    if (fileStatusArray.FILE_TO_OPEN[fd].filetype == DIR_FILE_TYPE){
-        *((int8_t*) buf) = '\0';
-        printf("Use file open to open dir.\n");
-        return -1;
-    }
-
-    if (fileStatusArray.FILE_TO_OPEN[fd].filetype == RTC_FILE_TYPE){
-        return rtc_read(fd, buf, nbytes);
-    }
-
     // check input buf pointer is valid
     if (buf == NULL) {
-      printf("Input buf is NULL.\n");
-      return -1;
+        printf("Input buf is NULL.\n");
+        return -1;
     }
-
-    file_inode_num = fileStatusArray.FILE_TO_OPEN[fd].inode_num;
-    file_length = ece391FileSystem.ece391_inodes[file_inode_num].length;
-    new_offset = read_data(file_inode_num, fileStatusArray.FILE_OFFSET[fd],(uint8_t*) buf, nbytes);
+    if (nbytes < 0){
+        printf("Input nbytes is negative.\n");
+        return -1;
+    }
+    file_inode_num = ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[fd].inode;
+    new_offset = read_data(file_inode_num,(ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[fd].filePos) ,(uint8_t*) buf, nbytes);
     // if fail to read
     if (new_offset == -1){
         printf("File read fail.\n");
@@ -433,15 +414,6 @@ int32_t file_read    (int32_t fd, void* buf, int32_t nbytes){
  *   SIDE EFFECTS: none
  */
 int32_t file_write   (int32_t fd, const void* buf, int32_t nbytes){
-    /*check valid fd*/
-    if (fd < 0 || fd > MAX_FILE_OPEN) {
-      printf("ece391_WARNING::fd out of range.\n");
-    }
-    // redirect to rtc_write if the fd is rtc type
-    else if (fileStatusArray.FILE_TO_OPEN[fd].filetype == RTC_FILE_TYPE) {
-      return rtc_write(fd, buf, nbytes);
-    }
-
     return -1;
 }
 
@@ -472,7 +444,7 @@ int32_t dir_open    (const uint8_t* filename){
   // copy to local dentry for init file in file_array
   read_dentry_by_name(filename, &dentry);
   // update the opened file's status
-  ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].inode = NULL;
+  ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].inode = -1;
   ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].filePos = 0;
   ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].flags = STATUS_OPENED;
   // assign jumptables in system_call
@@ -508,6 +480,8 @@ int32_t dir_read    (int32_t fd, void* buf, int32_t nbytes){
     int32_t filesize;
     /*stores the current dentry*/
     dentry_t temp_dentry;
+    /*offset to read dir*/
+    uint32_t offset = ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[fd].filePos;
     /*check for bad pointer*/
     if (buf == NULL) {
       printf("Input buf pointer is NULL.\n");
@@ -521,16 +495,17 @@ int32_t dir_read    (int32_t fd, void* buf, int32_t nbytes){
     }
 
     /*read the next file*/
-    if (fileStatusArray.CURRENT_DIR_IDX >= ece391FileSystem.dir_count) {
+    if ( offset >= ece391FileSystem.dir_count) {
       return -1;
     }
 
     /*read the current file and copy its dentry information*/
-    if (read_dentry_by_index(fileStatusArray.CURRENT_DIR_IDX, &temp_dentry) == -1) {
+    if (read_dentry_by_index(offset, &temp_dentry) == -1) {
       return -1;
     }
 
-    (fileStatusArray.CURRENT_DIR_IDX)++;
+    // update counter
+    (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[fd].filePos)++;
 
     /*copy filename into the buffer*/
     for (i = 0; i < FILE_NAME_LEN; i++) {

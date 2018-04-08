@@ -129,7 +129,7 @@ extern fileArray_t* fileStatusArray;
 /*Initializes the local file_status_array*/
 extern void init_file_status_array(file_status_array_t* array);
 /* A neat helper function that return the file descriptor of the file indicated by filename*/
-extern int32_t file_find    (const uint8_t* filename);
+// extern int32_t file_find    (const uint8_t* filename);
 /* read function for non-directory files */
 extern int32_t file_read    (int32_t fd, unsigned char* buf, int32_t nbytes);
 /* write function for non-directory files */
