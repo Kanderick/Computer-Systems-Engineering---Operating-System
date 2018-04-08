@@ -1037,16 +1037,8 @@ void launch_tests(){
 	#if (PCB_TEST == 1)
 	TEST_OUTPUT("pcb_ops_test", PCB_file_terminal_rtc_test());
 	#endif
-<<<<<<< HEAD
 
 	#if (SHELL_TEST == 1)
 	TEST_OUTPUT("Shell_execute_test", shell_test());
 	#endif
-=======
-	printf("[TEST]\n");
-	printf("[PASS]\n");
-	printf("[FAIL]\n");
-	printf("[ERROR]\n");
-	printf("[WARNING]\n");
->>>>>>> 471875a98017aeeb076fc9711790cd4d128d6bd2
 }

@@ -45,15 +45,17 @@ typedef struct process_control_block {
     /* the file array for each process */
     fileArray_t file_array;
     /* parent process statics */
-    uint32_t parent_ebp;
-    uint32_t parent_esp;
+    /*not needed*/
+    //uint32_t parent_ebp;
+    //uint32_t parent_esp;
     int8_t parent_pid;     // NOTE: for ece391 PCB, 0..127 pid is enough
     /* current process statics */
     uint32_t ebp;
     uint32_t esp;
     // int8_t pid;          NOTE: no need for store pid again
     /* reserved for paging info */
-    uint32_t page_directory_index;
+    /*noot needed*/
+    //uint32_t page_directory_index;
 }pcb_t;
 
 

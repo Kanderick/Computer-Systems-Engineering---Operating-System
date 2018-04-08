@@ -144,10 +144,21 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
 }
 
 int32_t halt (uint8_t status) {
-    tss.esp0 = ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_esp;
+    /*need special treatment for the first shell process*/
+    if (ece391_process_manager.curr_pid > 1) {
+        tss.esp0 = (ece391_process_manager.process_position[(ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid - 1])->esp;
+    }
+    else {
+        /*need special treatment*/
+    }
+    /*no longer stores parent_pid*/
+    //tss.esp0 = ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_esp;
     user_page_unmapping(ece391_process_manager.curr_pid);
     pop_process();
-    user_page_mapping(ece391_process_manager.curr_pid);
+    /*if still have parent user process*/
+    if (ece391_process_manager.curr_pid > 0) {
+        user_page_mapping(ece391_process_manager.curr_pid);
+    }
     asm volatile("movzbl %%bl,%%ebx\n\t" : :);
     asm volatile("jmp EXE_RETURN" : :);
     printf("error\n");
@@ -164,7 +175,7 @@ int32_t execute (const uint8_t* command) {
     uint32_t idx = 0;
     int16_t cur_ds;
     int32_t temp;
-    int8_t par_pid;
+    //int8_t par_pid;
 
     while (command[idx] != ' ' && command[idx] != '\0')
         idx++;
@@ -179,16 +190,20 @@ int32_t execute (const uint8_t* command) {
 
 
     /*stores current process ebp, esp into the process manager*/
-    asm volatile("movl %%ebp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->ebp));
-    asm volatile("movl %%esp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp));
-    par_pid = ece391_process_manager.curr_pid;
+    /*not right, need to delete*/
+    //asm volatile("movl %%ebp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->ebp));
+    //asm volatile("movl %%esp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp));
+    //par_pid = ece391_process_manager.curr_pid;
     /*initialize a pcb for the current process, get the process number*/
+    /*current esp, */
     int8_t pid = init_pcb(&ece391_process_manager);
     if (pid < 1) {
       printf("ERROR: unable to create a new pcb.\n");
       return -1;
     }
 
+    //ece391_process_manager.process_position[(ece391_process_manager.pid)-1]->parent_pid = par_pid;
+    /*now cur_pid is the new pid*/
     push_process(pid);
 
     /*initialized user level paging*/
@@ -203,9 +218,9 @@ int32_t execute (const uint8_t* command) {
 
     /*code for setting up stack for iret*/
     //use the exexute_start to setup eip
-    asm volatile("movl %%ebp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_ebp));
-    asm volatile("movl %%esp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_esp));
-    ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_pid = par_pid;
+    //asm volatile("movl %%ebp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_ebp));
+    //asm volatile("movl %%esp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_esp));
+    //ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_pid = par_pid;
     asm volatile("movw %%ds,%0\n\t" :"=r" (cur_ds));
     asm volatile("movw %0,%%ax\n\t": :"g" (USER_DS));
     asm volatile("movw %%ax,%%ds\n\t": :);
