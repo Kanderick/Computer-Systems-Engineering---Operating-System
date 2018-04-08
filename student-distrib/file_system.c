@@ -365,6 +365,7 @@ int32_t file_close   (int32_t fd){
     }
     // close and return on success
     fileStatusArray.FILE_STATUS[fd] = STATUS_CLOSED;
+    // NOTE the following shoud be deleted
     if (fileStatusArray.FILE_TO_OPEN[fd].filetype == RTC_FILE_TYPE)
       fileStatusArray.RTC_STATUS = STATUS_CLOSED;
     return 0;
@@ -436,6 +437,7 @@ int32_t file_read    (int32_t fd, void* buf, int32_t nbytes){
     // check file type
     if (fileStatusArray.FILE_TO_OPEN[fd].filetype == DIR_FILE_TYPE){
         *((int8_t*) buf) = '\0';
+        printf("Use file open to open dir.\n");
         return -1;
     }
 

@@ -19,6 +19,7 @@ void init_process_manager(process_manager_t* processManager){
 }
 
 // NOTE: this function should only be called when a current process wants to have a child process
+// return the pid_number that is initialized or -1 on failure 
 int8_t init_pcb(process_manager_t* processManager){
     uint32_t ii; // for traverse array in processManager
     int8_t ret_pid = -1;    // init pid to be invalid

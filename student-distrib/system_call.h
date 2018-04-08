@@ -21,7 +21,7 @@ typedef struct ece391_file {
     fileOperationTable_t *table;
     inode_t *inode;
     uint32_t filePos;
-    uint32_t flag;
+    uint32_t flags;
 } ece391_file_t;
 
 // the file array should be used and initialze whenever a new PCB is init
