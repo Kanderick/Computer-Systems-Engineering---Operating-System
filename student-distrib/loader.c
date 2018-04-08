@@ -23,14 +23,14 @@ int8_t check_executable_validity(uint8_t* filename) {
     /* Check if file opened */
     if (filename == NULL) {
         ERROR_MSG;
-        printf("ERROR: filename is null.\n");
+        printf("Filename is NULL.\n");
         return -1;
     }
 
     dentry_t dentry;
     if (read_dentry_by_name(filename, &dentry) == -1) {
         ERROR_MSG;
-        printf("ERROR: file does not exist.\n");
+        printf("File does not exist.\n");
         return -1;
     }
 
@@ -40,7 +40,7 @@ int8_t check_executable_validity(uint8_t* filename) {
 
     if (read_data(dentry.inode_num, 0, file_identifier, nbytes) != EXE_IDENTIFIER_SIZE) {
         ERROR_MSG;
-        printf("ERROR: fail to compare with identifier.\n");
+        printf("Fail to compare with identifier.\n");
         return -1;
     }
 

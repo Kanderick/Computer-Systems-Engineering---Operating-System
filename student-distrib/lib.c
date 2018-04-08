@@ -3,24 +3,29 @@
 
 #include "lib.h"
 
-#define VIDEO       0xB8000
-#define NUM_COLS    80
-#define NUM_ROWS    25
-#define ATTRIB      0x7
-#define MEM_SIZE    3840
-#define CUR_REG_ADDR    0x3D4       /*cursor address register*/
-#define CUR_REG_DATA    0x3D5       /*cursor data register*/
-#define CUR_MASK        0xFF
-#define BACKSPACE       0x0E
-#define DEL             0x53
-#define LEFT_ARROW      0x4B
-#define RIGHT_ARROW     0x4D
-#define UP_ARROW        0x48
-#define DOWN_ARROW      0x50
-
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
+static unsigned char text_RGB[5][3] = {
+    { 0x00, 0x00, 0x00 },{ 0x28, 0x28, 0x28 },{ 0x13, 0x2B, 0x14 },  // Black, White, Green
+    { 0x3F, 0x30, 0x02 },{ 0x3C, 0x11, 0x0D }   // Yellow, Red
+};
+
+/*
+ * set_color
+ *   DESCRIPTION:   General function to set a color at a palette location
+ *   INPUTS:        addr    palette address
+ *                  color   18bit color
+ *   RETURN VALUE:  none
+ *   SIDE EFFECTS:  palette in VGA memory and local copy has been changed
+ */
+void set_color(unsigned char addr) {
+    /* Start writing at index. */
+    outb(0x03C8, addr);
+    /* Write colors from array. */
+    REP_OUTSB(0x03C9, text_RGB, 5 * 3);
+}
+
 /* void clear(void);
  * Inputs: void
  * Return Value: none
@@ -144,131 +149,6 @@ void spKey(unsigned char scancode) {
         if (screen_y < NUM_ROWS - 1) screen_y ++;
     }
 }
-/* Standard printf().
- * Only supports the following format strings:
- * %%  - print a literal '%' character
- * %x  - print a number in hexadecimal
- * %u  - print a number as an unsigned integer
- * %d  - print a number as a signed integer
- * %c  - print a character
- * %s  - print a string
- * %#x - print a number in 32-bit aligned hexadecimal, i.e.
- *       print 8 hexadecimal digits, zero-padded on the left.
- *       For example, the hex number "E" would be printed as
- *       "0000000E".
- *       Note: This is slightly different than the libc specification
- *       for the "#" modifier (this implementation doesn't add a "0x" at
- *       the beginning), but I think it's more flexible this way.
- *       Also note: %x is the only conversion specifier that can use
- *       the "#" modifier to alter output. */
-int32_t printf(int8_t *format, ...) {
-
-    /* Pointer to the format string */
-    int8_t* buf = format;
-
-    /* Stack pointer for the other parameters */
-    int32_t* esp = (void *)&format;
-    esp++;
-
-    while (*buf != '\0') {
-        switch (*buf) {
-            case '%':
-                {
-                    int32_t alternate = 0;
-                    buf++;
-
-format_char_switch:
-                    /* Conversion specifiers */
-                    switch (*buf) {
-                        /* Print a literal '%' character */
-                        case '%':
-                            putc('%');
-                            break;
-
-                        /* Use alternate formatting */
-                        case '#':
-                            alternate = 1;
-                            buf++;
-                            /* Yes, I know gotos are bad.  This is the
-                             * most elegant and general way to do this,
-                             * IMHO. */
-                            goto format_char_switch;
-
-                        /* Print a number in hexadecimal form */
-                        case 'x':
-                            {
-                                int8_t conv_buf[64];
-                                if (alternate == 0) {
-                                    itoa(*((uint32_t *)esp), conv_buf, 16);
-                                    puts(conv_buf);
-                                } else {
-                                    int32_t starting_index;
-                                    int32_t i;
-                                    itoa(*((uint32_t *)esp), &conv_buf[8], 16);
-                                    i = starting_index = strlen(&conv_buf[8]);
-                                    while(i < 8) {
-                                        conv_buf[i] = '0';
-                                        i++;
-                                    }
-                                    puts(&conv_buf[starting_index]);
-                                }
-                                esp++;
-                            }
-                            break;
-
-                        /* Print a number in unsigned int form */
-                        case 'u':
-                            {
-                                int8_t conv_buf[36];
-                                itoa(*((uint32_t *)esp), conv_buf, 10);
-                                puts(conv_buf);
-                                esp++;
-                            }
-                            break;
-
-                        /* Print a number in signed int form */
-                        case 'd':
-                            {
-                                int8_t conv_buf[36];
-                                int32_t value = *((int32_t *)esp);
-                                if(value < 0) {
-                                    conv_buf[0] = '-';
-                                    itoa(-value, &conv_buf[1], 10);
-                                } else {
-                                    itoa(value, conv_buf, 10);
-                                }
-                                puts(conv_buf);
-                                esp++;
-                            }
-                            break;
-
-                        /* Print a single character */
-                        case 'c':
-                            putc((uint8_t) *((int32_t *)esp));
-                            esp++;
-                            break;
-
-                        /* Print a NULL-terminated string */
-                        case 's':
-                            puts(*((int8_t **)esp));
-                            esp++;
-                            break;
-
-                        default:
-                            break;
-                    }
-
-                }
-                break;
-
-            default:
-                putc(*buf);
-                break;
-        }
-        buf++;
-    }
-    return (buf - format);
-}
 
 /* int32_t puts(int8_t* s);
  *   Inputs: int_8* s = pointer to a string of characters
@@ -282,6 +162,20 @@ int32_t puts(int8_t* s) {
     }
     return index;
 }
+
+/* int32_t puts(int8_t* s);
+ *   Inputs: int_8* s = pointer to a string of characters
+ *   Return Value: Number of bytes written
+ *    Function: Output a string to the console */
+int32_t puts_color(int8_t* s, int8_t attrib) {
+    register int32_t index = 0;
+    while (s[index] != '\0') {
+        putc_color(s[index], attrib);
+        index++;
+    }
+    return index;
+}
+
 /* int32_t putbuf(int8_t* s, uint32_t len);
  *   Inputs: int_8* s = pointer to a string of characters
  *      len:  uint32_t len, the length of string to copy
@@ -309,6 +203,25 @@ void putc(uint8_t c) {
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        screen_x++;
+        screen_y = screen_y + (screen_x / NUM_COLS);
+        scrolling();    /*check and do scrolling*/
+        screen_x %= NUM_COLS;
+    }
+}
+
+/* void putc_color(uint8_t c, uint8_t attrib)
+ * Inputs: uint_8* c = character to print
+ * Return Value: void
+ *  Function: Output a character to the console */
+void putc_color(uint8_t c, uint8_t attrib) {
+    if(c == '\n' || c == '\r') {
+        screen_y++;
+        screen_x = 0;
+        scrolling();        /*check and do scrolling*/
+    } else {
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = attrib;
         screen_x++;
         screen_y = screen_y + (screen_x / NUM_COLS);
         scrolling();    /*check and do scrolling*/
@@ -609,4 +522,359 @@ void test_interrupts(void) {
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         video_mem[i << 1]++;
     }
+}
+
+/* Standard printf().
+ * Only supports the following format strings:
+ * %%  - print a literal '%' character
+ * %x  - print a number in hexadecimal
+ * %u  - print a number as an unsigned integer
+ * %d  - print a number as a signed integer
+ * %c  - print a character
+ * %s  - print a string
+ * %#x - print a number in 32-bit aligned hexadecimal, i.e.
+ *       print 8 hexadecimal digits, zero-padded on the left.
+ *       For example, the hex number "E" would be printed as
+ *       "0000000E".
+ *       Note: This is slightly different than the libc specification
+ *       for the "#" modifier (this implementation doesn't add a "0x" at
+ *       the beginning), but I think it's more flexible this way.
+ *       Also note: %x is the only conversion specifier that can use
+ *       the "#" modifier to alter output. */
+int32_t printf(int8_t *format, ...) {
+
+    /* Pointer to the format string */
+    int8_t* buf = format;
+
+    /* Stack pointer for the other parameters */
+    int32_t* esp = (void *)&format;
+    esp++;
+
+    while (*buf != '\0') {
+        switch (*buf) {
+            case '%':
+                {
+                    int32_t alternate = 0;
+                    buf++;
+
+format_char_switch:
+                    /* Conversion specifiers */
+                    switch (*buf) {
+                        /* Print a literal '%' character */
+                        case '%':
+                            putc('%');
+                            break;
+
+                        /* Use alternate formatting */
+                        case '#':
+                            alternate = 1;
+                            buf++;
+                            /* Yes, I know gotos are bad.  This is the
+                             * most elegant and general way to do this,
+                             * IMHO. */
+                            goto format_char_switch;
+
+                        /* Print a number in hexadecimal form */
+                        case 'x':
+                            {
+                                int8_t conv_buf[64];
+                                if (alternate == 0) {
+                                    itoa(*((uint32_t *)esp), conv_buf, 16);
+                                    puts(conv_buf);
+                                } else {
+                                    int32_t starting_index;
+                                    int32_t i;
+                                    itoa(*((uint32_t *)esp), &conv_buf[8], 16);
+                                    i = starting_index = strlen(&conv_buf[8]);
+                                    while(i < 8) {
+                                        conv_buf[i] = '0';
+                                        i++;
+                                    }
+                                    puts(&conv_buf[starting_index]);
+                                }
+                                esp++;
+                            }
+                            break;
+
+                        /* Print a number in unsigned int form */
+                        case 'u':
+                            {
+                                int8_t conv_buf[36];
+                                itoa(*((uint32_t *)esp), conv_buf, 10);
+                                puts(conv_buf);
+                                esp++;
+                            }
+                            break;
+
+                        /* Print a number in signed int form */
+                        case 'd':
+                            {
+                                int8_t conv_buf[36];
+                                int32_t value = *((int32_t *)esp);
+                                if(value < 0) {
+                                    conv_buf[0] = '-';
+                                    itoa(-value, &conv_buf[1], 10);
+                                } else {
+                                    itoa(value, conv_buf, 10);
+                                }
+                                puts(conv_buf);
+                                esp++;
+                            }
+                            break;
+
+                        /* Print a single character */
+                        case 'c':
+                            putc((uint8_t) *((int32_t *)esp));
+                            esp++;
+                            break;
+
+                        /* Print a NULL-terminated string */
+                        case 's':
+                            puts(*((int8_t **)esp));
+                            esp++;
+                            break;
+
+                        default:
+                            break;
+                    }
+
+                }
+                break;
+
+            case 'T': {
+                buf++;
+                switch (*buf) {
+                    case 'E': {
+                        buf++;
+                        switch (*buf) {
+                            case 'S': {
+                                buf++;
+                                switch (*buf) {
+                                    case 'T': {
+                                        puts_color("TEST", ATTRIB_YELLOW);
+                                        break;
+                                    }
+                                    default: {
+                                        puts("TES");
+                                        putc(*buf);
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                            default: {
+                                puts("TE");
+                                putc(*buf);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    default: {
+                        putc('T');
+                        putc(*buf);
+                        break;
+                    }
+                }
+                break;
+            }
+            case 'P': {
+                buf++;
+                switch (*buf) {
+                    case 'A': {
+                        buf++;
+                        switch (*buf) {
+                            case 'S': {
+                                buf++;
+                                switch (*buf) {
+                                    case 'S': {
+                                        puts_color("PASS", ATTRIB_GREEN);
+                                        break;
+                                    }
+                                    default: {
+                                        puts("PAS");
+                                        putc(*buf);
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                            default: {
+                                puts("PA");
+                                putc(*buf);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    default: {
+                        putc('P');
+                        putc(*buf);
+                        break;
+                    }
+                }
+                break;
+            }
+            case 'F': {
+                buf++;
+                switch (*buf) {
+                    case 'A': {
+                        buf++;
+                        switch (*buf) {
+                            case 'I': {
+                                buf++;
+                                switch (*buf) {
+                                    case 'L': {
+                                        puts_color("FAIL", ATTRIB_RED);
+                                        break;
+                                    }
+                                    default: {
+                                        puts("FAI");
+                                        putc(*buf);
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                            default: {
+                                puts("FA");
+                                putc(*buf);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    default: {
+                        putc('F');
+                        putc(*buf);
+                        break;
+                    }
+                }
+                break;
+            }
+            case 'E': {
+                buf++;
+                switch (*buf) {
+                    case 'R': {
+                        buf++;
+                        switch (*buf) {
+                            case 'R': {
+                                buf++;
+                                switch (*buf) {
+                                    case 'O': {
+                                        buf++;
+                                        switch (*buf) {
+                                            case 'R': {
+                                                puts_color("ERROR", ATTRIB_RED);
+                                                break;
+                                            }
+                                            default: {
+                                                puts("ERRO");
+                                                putc(*buf);
+                                                break;
+                                            }
+                                        }
+                                        break;
+                                    }
+                                    default: {
+                                        puts("ERR");
+                                        putc(*buf);
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                            default: {
+                                puts("ER");
+                                putc(*buf);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    default: {
+                        putc('E');
+                        putc(*buf);
+                        break;
+                    }
+                }
+                break;
+            }
+            case 'W': {
+                buf++;
+                switch (*buf) {
+                    case 'A': {
+                        buf++;
+                        switch (*buf) {
+                            case 'R': {
+                                buf++;
+                                switch (*buf) {
+                                    case 'N': {
+                                        buf++;
+                                        switch (*buf) {
+                                            case 'I': {
+                                                buf++;
+                                                switch (*buf) {
+                                                    case 'N': {
+                                                        buf++;
+                                                        switch (*buf) {
+                                                            case 'G': {
+                                                                puts_color("WARNING", ATTRIB_YELLOW);
+                                                                break;
+                                                            }
+                                                            default: {
+                                                                puts("WARNIN");
+                                                                putc(*buf);
+                                                                break;
+                                                            }
+                                                        }
+                                                        break;
+                                                    }
+                                                    default: {
+                                                        puts("WARNI");
+                                                        putc(*buf);
+                                                        break;
+                                                    }
+                                                }
+                                                break;
+                                            }
+                                            default: {
+                                                puts("WARN");
+                                                putc(*buf);
+                                                break;
+                                            }
+                                        }
+                                        break;
+                                    }
+                                    default: {
+                                        puts("WAR");
+                                        putc(*buf);
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                            default: {
+                                puts("WA");
+                                putc(*buf);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    default: {
+                        putc('W');
+                        putc(*buf);
+                        break;
+                    }
+                }
+                break;
+            }
+            default:
+                putc(*buf);
+                break;
+        }
+        buf++;
+    }
+    return (buf - format);
 }
