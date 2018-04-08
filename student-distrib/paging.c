@@ -173,7 +173,7 @@ void user_page_mapping(uint8_t pid) {
 
   pde_t page_128mb;
   if (pid >= 1) {
-    page_128mb = ((pid + 1) * _4MB) | PAFE_SIZE_MASK | R_W_MASK | PRESENT_MASK;
+    page_128mb = ((pid + 1) * _4MB) | PAFE_SIZE_MASK | R_W_MASK | U_S_MASK | PRESENT_MASK;
     //map the virtual 128mb to the corresponding physical address
     page_directory[PDEIDX_128MB] = page_128mb;
     write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
