@@ -143,63 +143,84 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
     }
 }
 
-int32_t halt (uint8_t status) {return 0;}
+int32_t halt (uint8_t status) {
+    tss.esp0 = ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_esp;
+    user_page_unmapping(ece391_process_manager.curr_pid);
+    pop_process();
+    asm volatile("movzbl %%bl,%%ebx\n\t" : :);
+    asm volatile("jmp EXE_RETURN" : :);
+    printf("error\n");
+    return 0;       //prevent warning
+}
 int32_t execute (const uint8_t* command) {
-    // /*check for bad input command*/
-    // if (command == NULL) {
-    //   printf("ERROR: command does not exist.\n");
-    //   return -1;
-    // }
-    //
-    // uint8_t *filename;
-    // uint32_t idx = 0;
-    // int16_t cur_ds;
-    //
-    // while (command[idx] != ' ' && command[idx] != '\0') {
-    //     idx++;
-    //     if (idx > 128) // NOTE magic number here
-    //         break;
-    // }
-    // memcpy(filename, command, idx);
-    //
-    // /*checks whether the file is executable*/
-    // if (check_executable_validity(filename) == -1) {
-    //     printf("ERROR: the file specified is inexecutable.\n");
-    //     return -1;
-    // }
-    //
-    // /*initialize a pcb for the current process, get the process number*/
-    // int8_t pid = init_pcb(&ece391_process_manager);
-    // if (pid < 1) {
-    //     printf("ERROR: unable to create a new pcb.\n");
-    //     return -1;
-    // }
-    //
-    // /*initialized user level paging*/
-    // user_page_mapping(pid);
-    //
-    // /*stores current process ebp, esp into the process manager*/
-    // asm volatile("movl %%ebp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->ebp));
-    // asm volatile("movl %%esp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp));
-    //
-    // /*copy the user image to the user level page*/
-    // uint32_t* execute_start = load_user_image(filename);
-    //
-    // /*code for context switch*/
-    // tss.esp0 = PCB_BASE_ADDR - pid * PCB_SEG_LENGTH - 4;
-    // tss.ss0 = KERNEL_DS;
-    //
-    // /*code for setting up stack for iret*/
-    // //use the exexute_start to setup eip
-    // asm volatile("movw %%ds,%0\n\t" :"=r" (cur_ds));
-    // asm volatile("movw %0,%%ds": :"r" (USER_DS));
-    // asm volatile("pushw %0\n\t" : :"g" (USER_DS));
-    // asm volatile("pushl %%esp\n\t" : :);
-    // asm volatile("pushfl\n\t" : :);
-    // asm volatile("pushw %0\n\t" : :"g" (USER_CS));
-    // asm volatile("pushl %0\n\t" : :"g" (execute_start));
-    // asm volatile("iret" : :);
-    return 0;
+    /*check for bad input command*/
+    if (command == NULL) {
+      printf("ERROR: command does not exist.\n");
+      return -1;
+    }
+
+    uint8_t *filename;
+    uint32_t idx = 0;
+    int16_t cur_ds;
+    int32_t temp;
+    int8_t par_pid;
+
+    while (command[idx] != ' ' && command[idx] != '\0')
+        idx++;
+    memcpy(filename, command, idx);
+
+    /*checks whether the file is executable*/
+    if (check_executable_validity(filename) == -1) {
+      printf("ERROR: the file specified is inexecutable.\n");
+      return -1;
+    }
+
+
+    /*stores current process ebp, esp into the process manager*/
+    asm volatile("movl %%ebp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->ebp));
+    asm volatile("movl %%esp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp));
+    par_pid = ece391_process_manager.curr_pid;
+    /*initialize a pcb for the current process, get the process number*/
+    int8_t pid = init_pcb(&ece391_process_manager);
+    if (pid < 1) {
+      printf("ERROR: unable to create a new pcb.\n");
+      return -1;
+    }
+
+    push_process(pid);
+
+    /*initialized user level paging*/
+    user_page_mapping(pid);
+
+    /*copy the user image to the user level page*/
+    uint32_t* execute_start = load_user_image(filename);
+
+    /*code for context switch*/
+    tss.esp0 = ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp;
+    tss.ss0 = KERNEL_DS;
+
+    /*code for setting up stack for iret*/
+    //use the exexute_start to setup eip
+    asm volatile("movl %%ebp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_ebp));
+    asm volatile("movl %%esp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_esp));
+    ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_pid = par_pid;
+    asm volatile("movw %%ds,%0\n\t" :"=r" (cur_ds));
+    asm volatile("movw %0,%%ax\n\t": :"g" (USER_DS));
+    asm volatile("movw %%ax,%%ds\n\t": :);
+    asm volatile("pushw %0\n\t" : :"g" (USER_DS));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp));
+    asm volatile("pushfl\n\t" : :);
+    asm volatile("movl %%eax,%0\n\t" :"=r" (temp));
+    asm volatile("popl %%eax\n\t" : :);
+    asm volatile("orl $0x200, %%eax\n\t" : :);
+    asm volatile("pushl %%eax\n\t" : :);
+    asm volatile("movl %0,%%eax": :"r" (temp));
+    asm volatile("pushw %0\n\t" : :"g" (USER_CS));
+    asm volatile("pushl %0\n\t" : :"g" (execute_start));
+    asm volatile("iret" : :);
+    asm volatile("EXE_RETURN:");
+    asm volatile("movl %%ebx,%0\n\t" :"=r" (temp));
+    return temp;
 }
 
 // the following funcions are not implemented

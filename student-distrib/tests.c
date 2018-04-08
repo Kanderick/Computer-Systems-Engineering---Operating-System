@@ -675,6 +675,7 @@ int PCB_file_terminal_rtc_test(){
 	TEST_HEADER;
 	uint8_t name1[] = "frame0.txt";
 	uint8_t name2[] = "verylargetextwithverylongname.txt";
+	uint8_t name[] = ".";
 	uint8_t buffer[testBufferMaxLen];
 	uint8_t pid1 = init_pcb(&ece391_process_manager);
 	unsigned char read_buf;						/* rtc_read buffer */
@@ -682,7 +683,7 @@ int PCB_file_terminal_rtc_test(){
 	int32_t fd_1 = 0;
 	int32_t fd_2 = 0;
 	uint8_t *filename = (unsigned char *)"rtc";
-	uint8_t *filename_ter = (unsigned char *)"terminal";	// Unused in CP 3.2
+	int32_t read_len = 0;
 	int32_t ticks;								/* Ticks to print */
 	int8_t multiplier;							/* Act as a counter */
 
@@ -779,6 +780,207 @@ int PCB_file_terminal_rtc_test(){
 
 	printf("\nPress ALT to continue test...\n");
 	key_pressed();	// Press alt key to conduct the frequency test
+
+
+
+
+
+
+
+
+
+
+
+
+	printf("[TEST] ____directory operations____ \n");
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+	/* NOTE open dir '.'	 					NOTE */
+	printf("[TEST] dir open %s\n", name);
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+	fd_1 = open(name);
+	if (fd_1 == -1) {
+		printf("Open FAILED.\n");
+		return PASS;
+	}
+	else
+		printf("Open SUCCEEDED.\n");
+	printf("[PASS] dir opened %s\n", name);
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();
+	printf("[TEST] dir read and echo on screen \n");
+	printf("[TEST] Everytime you press ALT, a dir_read is called and echoed on the screen \n");
+
+	printf("fd: %d \n", fd_1);
+	while(0 == read(fd_1, buffer, 32)) {
+		//printf("Content in buffer is: %s.\n", buffer);
+		key_pressed();	// Press alt key to conduct the frequency test
+	}
+	printf("[PASS] dir read %s\n", name);
+
+	printf("[TEST] dir close %s\n", name);
+	if (close(fd_1) == -1)
+		printf("Close FAILED\n");
+	else
+		printf("Close SUCCEEDED\n");
+	printf("[PASS] dir close %s\n", name);
+
+
+
+
+	printf("[TEST] ____txt file operations____ \n");
+	/* NOTE open a txt file with a short name 					NOTE */
+	printf("[TEST] short name txt files open \n");
+	printf("[TEST] file open %s\n", name1);
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+	fd_1 = open(name1);
+	if (fd_1== -1)
+		printf("Open FAILED.\n");
+	else
+		printf("Open SUCCEEDED.\n");
+	printf("[PASS] file opened %s\n", name1);
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+
+	/* NOTE open a txt file with a illegally long name 			NOTE */
+	printf("[TEST] illegally long name txt files open \n");
+	printf("[TEST] file open %s\n", name2);
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+	fd_2 = open(name2);
+	if (fd_2== -1)
+		printf("Open FAILED.\n");
+	else
+		printf("Open SUCCEEDED.\n");
+	printf("[PASS] file should not be opened %s\n", name2);
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+
+	/* NOTE legal long name operations 							NOTE */
+	name2[NAME_MAX_LEN] = '\0'; /* set name to leagal length*/
+	printf("[TEST] leagally long name txt files open \n");
+	printf("[TEST] file open %s\n", name2);
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+	fd_2 = open(name2);
+	if (fd_2== -1)
+		printf("Open FAILED.\n");
+	else
+		printf("Open SUCCEEDED.\n");
+	printf("[PASS] file should be opened %s\n", name2);
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+
+	/* NOTE read a short txt file and echo on screen 			NOTE */
+	printf("[TEST] short name txt files read and echo on screen \n");
+	printf("[TEST] Every time a maximum of 50 bytes will be echoed on the sreen until the end of file. Please press ALT for keep printing...\n");
+	printf("\nPress ALT to continue test...\n");
+	printf("[TEST] FILE INFO filename: %s fd: %d \n", name1, fd_1);
+	read_len = PRINT_STRIDE;
+	while (read_len == PRINT_STRIDE){
+		// printf("\nPress ALT to continue test...\n");
+		key_pressed();	// Press alt key to conduct the frequency test
+		// print another 50 byte
+		read_len = read(fd_1, buffer, PRINT_STRIDE) ;
+		if (read_len == -1)
+			printf("READ FAILED.\n");
+		else
+			putbuf((int8_t*)buffer, read_len);
+
+	}
+	printf("[PASS] short file read succeeded %s\n", name1);
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+
+	/* NOTE read a non existed txt file and echo on screen 			NOTE */
+	name2[NAME_MAX_LEN] = 't'; /* set name to illeagal length*/
+	printf("[TEST] non-existed file read and echo on screen \n");
+	printf("[TEST] Every time a maximum of 50 bytes will be echoed on the sreen until the end of file. Please press ALT for keep printing...\n");
+	printf("[TEST] FILE INFO filename: %s fd: %d \n", name2, fd_2);
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+	read_len = PRINT_STRIDE;
+	while (read_len == PRINT_STRIDE){
+		// print another 50 byte
+		read_len = file_read(fd_2, buffer, PRINT_STRIDE) ;
+		if (read_len == -1){
+			printf("READ FAILED.\n");
+			break;
+		}
+		else
+			putbuf((int8_t*)buffer, read_len);
+		// printf("\nPress ALT to continue test...\n");
+		key_pressed();	// Press alt key to conduct the frequency test
+	}
+	printf("[PASS] non-existed file cannot be printed.\n");
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+
+	/* NOTE read a existed leagally long name txt file and echo on screen 			NOTE */
+	name2[NAME_MAX_LEN] = '\0'; /* set name to leagal length*/
+	printf("[TEST] existed leagally long name file read and echo on screen \n");
+	printf("[TEST] Every time a maximum of 50 bytes will be echoed on the sreen until the end of file. Please press ALT for keep printing...\n");
+	printf("[TEST] This file may contain many spaces. If you think it is frozen, try to press some other keys before pressing the ALT. Our system never freezes on this :)\n");
+	printf("\nPress ALT to continue test...\n");
+	printf("[TEST] FILE INFO filename: %s fd: %d \n", name2, fd_2);
+	read_len = PRINT_STRIDE;
+	while (read_len == PRINT_STRIDE){
+		// printf("\nPress ALT to continue test...\n");
+		key_pressed();	// Press alt key to conduct the frequency test
+		// print another 50 byte
+		read_len = read(fd_2, buffer, PRINT_STRIDE) ;
+		if (read_len == -1)
+			printf("READ FAILED.\n");
+		else
+			putbuf((int8_t*)buffer, read_len);
+
+	}
+	printf("[PASS] long file read succeeded %s\n", name2);
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+
+	/* NOTE Close a txt file with a short name 					NOTE */
+	printf("[TEST] short name txt files close \n");
+	printf("[TEST] file close %s\n", name1);
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+	if (close(fd_1) == -1)
+		printf("Close FAILED.\n");
+	else
+		printf("Close SUCCEEDED.\n");
+	printf("[PASS] file close %s\n", name1);
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+
+	/* NOTE close a txt file with a illegally long name 			NOTE */
+	name2[NAME_MAX_LEN] = 't'; /* set name to illeagal length*/
+	printf("[TEST] illegally long name txt files close \n");
+	printf("[TEST] file close %s\n", name2);
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+	if (close(fd_2) == -1)
+		printf("Close FAILED.\n");
+	else
+		printf("Close SUCCEEDED.\n");
+	printf("[PASS] file should not be closed, it never opened, besides its illegally long name %s\n", name1);
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+
+	/* NOTE legal long name close 							NOTE */
+	name2[NAME_MAX_LEN] = '\0'; /* set name to leagal length*/
+	printf("[TEST] leagally long name txt files close \n");
+	printf("[TEST] file close %s\n", name2);
+	printf("\nPress ALT to continue test...\n");
+	key_pressed();	// Press alt key to conduct the frequency test
+	if (close(fd_2) == -1)
+		printf("Close FAILED.\n");
+	else
+		printf("Close SUCCEEDED.\n");
+	printf("[PASS] file should be closed %s\n", name1);
+
+
 
 
 	return PASS;
