@@ -98,8 +98,8 @@ extern int32_t read_dentry_by_name(const uint8_t *fname, dentry_t* dentry);
 extern int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry);
 /* copys length bytes of information of a file from offset of the corresponding inode into buffer*/
 extern int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
-/*gets the file length by file name if it is a regular file*/
-extern int32_t get_file_length(const uint8_t *fname);
+/*gets the file length by fd if*/
+extern int32_t get_file_length(int32_t fd);
 
 /* for check point 2
 #define MAX_FILE_OPEN   17
