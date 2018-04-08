@@ -277,71 +277,36 @@ void init_file_status_array(file_status_array_t* array){
  */
 // for SYSTEM CALL
 // following functions are for system call
-
+#define FD_LOW   2 // user has no priviledge to close fd 0, 1 or non-exist file
+#define FD_UPPER  7 // any fd is greater then 7 is invalid
 /*
  * file_open
  *   DESCRIPTION: opens a non-directory file
  *   INPUTS: filename -- the file we want to open
  *   OUTPUTS: none
- *   RETURN VALUE: 0 on success and -1 on failure
+ *   RETURN VALUE: fd
  *   SIDE EFFECTS: none
  */
-int32_t file_open    (const uint8_t* filename){
+int32_t file_open(const uint8_t* filename){
     int32_t ii;    // traverse to check status file/dir array
-    int32_t i;     // traverse to check name string
-    int32_t new_fd = MAX_FILE_OPEN;  // if can open a file, this will record the fd
-    const int32_t file_name_length = strlen((int8_t*)filename);
-    int8_t already_open_flag = 0;
-
-    if (*filename == '.') {
-      printf("Cannot open directory file.\n");
-      return -1;
-    }
-
-    if (file_name_length > FILE_NAME_LEN ){
-        printf("Input string too long.\n");
-        return -1;
-    }
+    int32_t new_fd = -1;  // if can open a file, this will record the fd
+    dentry_t dentry;    // check dentry
     // traverse the open file array
-    for (ii = 0; ii < MAX_FILE_OPEN; ii++){
+    for (ii = FD_LOW; ii <= FD_UPPER; ii++){
         // check each opened file
-        if (fileStatusArray->files[ii].flag == STATUS_OPENED){
-            already_open_flag = 1; // initialize as opened
-            // check if the name is the same
-            for (i = 0; i < file_name_length; i++){
-                if (filename[i] != fileStatusArray.FILE_TO_OPEN[ii].filename[i]){
-                    already_open_flag = 0;
-                    break;
-                }
-            }
-            // if it is the same, handle the error and return on failure
-            if (already_open_flag == 1){
-                printf("The file is already opened.\n");
-                return -1;
-            }
+        if (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[ii].flags == STATUS_CLOSED){
+                new_fd = ii;
+                break;
         }
-        // try to update the new_fd for later use
-        else if (ii < new_fd)
-            new_fd = ii;
-
     }
-    // if the file status array is full
-    if (new_fd == MAX_FILE_OPEN){
-        printf("The file processing array is full.\n");
-        return -1;
-    }
-    // now is OK to really try to look for the file in the ece391FILE_SYSTEM
-    if(read_dentry_by_name(filename, (fileStatusArray.FILE_TO_OPEN) + new_fd) == -1){  /* trying to copy dentry if exist*/
-        printf("The file does not exist.\n");
-        return -1;
-    }
+    // copy to local dentry for init file in file_array
+    read_dentry_by_name(filename, &dentry);
     // update the opened file's status
-    fileStatusArray.FILE_STATUS[new_fd] = STATUS_OPENED;
-    fileStatusArray.FILE_OFFSET[new_fd] = 0;
-    if (fileStatusArray.FILE_TO_OPEN[new_fd].filetype == 0) {
-      fileStatusArray.RTC_STATUS = STATUS_OPENED;
-    }
-    return 0;
+    ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].inode = &(ece391FileSystem.ece391_inodes[dentry.inode_num]);
+    ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].filePos = 0;
+    ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].flags = STATUS_OPENED;
+    // assign jumptables in system_call
+    return new_fd;
 }
 
 /*
@@ -349,25 +314,10 @@ int32_t file_open    (const uint8_t* filename){
  *   DESCRIPTION: closes a non-directory file
  *   INPUTS: fd -- the file index in the fileStatusArray of the file we want to close
  *   OUTPUTS: none
- *   RETURN VALUE: 0 on success and -1 on failure
+ *   RETURN VALUE: 0 on success 
  *   SIDE EFFECTS: none
  */
 int32_t file_close   (int32_t fd){
-    // check fd valid
-    if (fd >= MAX_FILE_OPEN || fd < 0){
-        printf("The input index is out of boundary. \n");
-        return -1;
-    }
-    // check if status is already closed
-    if (fileStatusArray.FILE_STATUS[fd] == STATUS_CLOSED){
-        printf("The file is already closed. \n");
-        return -1;
-    }
-    // close and return on success
-    fileStatusArray.FILE_STATUS[fd] = STATUS_CLOSED;
-    // NOTE the following shoud be deleted
-    if (fileStatusArray.FILE_TO_OPEN[fd].filetype == RTC_FILE_TYPE)
-      fileStatusArray.RTC_STATUS = STATUS_CLOSED;
     return 0;
 }
 
@@ -499,48 +449,26 @@ int32_t file_write   (int32_t fd, const void* buf, int32_t nbytes){
  */
 int32_t dir_open    (const uint8_t* filename){
   int32_t ii;    // traverse to check status file/dir array
-  int32_t new_fd = MAX_FILE_OPEN;  // if can open a file, this will record the fd
-  int8_t already_open_flag = 0;
-
-  //check for bad pointer
-  if (filename == NULL) return -1;
+  int32_t new_fd = -1; // new fd to return
+  dentry_t dentry;    // check dentry
   //check for nonexisting directory
   if (*filename != '.') return -1;
   // traverse the open file array
-  for (ii = 0; ii < MAX_FILE_OPEN; ii++){
+  for (ii = FD_LOW; ii <= FD_UPPER; ii++){
       // check each opened file
-      if (fileStatusArray.FILE_STATUS[ii] == STATUS_OPENED){
-          already_open_flag = 1; // initialize as opened
-          // check if the name is the same
-          if (*filename != *(fileStatusArray.FILE_TO_OPEN[ii].filename)){
-              already_open_flag = 0;
-          }
-          // if it is the same, handle the error and return on failure
-          if (already_open_flag == 1){
-              printf("The file is already opened.\n");
-              return -1;
-          }
+      if (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[ii].flags == STATUS_CLOSED){
+              new_fd = ii;
+              break;
       }
-      // try to update the new_fd for later use
-      else if (ii < new_fd)
-          new_fd = ii;
-
   }
-  // if the file status array is full
-  if (new_fd == MAX_FILE_OPEN){
-      printf("The file processing array is full.\n");
-      return -1;
-  }
-  // now is OK to really try to look for the file in the ece391FILE_SYSTEM
-  if(read_dentry_by_name(filename, (fileStatusArray.FILE_TO_OPEN) + new_fd) == -1){  /* trying to copy dentry if exist*/
-      printf("The file does not exist.\n");
-      return -1;
-  }
+  // copy to local dentry for init file in file_array
+  read_dentry_by_name(filename, &dentry);
   // update the opened file's status
-  fileStatusArray.FILE_STATUS[new_fd] = STATUS_OPENED;
-  fileStatusArray.FILE_OFFSET[new_fd] = 0;
-  fileStatusArray.CURRENT_DIR_IDX = 0;
-  return 0;
+  ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].inode = NULL;
+  ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].filePos = 0;
+  ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].flags = STATUS_OPENED;
+  // assign jumptables in system_call
+  return new_fd;
 }
 
 /*
@@ -552,19 +480,6 @@ int32_t dir_open    (const uint8_t* filename){
  *   SIDE EFFECTS: none
  */
 int32_t dir_close   (int32_t fd){
-  // check fd valid
-  if (fd >= MAX_FILE_OPEN || fd < 0){
-      printf("The input index is out of boundary. \n");
-      return -1;
-  }
-  // check if status is already closed
-  if (fileStatusArray.FILE_STATUS[fd] == STATUS_CLOSED){
-      printf("The directory is already closed. \n");
-      return -1;
-  }
-  // close and return on success
-  fileStatusArray.FILE_STATUS[fd] = STATUS_CLOSED;
-  fileStatusArray.CURRENT_DIR_IDX = 0;
   return 0;
 }
 

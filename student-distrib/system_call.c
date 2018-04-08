@@ -41,13 +41,16 @@ int32_t open(const uint8_t *filename) {
             fullFlag = 0;
             switch (dentry.filetype) {
                 case 0:
-                    fd = (*(rtcTable->fotOpen))(filename);
+                    fd = (*(rtcTable.fotOpen))(filename);
+                    ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[fd].table = &rtcTable;
                     break;
                 case 1:
-                    fd = (*(dirTable->fotOpen))(filename);
+                    fd = (*(dirTable.fotOpen))(filename);
+                    ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[fd].table = &dirTable;
                     break;
                 case 2:
-                    fd = (*(regTable->fotOpen))(filename);
+                    fd = (*(regTable.fotOpen))(filename);
+                    ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[fd].table = &regTable;
                     break;
             }
             break;
