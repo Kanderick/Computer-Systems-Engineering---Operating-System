@@ -127,11 +127,29 @@ int32_t execute (const uint8_t* command) {
         return -1;
     uint8_t *filename;
     uint32_t idx = 0;
+    int8_t new_pid;
+    int16_t cur_ds;
+    int32_t cur_eip;
     while (command[idx] != ' ' && command[idx] != '/0')
         idx++;
     memcpy(filename, command, idx);
-    file_open(filename);
-
+    asm volatile("movl %%ebp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->ebp));
+    asm volatile("movl %%esp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp));
+    new_pid = init_pcb(process_manager_t* processManager);
+    if (new_pid == -1)
+        return -1;
+    push_process(new_pid);
+    cur_eip = load_user_image(filename);
+    tss.esp0 = PCB_BASE_ADDR - new_pid * PCB_SEG_LENGTH - 4;
+    tss.ss0 = KERNEL_DS;
+    asm volatile("movw %%ds,%0\n\t" :"=r" (cur_ds));
+    asm volatile("movw %0,%%ds": :"r" (USER_DS));
+    asm volatile("pushw %0\n\t" : :"g" (USER_DS));
+    asm volatile("pushl %%esp\n\t" : :);
+    asm volatile("pushfl\n\t" : :);
+    asm volatile("pushw %0\n\t" : :"g" (USER_CS));
+    asm volatile("pushl %0\n\t" : :"g" (cur_eip));
+    asm volatile("iret" : :);
 }
 // the following funcions are not implemented
 int32_t getargs (uint8_t* buf, int32_t nbytes);
