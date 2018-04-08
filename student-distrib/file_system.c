@@ -12,7 +12,7 @@ ece391_file_system_t   ece391FileSystem;
 // file_status_array_t fileStatusArray; this is only for CP_3.2
 
 // this file array pointer should points to current PCB's file array
-fileArray_t* fileStatusArray;
+
 
 /*
  * init_file_system
@@ -249,8 +249,9 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
  *   SIDE EFFECTS: none
  */
 extern int32_t get_file_length(int32_t fd) {
+  int32_t ret_length;
   /*checks bad input fd*/
-  if (fd < FD_PARAM_LOW || fd > FD_PARAM_UPPER) {
+  if (fd < FD_LOW || fd > FD_UPPER) {
     printf("ERROR: input fd out of range");
     return -1;
   }
@@ -259,8 +260,13 @@ extern int32_t get_file_length(int32_t fd) {
     printf("ERROR: no process is opened.\n");
     return -1;
   }
+  if((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].inode == 0xFFFF){
+    printf("ERROR: priviledged file check length.\n");
+    return -1;
+  }
 
-  return ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[fd].inode->length;
+  ret_length = ece391FileSystem.ece391_inodes[((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].inode)].length;
+  return ret_length;
 }
 
 // following are higher level APIs to interact with file system, these functions are expected to be called
@@ -284,9 +290,7 @@ void init_file_status_array(file_status_array_t* array){
 }
  */
 // for SYSTEM CALL
-// following functions are for system call
-#define FD_LOW   2 // user has no priviledge to close fd 0, 1 or non-exist file
-#define FD_UPPER  7 // any fd is greater then 7 is invalid
+
 /*
  * file_open
  *   DESCRIPTION: opens a non-directory file
@@ -302,7 +306,7 @@ int32_t file_open(const uint8_t* filename){
     // traverse the open file array
     for (ii = FD_LOW; ii <= FD_UPPER; ii++){
         // check each opened file
-        if (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[ii].flags == STATUS_CLOSED){
+        if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[ii].flags == STATUS_CLOSED){
                 new_fd = ii;
                 break;
         }
@@ -310,9 +314,9 @@ int32_t file_open(const uint8_t* filename){
     // copy to local dentry for init file in file_array
     read_dentry_by_name(filename, &dentry);
     // update the opened file's status
-    ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].inode = dentry.inode_num;
-    ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].filePos = 0;
-    ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].flags = STATUS_OPENED;
+    (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[new_fd].inode = dentry.inode_num;
+    (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[new_fd].filePos = 0;
+    (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[new_fd].flags = STATUS_OPENED;
     // assign jumptables in system_call
     return new_fd;
 }
@@ -377,9 +381,8 @@ int32_t file_close   (int32_t fd){
  *   RETURN VALUE: -1 on failure and non-negative actual number of bytes we read
  *   SIDE EFFECTS: none
  */
-int32_t file_read    (int32_t fd, void* buf, int32_t nbytes){
+int32_t file_read    (int32_t fd, unsigned char* buf, int32_t nbytes){
     int32_t file_inode_num;
-    int32_t file_length;
     uint32_t new_offset;
 
     // check input buf pointer is valid
@@ -391,15 +394,15 @@ int32_t file_read    (int32_t fd, void* buf, int32_t nbytes){
         printf("Input nbytes is negative.\n");
         return -1;
     }
-    file_inode_num = ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[fd].inode;
-    new_offset = read_data(file_inode_num,(ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[fd].filePos) ,(uint8_t*) buf, nbytes);
+    file_inode_num = (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].inode;
+    new_offset = read_data(file_inode_num,((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].filePos) ,(uint8_t*) buf, nbytes);
     // if fail to read
     if (new_offset == -1){
         printf("File read fail.\n");
         return -1;
     }
     // update the offset array in the status array
-    fileStatusArray.FILE_OFFSET[fd] += new_offset;
+    ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].filePos) += new_offset;
     return new_offset;
 }
 
@@ -413,7 +416,7 @@ int32_t file_read    (int32_t fd, void* buf, int32_t nbytes){
  *   RETURN VALUE: -1 on failure
  *   SIDE EFFECTS: none
  */
-int32_t file_write   (int32_t fd, const void* buf, int32_t nbytes){
+int32_t file_write   (int32_t fd, const unsigned char *buf, int32_t nbytes){
     return -1;
 }
 
@@ -436,7 +439,7 @@ int32_t dir_open    (const uint8_t* filename){
   // traverse the open file array
   for (ii = FD_LOW; ii <= FD_UPPER; ii++){
       // check each opened file
-      if (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[ii].flags == STATUS_CLOSED){
+      if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[ii].flags == STATUS_CLOSED){
               new_fd = ii;
               break;
       }
@@ -444,9 +447,9 @@ int32_t dir_open    (const uint8_t* filename){
   // copy to local dentry for init file in file_array
   read_dentry_by_name(filename, &dentry);
   // update the opened file's status
-  ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].inode = -1;
-  ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].filePos = 0;
-  ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].flags = STATUS_OPENED;
+  (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[new_fd].inode = -1;
+  (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[new_fd].filePos = 0;
+  (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[new_fd].flags = STATUS_OPENED;
   // assign jumptables in system_call
   return new_fd;
 }
@@ -473,7 +476,7 @@ int32_t dir_close   (int32_t fd){
  *   RETURN VALUE: -1 on failure and 0 on success
  *   SIDE EFFECTS: none
  */
-int32_t dir_read    (int32_t fd, void* buf, int32_t nbytes){
+int32_t dir_read    (int32_t fd, unsigned char *buf, int32_t nbytes){
     /*index to copy to buffer*/
     int32_t i;
     /*size of a particular file*/
@@ -481,7 +484,7 @@ int32_t dir_read    (int32_t fd, void* buf, int32_t nbytes){
     /*stores the current dentry*/
     dentry_t temp_dentry;
     /*offset to read dir*/
-    uint32_t offset = ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[fd].filePos;
+    uint32_t offset = (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].filePos;
     /*check for bad pointer*/
     if (buf == NULL) {
       printf("Input buf pointer is NULL.\n");
@@ -505,7 +508,7 @@ int32_t dir_read    (int32_t fd, void* buf, int32_t nbytes){
     }
 
     // update counter
-    (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[fd].filePos)++;
+    ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].filePos)++;
 
     /*copy filename into the buffer*/
     for (i = 0; i < FILE_NAME_LEN; i++) {
@@ -535,6 +538,6 @@ int32_t dir_read    (int32_t fd, void* buf, int32_t nbytes){
  *   RETURN VALUE: -1 on failure
  *   SIDE EFFECTS: none
  */
-int32_t dir_write   (int32_t fd, const void* buf, int32_t nbytes){
+int32_t dir_write   (int32_t fd, const unsigned char* buf, int32_t nbytes){
     return -1;
 }

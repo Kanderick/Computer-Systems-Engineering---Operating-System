@@ -3,34 +3,13 @@
 
 #include "types.h"
 #include "file_system.h"
-#include "pcb.h"
+
 // total number of files a single PCB is holding
 #define FA_SIZE                 8
 #define STATUS_CLOSED   67      // 'C' indecates file closed
 #define STATUS_OPENED   79      // 'O' indicates file opened
-// the file operation table should be contained in each file struct in the file array
-typedef struct fileOperationTable {
-    // definition of file operation table function pointers, currently we only have four
-    int32_t (*oFunc)(const uint8_t *filename);
-    int32_t (*cFunc)(int32_t fd);
-    int32_t (*rFunc)(int32_t fd, unsigned char *buf, int32_t nbytes);
-    int32_t (*wFunc)(int32_t fd, const unsigned char *buf, int32_t nbytes);
-} fileOperationTable_t;
-
-// the file struct in the file array
-typedef struct ece391_file {
-    fileOperationTable_t *table;
-    uint32_t  inode;
-    uint32_t filePos;
-    uint32_t flags;
-} ece391_file_t;
-
-// the file array should be used and initialze whenever a new PCB is init
-typedef struct fileArray {
-    ece391_file_t files[FA_SIZE];
-    // reserved for other variables
-
-} fileArray_t;
+// include "pcb.h" after FA_SIZE to avoid error
+#include "pcb.h"
 
 // init the file array passed in by pointer
 void init_fileArray(fileArray_t* new_file_array);
@@ -50,7 +29,7 @@ int32_t close (int32_t fd);
 // the following funcions are not implemented
 int32_t getargs (uint8_t* buf, int32_t nbytes);
 int32_t vidmap (uint8_t** screen_start);
-int32_t set_handler (int32_t signum, void* handler_address);1
+int32_t set_handler (int32_t signum, void* handler_address);
 int32_t sigreturn (void);
 
 #endif

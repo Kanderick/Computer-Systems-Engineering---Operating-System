@@ -11,10 +11,32 @@
 // constant for initialzing pcb
 #define PCB_BASE_ADDR       0x800000    // the base address for storing PCB, 8MB
 #define PCB_SEG_LENGTH      0x2000      // each segment should be offset from the base, 8KB
+// the file operation table should be contained in each file struct in the file array
+typedef struct fileOperationTable {
+    // definition of file operation table function pointers, currently we only have four
+    int32_t (*oFunc)(const uint8_t *filename);
+    int32_t (*cFunc)(int32_t fd);
+    int32_t (*rFunc)(int32_t fd, unsigned char *buf, int32_t nbytes);
+    int32_t (*wFunc)(int32_t fd, const unsigned char *buf, int32_t nbytes);
+} fileOperationTable_t;
+
+// the file struct in the file array
+typedef struct ece391_file {
+    fileOperationTable_t *table;
+    uint32_t  inode;
+    uint32_t filePos;
+    uint32_t flags;
+} ece391_file_t;
+
+// the file array should be used and initialze whenever a new PCB is init
+typedef struct fileArray {
+    ece391_file_t files[FA_SIZE];
+    // reserved for other variables
+} fileArray_t;
 // make it packed to spare space for kernel stack
 struct process_control_block {
     /* the file array for each process */
-    fileArray_t file_array;
+    struct fileArray file_array;
     /* parent process statics */
     uint32_t parent_ebp;
     uint32_t parent_esp;
@@ -25,7 +47,7 @@ struct process_control_block {
     // int8_t pid;          NOTE: no need for store pid again
     /* reserved for paging info */
     uint32_t page_directory_index;
-}  __attribute((packed));
+};
 typedef struct process_control_block pcb_t;
 
 typedef struct process_manager{
