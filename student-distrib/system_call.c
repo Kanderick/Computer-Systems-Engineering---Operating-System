@@ -147,6 +147,7 @@ int32_t halt (uint8_t status) {
     tss.esp0 = ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_esp;
     user_page_unmapping(ece391_process_manager.curr_pid);
     pop_process();
+    user_page_mapping(ece391_process_manager.curr_pid);
     asm volatile("movzbl %%bl,%%ebx\n\t" : :);
     asm volatile("jmp EXE_RETURN" : :);
     printf("error\n");
@@ -168,7 +169,8 @@ int32_t execute (const uint8_t* command) {
     while (command[idx] != ' ' && command[idx] != '\0')
         idx++;
     memcpy(filename, command, idx);
-
+    filename[idx] = '\0';
+    printf("%s\n", filename);
     /*checks whether the file is executable*/
     if (check_executable_validity(filename) == -1) {
       printf("ERROR: the file specified is inexecutable.\n");

@@ -37,9 +37,8 @@ int8_t check_executable_validity(uint8_t* filename) {
     /* Read first four bytes of the file */
     int32_t nbytes = EXE_IDENTIFIER_SIZE;
     uint8_t file_identifier[EXE_IDENTIFIER_SIZE];
-    uint8_t buf[EXE_IDENTIFIER_SIZE];
 
-    if (read_data(dentry.inode_num, 24, buf, nbytes) != EXE_IDENTIFIER_SIZE) {
+    if (read_data(dentry.inode_num, 0, file_identifier, nbytes) != EXE_IDENTIFIER_SIZE) {
         ERROR_MSG;
         printf("ERROR: fail to compare with identifier.\n");
         return -1;

@@ -986,6 +986,17 @@ int PCB_file_terminal_rtc_test(){
 	return PASS;
 }
 #endif
+
+
+#if (SHELL_TEST == 1)
+int shell_test() {
+	TEST_HEADER;
+	uint8_t cmd[] = "shell ";
+	execute(cmd);
+	return PASS;
+}
+
+#endif
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -1025,5 +1036,9 @@ void launch_tests(){
 	#endif
 	#if (PCB_TEST == 1)
 	TEST_OUTPUT("pcb_ops_test", PCB_file_terminal_rtc_test());
+	#endif
+
+	#if (SHELL_TEST == 1)
+	TEST_OUTPUT("Shell_execute_test", shell_test());
 	#endif
 }
