@@ -242,17 +242,25 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 }
 /*
  * get_file_length
- *   DESCRIPTION: get the filelength by filename
- *   INPUTS: fname: a string pointer of the desired filename
+ *   DESCRIPTION: get the filelength by fd
+ *   INPUTS: fd: the file descriptor of the desire file
  *   OUTPUTS: none
- *   RETURN VALUE: filelength in bytes. -1 for fail or invalid file type
+ *   RETURN VALUE: filelength in bytes. -1 for fail
  *   SIDE EFFECTS: none
  */
-extern int32_t get_file_length(const uint8_t *fname) {
-  dentry_t dentry;
-  if (read_dentry_by_name(fname, &dentry) == -1) return -1;
-  if (dentry.filetype != REG_FILE_TPYE) return -1;
-  return ece391FileSystem.ece391_inodes[dentry.inode_num].length;
+extern int32_t get_file_length(int32_t fd) {
+  /*checks bad input fd*/
+  if (fd < FD_PARAM_LOW || fd > FD_PARAM_UPPER) {
+    printf("ERROR: input fd out of range");
+    return -1;
+  }
+  /*checks if no process is opened*/
+  if (ece391_process_manager.curr_pid == -1) {
+    printf("ERROR: no process is opened.\n");
+    return -1;
+  }
+
+  return ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[fd].inode->length;
 }
 
 // following are higher level APIs to interact with file system, these functions are expected to be called
