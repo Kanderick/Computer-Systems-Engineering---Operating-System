@@ -4,6 +4,8 @@
 #include "terminal.h"
 #include "paging.h"
 #include "lib.h"
+#include "loader.h"
+#include "pcb.h"
 
 // these following variables act as function jumptables for different files; static is thus safe
 static fileOperationTable_t inTable;    // 'stdin' jumptable
@@ -123,14 +125,38 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
 
 int32_t halt (uint8_t status);
 int32_t execute (const uint8_t* command) {
-    if (command == NULL)
-        return -1;
-    uint8_t *filename;
-    uint32_t idx = 0;
-    while (command[idx] != ' ' && command[idx] != '/0')
-        idx++;
-    memcpy(filename, command, idx);
-    file_open(filename);
+  /*check for bad input command*/
+  if (command == NULL) {
+    printf("ERROR: command does not exist.\n")
+    return -1;
+  }
+  /*parse the arguments*/
+  uint8_t *filename;
+  uint32_t idx = 0;
+  while (command[idx] != ' ' && command[idx] != '/0')
+      idx++;
+  memcpy(filename, command, idx);
+  /*checks whether the file is executable*/
+  if (check_executable_validity(filename) == -1) {
+    printf("ERROR: the file specified is inexecutable.\n");
+    return -1;
+  }
+  /*initialize a pcb for the current process, get the process number*/
+  int8_t pid = init_pcb(&ece391_process_manager);
+  if (pid < 1) {
+    printf("ERROR: unable to create a new pcb.\n");
+    return -1;
+  }
+  /*initialized user level paging*/
+  user_page_mapping(pid);
+  /*copy the user image to the user level page*/
+  uint32_t* execute_start = load_user_image(filename);
+
+  /*code for context switch*/
+
+  /*code for setting up stack for iret*/
+  //use the exexute_start to setup eip
+
 
 }
 // the following funcions are not implemented
