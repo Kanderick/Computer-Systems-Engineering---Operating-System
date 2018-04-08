@@ -170,14 +170,13 @@ void init_paging(void) {
  * Side Effects flushes tlb
  */
 void user_page_mapping(uint8_t pid) {
-
-  pde_t page_128mb;
-  if (pid >= 1) {
-    page_128mb = ((pid + 1) * _4MB) | PAGE_SIZE_MASK | R_W_MASK | U_S_MASK | PRESENT_MASK;
-    //map the virtual 128mb to the corresponding physical address
-    page_directory[PDEIDX_128MB] = page_128mb;
-    write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
-  }
+    pde_t page_128mb;
+    if (pid >= 1) {
+        page_128mb = ((pid + 1) * _4MB) | PAGE_SIZE_MASK | R_W_MASK | U_S_MASK | PRESENT_MASK;
+        //map the virtual 128mb to the corresponding physical address
+        page_directory[PDEIDX_128MB] = page_128mb;
+        write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
+    }
 }
 
 /* user_page_unmapping
@@ -187,10 +186,9 @@ void user_page_mapping(uint8_t pid) {
  * Side Effects flushes tlb
  */
 void user_page_unmapping(uint8_t pid) {
-
-  if (pid >= 1) {
-    //unmaps the virtual 128mb
-    page_directory[PDEIDX_128MB] = 0;
-    write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
-  }
+    if (pid >= 1) {
+        //unmaps the virtual 128mb
+        page_directory[PDEIDX_128MB] = 0;
+        write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
+    }
 }

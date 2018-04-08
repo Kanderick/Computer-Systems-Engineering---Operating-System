@@ -1,6 +1,7 @@
 #include "loader.h"
 #include "file_system.h"
 #include "lib.h"
+#include "system_call.h"
 
 /* Magic number at the beginning of an executable file */
 const uint8_t EXE_IDENTIFIER_TABLE[EXE_IDENTIFIER_SIZE] = {
@@ -73,9 +74,9 @@ uint32_t* load_user_image(uint8_t* filename) {
     if (read_dentry_by_name(filename, &dentry) == -1) {
         ERROR_MSG;
         printf("ERROR: file does not exist.\n");
-        return -1;
+        return NULL;
     }
-    nbytes = ece391_file_system.ece391_inodes[dentry.inode_num].length;
+    nbytes = ece391FileSystem.ece391_inodes[dentry.inode_num].length;
 
     if (nbytes > LOAD_EXE_MAX_SIZE) {
         ERROR_MSG;
@@ -89,7 +90,8 @@ uint32_t* load_user_image(uint8_t* filename) {
 
     /* Read file data into proper location */
     uint8_t* buffer = (uint8_t*)LOAD_EXE_START_ADDR;
-    if (read_data(dentry.inode_num, 0, buffer, nbytes) != nbytes) {
+    int32_t read_bytes = read_data(dentry.inode_num, 0, buffer, nbytes);
+    if (read_bytes != nbytes) {
         ERROR_MSG;
         printf("File read size does not match file size. Read %dB/%dB in file.\n", read_bytes, nbytes);
         return NULL;
