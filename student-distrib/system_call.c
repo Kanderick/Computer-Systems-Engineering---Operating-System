@@ -122,7 +122,17 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
 }
 
 int32_t halt (uint8_t status);
-int32_t execute (const uint8 t* command);
+int32_t execute (const uint8_t* command) {
+    if (command == NULL)
+        return -1;
+    uint8_t *filename;
+    uint32_t idx = 0;
+    while (command[idx] != ' ' && command[idx] != '/0')
+        idx++;
+    memcpy(filename, command, idx);
+    file_open(filename);
+
+}
 // the following funcions are not implemented
 int32_t getargs (uint8_t* buf, int32_t nbytes);
 int32_t vidmap (uint8_t** screen_start);
