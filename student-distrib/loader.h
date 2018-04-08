@@ -19,7 +19,7 @@
 #define EXE_START_COUNT         (24/4)      // Byte 24-27 from the EXE start addr
 
 /* Magic number at the beginning of an executable file */
-extern static uint8_t EXE_IDENTIFIER_TABLE[EXE_IDENTIFIER_SIZE] = {
+const uint8_t EXE_IDENTIFIER_TABLE[EXE_IDENTIFIER_SIZE] = {
     0x7F, 0x45, 0x4C, 0x46
 };
 

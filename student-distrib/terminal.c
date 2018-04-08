@@ -13,10 +13,6 @@ static volatile uint8_t terminalFlag = 0;
  *   SIDE EFFECTS: open the terminal file
  */
 int32_t terminal_open(const uint8_t *filename) {
-    if (terminalFlag == 1) {        /*check whether the terminal is open*/
-        printf("Terminal has already opened.\n");
-        return -1;
-    }
     terminalFlag = 1;
     return 0;
 }
