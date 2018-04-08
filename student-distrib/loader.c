@@ -1,5 +1,6 @@
 #include "loader.h"
 #include "file_system.h"
+#include "lib.h"
 
 /* NOTE Limitation of this loader is that it assumes that and executable is always smaller than 4MB, which is specified in the MP3.3 documentation. However, this loader can be more flexible with a more complexed paging initialization strategy. */
 
@@ -72,7 +73,7 @@ uint32_t* load_user_image(int32_t fd) {
     }
 
     /* Read file data into proper location */
-    uint32_t* buffer = (uint32_t*)LOAD_EXE_START_ADDR;
+    uint8_t* buffer = (uint8_t*)LOAD_EXE_START_ADDR;
     int32_t read_bytes = file_read(fd, buffer, nbytes);
     if (read_bytes == -1) {
         ERROR_MSG;
@@ -85,7 +86,7 @@ uint32_t* load_user_image(int32_t fd) {
     }
 
     /* Get program starting address */
-    uint32_t* starting_addr = (uint32_t*)buffer[EXE_START_COUNT];
+    uint32_t* starting_addr = (uint32_t*) ((uint32_t*)buffer)[EXE_START_COUNT];
     /* Check if we got an starting address after EXE_START_ADDR, before the end of the page */
     if (((uint32_t)starting_addr < LOAD_EXE_START_ADDR) || (uint32_t)starting_addr > LOAD_PAGE_END_ADDR) {
         ERROR_MSG;

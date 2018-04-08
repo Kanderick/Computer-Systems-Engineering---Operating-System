@@ -65,7 +65,7 @@ int32_t open(const uint8_t *filename) {
 }
 
 int32_t close(int32_t fd) {
-    if(fd < FD_GOOD_PARAM || fd > FD_PARAM_UPPER){
+    if(fd < FD_PARAM_LOW || fd > FD_PARAM_UPPER){
         printf("Process close has bad parameter.\n");
         return -1;
     }
@@ -136,23 +136,23 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
     }
 }
 
-int32_t halt (uint8_t status);
+int32_t halt (uint8_t status) {return 0;}
 int32_t execute (const uint8_t* command) {
-    if (command == NULL)
-        return -1;
-    uint8_t *filename;
-    uint32_t idx = 0;
-    while (command[idx] != ' ' && command[idx] != '/0')
-        idx++;
-    memcpy(filename, command, idx);
-    file_open(filename);
-
+    // if (command == NULL)
+    //     return -1;
+    // uint8_t *filename;
+    // uint32_t idx = 0;
+    // while (command[idx] != ' ' && command[idx] != '/0')
+    //     idx++;
+    // memcpy(filename, command, idx);
+    // file_open(filename);
+    return 0;
 }
 // the following funcions are not implemented
-int32_t getargs (uint8_t* buf, int32_t nbytes);
-int32_t vidmap (uint8_t** screen_start);
-int32_t set_handler (int32_t signum, void* handler_address);
-int32_t sigreturn (void);
+int32_t getargs (uint8_t* buf, int32_t nbytes) {return 0;}
+int32_t vidmap (uint8_t** screen_start) {return 0;}
+int32_t set_handler (int32_t signum, void* handler_address) {return 0;}
+int32_t sigreturn (void) {return 0;}
 
 // this funcion initilize the file array, automatically open the
 // terminal open/close
@@ -163,17 +163,17 @@ void init_fileArray(fileArray_t* new_file_array){
     new_file_array->files[0].table = &inTable;
     new_file_array->files[0].inode = 0xFFFF;  // no such file exist in
     new_file_array->files[0].filePos = 0;
-    new_file_array->files[0].flag = STATUS_OPENED;
+    new_file_array->files[0].flags = STATUS_OPENED;
     // open stdout automatically
     new_file_array->files[1].table = &outTable;
     new_file_array->files[1].inode = 0xFFFF;  // no such file exist in
     new_file_array->files[1].filePos = 0;
-    new_file_array->files[1].flag = STATUS_OPENED;
+    new_file_array->files[1].flags = STATUS_OPENED;
     // open terminal
     terminal_open((uint8_t *)"stdIO");
     // traverse array to set rest files' status
     for (ii = 2; ii < FA_SIZE; ii++)
-        new_file_array->files[ii].flag = STATUS_CLOSED;
+        new_file_array->files[ii].flags = STATUS_CLOSED;
     // make sure that the all the drivers are interacting with the correct file array
 
 }

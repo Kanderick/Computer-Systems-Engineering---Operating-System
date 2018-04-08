@@ -4,6 +4,7 @@
  */
 
 #include "file_system.h"
+#include "pcb.h"
 #include "rtc.h"
 #include "lib.h"
 /* the hierarchy for ece391 file system */

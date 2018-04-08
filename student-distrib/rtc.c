@@ -2,6 +2,8 @@
 #include "device.h"
 #include "i8259.h"
 #include "file_system.h"
+#include "pcb.h"
+
 #define CHECK_FAIL       -1          /* this is the open/close-failed code indicates a failure on open a file */
 #define RTC_NAME_LEN           4     /* rtc file name length  */
 #define RTC_CLOSED   67              /* 'C' indecates file closed */
@@ -63,7 +65,7 @@ int32_t rtc_close(int32_t fd) {
  *   SIDE EFFECTS: wait until a rtc interrupt has completed
  */
 int32_t rtc_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
-    unsigned int rtcRelativeFreq = (unsigned int)(ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].filePos);
+    unsigned int rtcRelativeFreq = (unsigned int)(ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[fd].filePos);
     sti();
     rtcFlag = 0;    /*set the rtc flag to 1*/
     while (rtcFlag<rtcRelativeFreq);    /*check whether a rtc interrupt completed*/
@@ -95,7 +97,7 @@ int32_t rtc_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
         printf("input is not power of 2");
         return -1;
     }
-    ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[new_fd].filePos = HIGHEST / freqency;
+    ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[fd].filePos = HIGHEST / freqency;
     // while (freqency != 1) {         /*convert the freqency to rate*/
     //     freqency /= 2;
     //     rate --;

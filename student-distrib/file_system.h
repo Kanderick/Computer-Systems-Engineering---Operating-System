@@ -2,7 +2,7 @@
 #define FILE_SYSTEM
 
 #include "types.h"
-#include "system_call.h"
+//#include "system_call.h"
 // dentry parameters
 #define FILE_NAME_LEN           32
 #define DENTRY_RESERVED         24
