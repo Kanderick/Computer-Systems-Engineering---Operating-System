@@ -824,4 +824,9 @@ void launch_tests(){
 	#if (PCB_TEST == 1)
 	TEST_OUTPUT("pcb_ops_test", PCB_file_terminal_rtc_test());
 	#endif
+	printf("[TEST]\n");
+	printf("[PASS]\n");
+	printf("[FAIL]\n");
+	printf("[ERROR]\n");
+	printf("[WARNING]\n");
 }

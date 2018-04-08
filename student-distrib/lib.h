@@ -7,9 +7,31 @@
 
 #include "types.h"
 
+#define VIDEO           0xB8000
+#define NUM_COLS        80
+#define NUM_ROWS        25
+#define ATTRIB          0x1
+#define ATTRIB_GREEN    0x2
+#define ATTRIB_YELLOW   0x3
+#define ATTRIB_RED      0x4
+#define MEM_SIZE        3840
+#define CUR_REG_ADDR    0x3D4       /*cursor address register*/
+#define CUR_REG_DATA    0x3D5       /*cursor data register*/
+#define CUR_MASK        0xFF
+#define BACKSPACE       0x0E
+#define DEL             0x53
+#define LEFT_ARROW      0x4B
+#define RIGHT_ARROW     0x4D
+#define UP_ARROW        0x48
+#define DOWN_ARROW      0x50
+
+void set_color(unsigned char addr);
+
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);
+void putc_color(uint8_t c, uint8_t attrib);
 int32_t puts(int8_t *s);
+int32_t puts_color(int8_t* s, int8_t attrib);
 int32_t putbuf(int8_t* s, uint32_t len);
 int8_t *itoa(uint32_t value, int8_t* buf, int32_t radix);
 int8_t *strrev(int8_t* s);
@@ -167,6 +189,22 @@ do {                                    \
             : "r"(flags)                \
             : "memory", "cc"            \
     );                                  \
+} while (0)
+
+/* macro used to write an array of one-byte values to two consecutive ports */
+#define REP_OUTSB(port, source, count)                              \
+do {                                                                \
+    asm volatile ("                                               \n\
+        1: movb 0(%1), %%al                                       \n\
+        outb %%al, (%w2)                                          \n\
+        incl %1                                                   \n\
+        decl %0                                                   \n\
+        jne 1b                                                    \n\
+        "                                                           \
+        : /* no outputs */                                          \
+        : "c"((count)), "S"((source)), "d"((port))                  \
+        : "eax", "memory", "cc"                                     \
+    );                                                              \
 } while (0)
 
 #endif /* _LIB_H */

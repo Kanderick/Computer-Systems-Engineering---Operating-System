@@ -176,6 +176,7 @@ void entry(unsigned long magic, unsigned long addr) {
     sti();
 
 #ifdef RUN_TESTS
+    set_color(0x0);
     /* Run tests */
     launch_tests();
 #endif
