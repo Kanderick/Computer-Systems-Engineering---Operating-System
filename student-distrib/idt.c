@@ -319,6 +319,7 @@ void exception_GP(void) {
 void exception_PF(void) {
     cli();          /*clean the interrupt flag*/
     printf("Page-Fault Exception\n");
+    while(1);
 }
 
 /*

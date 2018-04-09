@@ -104,7 +104,7 @@ int32_t read(int32_t fd, void *buf, int32_t nbytes) {
         return -1;
     }
     if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].flags == STATUS_CLOSED) {
-        printf("Process tries to read a already closed file.\n");
+        printf("Process tries to read a already closed file. %d\n", fd);
         *((int8_t*) buf) = '\0';
         return -1;
     }
@@ -145,17 +145,20 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
     }
 }
 
+static int32_t halt_ret;
 int32_t halt (uint8_t status) {
     /*need special treatment for the first shell process*/
-    if (ece391_process_manager.curr_pid > 1) {
+    if ((ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid != -1) {
         tss.esp0 = (ece391_process_manager.process_position[(ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid - 1])->esp;
     }
     else {
         /*need special treatment*/
+        tss.esp0+=4;
     }
     /*no longer stores parent_pid*/
     //tss.esp0 = ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_esp;
     user_page_unmapping(ece391_process_manager.curr_pid);
+    halt_ret = ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->halt_ebp;
     pop_process();
     /*if still have parent user process*/
     if (ece391_process_manager.curr_pid > 0) {
@@ -167,16 +170,17 @@ int32_t halt (uint8_t status) {
     return 0;       //prevent warning
 }
 int32_t execute (const uint8_t* command) {
+    uint8_t filename[128];
+    uint32_t idx = 0;
+    int16_t cur_ds;
+    int32_t temp;
+    int32_t temp_esp;
     /*check for bad input command*/
     if (command == NULL) {
       printf("ERROR: command does not exist.\n");
       return -1;
     }
 
-    uint8_t *filename;
-    uint32_t idx = 0;
-    int16_t cur_ds;
-    int32_t temp;
     //int8_t par_pid;
 
     while (command[idx] != ' ' && command[idx] != '\0')
@@ -219,7 +223,14 @@ int32_t execute (const uint8_t* command) {
     paging_test();
     #endif
 
+    // esp
+    asm volatile("movl %%esp,%0\n\t" :"=r" (temp_esp));
+    asm volatile("movl %%ebp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->halt_ebp));
+
     /*code for context switch*/
+    if((ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid == -1){ // if it is the first process, maintain the current esp
+      (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp )= temp_esp-4;
+    }
     tss.esp0 = ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp;
     tss.ss0 = KERNEL_DS;
 
@@ -244,6 +255,9 @@ int32_t execute (const uint8_t* command) {
     asm volatile("iret" : :);
     asm volatile("EXE_RETURN:");
     asm volatile("movl %%ebx,%0\n\t" :"=r" (temp));
+    asm volatile("movl %0, %%ebp\n\t": :"g" (halt_ret));
+    // asm volatile("movl %%ebx, %%eax\n\t" : :);
+    //asm volatile("ret \n\t" : :);
     return temp;
 }
 

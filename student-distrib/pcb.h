@@ -56,6 +56,7 @@ typedef struct process_control_block {
     /* reserved for paging info */
     /*noot needed*/
     //uint32_t page_directory_index;
+    uint32_t halt_ebp;
 }pcb_t;
 
 

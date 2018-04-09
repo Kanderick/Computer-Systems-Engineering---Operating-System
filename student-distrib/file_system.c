@@ -500,7 +500,7 @@ int32_t dir_read    (int32_t fd, unsigned char *buf, int32_t nbytes){
 
     /*read the next file*/
     if ( offset >= ece391FileSystem.dir_count) {
-      return -1;
+      return 0;
     }
 
     /*read the current file and copy its dentry information*/
@@ -526,7 +526,7 @@ int32_t dir_read    (int32_t fd, unsigned char *buf, int32_t nbytes){
       printf("%c", temp_dentry.filename[i]);
     }
     printf(", Filetype: %d, Filesize: %dbytes.\n", temp_dentry.filetype, filesize);
-    return 0;
+    return 32;
 }
 
 /*
