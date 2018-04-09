@@ -18,6 +18,17 @@ static fileOperationTable_t dirTable;   // directory jumptable
 static fileOperationTable_t regTable;   // regular files jumptable
 #define FD_PARAM_LOW   2 // user has no priviledge to close fd 0, 1 or non-exist file
 #define FD_PARAM_UPPER  7 // any fd is greater then 7 is invalid
+
+/*
+ * open
+ *   DESCRIPTION: this function will be called by system call wrapper,
+                  open the file of the filename argument
+ *   INPUTS: filename -- the filename of the file that needed to open
+ *   OUTPUTS: none
+ *   RETURN VALUE: fd -- the index of file array
+ *   SIDE EFFECTS: change the file descriptor due to the index
+ */
+
 int32_t open(const uint8_t *filename) {
     int i;
     int fd = -1;
@@ -70,6 +81,17 @@ int32_t open(const uint8_t *filename) {
     return fd;
 }
 
+/*
+ * close
+ *   DESCRIPTION: this function will be called by system call wrapper,
+                  close the file of the file array index
+ *   INPUTS: fd -- the file array index of the file that needed to close
+ *   OUTPUTS: 0 --sucess
+              -1 -- fail
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: close the file of the file array index
+ */
+
 int32_t close(int32_t fd) {
     if(fd < FD_PARAM_LOW || fd > FD_PARAM_UPPER){
         printf("Process close has bad parameter.\n");
@@ -93,6 +115,17 @@ int32_t close(int32_t fd) {
     (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].flags = STATUS_CLOSED;
     return 0;
 }
+
+/*
+ * read
+ *   DESCRIPTION: this function will be called by system call wrapper,
+                  execute the correct read function decided by filetype
+ *   INPUTS: fd -- the file array index of the file that needed to read
+ *   OUTPUTS: 0 --sucess
+              -1 -- fail
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: execute the correct read function decided by filetype
+ */
 
 int32_t read(int32_t fd, void *buf, int32_t nbytes) {
     if(ece391_process_manager.curr_pid == -1){
@@ -120,6 +153,17 @@ int32_t read(int32_t fd, void *buf, int32_t nbytes) {
     }
 }
 
+/*
+ * write
+ *   DESCRIPTION: this function will be called by system call wrapper,
+                  execute the correct write function decided by filetype
+ *   INPUTS: fd -- the file array index of the file that needed to write
+ *   OUTPUTS: 0 --sucess
+              -1 -- fail
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: execute the correct write function decided by filetype
+ */
+
 int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
     if(ece391_process_manager.curr_pid == -1){
         printf("No process is running.\n");
@@ -143,6 +187,17 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
 }
 
 static int32_t halt_ret;
+
+/*
+ * halt
+ *   DESCRIPTION: this function will be called by system call wrapper,
+                  halt the current process
+ *   INPUTS: status -- the status
+ *   OUTPUTS: none
+ *   RETURN VALUE: this function should never be returned
+ *   SIDE EFFECTS: halt the current process
+ */
+
 int32_t halt (uint8_t status) {
     uint32_t f = ((ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->exc_flag);
     if (ece391_process_manager.curr_pid == -1)
@@ -176,6 +231,19 @@ int32_t halt (uint8_t status) {
     printf("error\n");
     return 0;       //prevent warning
 }
+
+/*
+ * execute
+ *   DESCRIPTION: this function will be called by system call wrapper,
+                  execute next process
+ *   INPUTS: command -- the next process to be executed
+ *   OUTPUTS: 0 - normally
+              1 - 255 --error
+              256 -- exception
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: execute the next process
+ */
+
 int32_t execute (const uint8_t* command) {
     uint8_t filename[128];
     uint32_t idx = 0;
@@ -277,6 +345,16 @@ int32_t sigreturn (void) {return 0;}
 // this funcion initilize the file array, automatically open the
 // terminal open/close
 // this function is called by PCB
+
+/*
+ * init_fileArray
+ *   DESCRIPTION: this function initialize the file array
+ *   INPUTS: new_file_array -- the file array that need to be initialized
+ *   OUTPUTS:none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: initialize the file array
+ */
+
 void init_fileArray(fileArray_t* new_file_array){
     int32_t ii; // for traverse the file array
     // open stdin automatically
@@ -299,6 +377,17 @@ void init_fileArray(fileArray_t* new_file_array){
 }
 // this function should be called once,
 // NOTE can is called in function : void init_process_manager(process_manager_t* processManager)
+
+/*
+ * init_file_operation_jumptables
+ *   DESCRIPTION: this function initialize the file operation jumptable
+                  for terminal, rtc and file
+ *   INPUTS: none
+ *   OUTPUTS:none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: initialize the file operation jumptable
+ */
+
 void init_file_operation_jumptables(void){
     // init the local jumptables
     // 'stdin' jumptable

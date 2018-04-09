@@ -1,3 +1,6 @@
+/* system_call.h.h - Defines used in system call
+ */
+
 #ifndef SYSTEM_CALL_H
 #define SYSTEM_CALL_H
 
@@ -13,11 +16,23 @@ void init_fileArray(fileArray_t* new_file_array);
 void init_file_operation_jumptables(void);
 
 // declare all the function to prevent system_call wrapper from complaining
+
+/*halt the current process*/
 extern int32_t halt (uint8_t status);
+
+/*execute next process*/
 extern int32_t execute (const uint8_t* command);
+
+/*execute the correct read function decided by filetype*/
 extern int32_t read (int32_t fd, void* buf, int32_t nbytes);
+
+/*execute the correct write function decided by filetype*/
 extern int32_t write (int32_t fd, const void* buf, int32_t nbytes);
+
+/*open the file of the filename argument*/
 extern int32_t open (const uint8_t* filename);
+
+/*close the file of the file array index*/
 extern int32_t close (int32_t fd);
 
 // the following funcions are not implemented

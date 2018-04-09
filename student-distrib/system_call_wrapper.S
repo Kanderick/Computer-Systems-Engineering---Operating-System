@@ -1,5 +1,4 @@
-
-/* NOTE donot forget to uncomment  line 45 in idt.c file */
+# system_call_wrapper.S - Set up the system call linkage
 
 .text
 .globl system_call_wrapper
@@ -8,7 +7,7 @@ system_call_wrapper:
     cmpl $1, %eax
     jl fail
     cmpl $10, %eax
-    jg fail
+    jg fail             # check whether the system call number is valid
     pushl %ebx
     pushl %ecx
     pushl %edx
@@ -20,13 +19,13 @@ system_call_wrapper:
     pushw %es
     pushw %fs
     pushw %gs
-    pushl %esp
+    pushl %esp              # push the register
     pushfl
     pushl %edx
     pushl %ecx
-    pushl %ebx
-    call *system_call_jump_table(, %eax, 4)
-    addl $12, %esp
+    pushl %ebx              # push the argument
+    call *system_call_jump_table(, %eax, 4)         # jump to the correct system call
+    addl $12, %esp          # pop the argument
     popfl
     popl %esp
     popw %gs
@@ -39,7 +38,7 @@ system_call_wrapper:
     popl %ebp
     popl %edx
     popl %ecx
-    popl %ebx
+    popl %ebx           # pop the register
     iret
 fail:
     movl $-1, %eax
