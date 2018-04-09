@@ -133,7 +133,7 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
         return -1;
     }
     if (fd < 0 || fd > FD_PARAM_UPPER) {
-        printf("Process read has bad parameter.\n");
+        printf("Process write has bad parameter. %d\n", fd);
         return -1;
     }
     if((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table->wFunc == NULL){
@@ -231,16 +231,15 @@ int32_t execute (const uint8_t* command) {
     asm volatile("movw %%ds,%0\n\t" :"=r" (cur_ds));
     asm volatile("movw %0,%%ax\n\t": :"g" (USER_DS));
     asm volatile("movw %%ax,%%ds\n\t": :);
+    /* ss */
     asm volatile("pushl %0\n\t" : :"g" (USER_DS));
-    // asm volatile("pushl %0\n\t" : :"g" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp));
+    /* esp */
     asm volatile("pushl %0\n\t" : :"g" (LOAD_PAGE_END_ADDR-1));
+    /* eflags */
     asm volatile("pushfl\n\t" : :);
-    // asm volatile("movl %%eax,%0\n\t" :"=r" (temp));
-    // asm volatile("popl %%eax\n\t" : :);
-    // asm volatile("orl $0x200, %%eax\n\t" : :);
-    // asm volatile("pushl %%eax\n\t" : :);
-    // asm volatile("movl %0,%%eax": :"r" (temp));
+    /* cs */
     asm volatile("pushl %0\n\t" : :"g" (USER_CS));
+    /* eip*/
     asm volatile("pushl %0\n\t" : :"g" (execute_start));
     asm volatile("iret" : :);
     asm volatile("EXE_RETURN:");
