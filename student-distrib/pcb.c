@@ -53,6 +53,7 @@ int8_t init_pcb(process_manager_t* processManager){
         break;
         }
     }
+    processManager->process_position[ret_pid-1]->exc_flag = HALT_NORM;
     return ret_pid;
 }
 

@@ -28,23 +28,11 @@ exception_DE_wrapper:
     pushal
     call exception_DE
     popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
-    popal
     iret
 
 exception_DB_wrapper:
     pushal
     call exception_DB
-    popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
     popal
     iret
 
@@ -52,23 +40,11 @@ exception_NMI_wrapper:
     pushal
     call exception_NMI
     popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
-    popal
     iret
 
 exception_BP_wrapper:
     pushal
     call exception_BP
-    popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
     popal
     iret
 
@@ -76,23 +52,11 @@ exception_OF_wrapper:
     pushal
     call exception_OF
     popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
-    popal
     iret
 
 exception_BR_wrapper:
     pushal
     call exception_BR
-    popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
     popal
     iret
 
@@ -100,23 +64,11 @@ exception_UD_wrapper:
     pushal
     call exception_UD
     popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
-    popal
     iret
 
 exception_NM_wrapper:
     pushal
     call exception_NM
-    popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
     popal
     iret
 
@@ -124,23 +76,11 @@ exception_DF_wrapper:
     pushal
     call exception_CSO
     popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
-    popal
     iret
 
 exception_CSO_wrapper:
     pushal
     call exception_CSO
-    popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
     popal
     iret
 
@@ -148,23 +88,11 @@ exception_TS_wrapper:
     pushal
     call exception_TS
     popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
-    popal
     iret
 
 exception_NP_wrapper:
     pushal
     call exception_NP
-    popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
     popal
     iret
 
@@ -172,23 +100,11 @@ exception_SS_wrapper:
     pushal
     call exception_SS
     popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
-    popal
     iret
 
 exception_GP_wrapper:
     pushal
     call exception_GP
-    popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
     popal
     iret
 
@@ -196,23 +112,11 @@ exception_PF_wrapper:
     pushal
     call exception_PF
     popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
-    popal
     iret
 
 exception_MF_wrapper:
     pushal
     call exception_MF
-    popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
     popal
     iret
 
@@ -220,23 +124,11 @@ exception_AC_wrapper:
     pushal
     call exception_AC
     popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
-    popal
     iret
 
 exception_MC_wrapper:
     pushal
     call exception_MC
-    popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
     popal
     iret
 
@@ -244,22 +136,10 @@ exception_XF_wrapper:
     pushal
     call exception_XF
     popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
-    popal
     iret
 
 unkown_int_wrapper:
     pushal
     call unkown_int
-    popal
-    movl $256, %ebx
-    pushal
-    pushl %ebx
-    call halt
-    popl %ebx
     popal
     iret

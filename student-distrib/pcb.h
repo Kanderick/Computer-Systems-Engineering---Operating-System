@@ -16,7 +16,9 @@
 // constant for initialzing pcb
 #define PCB_BASE_ADDR       0x800000    // the base address for storing PCB, 8MB
 #define PCB_SEG_LENGTH      0x2000      // each segment should be offset from the base, 8KB
-
+// signal for exception
+#define HALT_NORM       0
+#define HALT_EXC        1
 // the file operation table should be contained in each file struct in the file array
 typedef struct fileOperationTable {
     // definition of file operation table function pointers, currently we only have four
@@ -57,6 +59,7 @@ typedef struct process_control_block {
     /*noot needed*/
     //uint32_t page_directory_index;
     uint32_t halt_ebp;
+    uint32_t exc_flag;
 }pcb_t;
 
 

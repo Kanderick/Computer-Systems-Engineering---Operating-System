@@ -144,6 +144,9 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
 
 static int32_t halt_ret;
 int32_t halt (uint8_t status) {
+    uint32_t f = ((ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->exc_flag);
+    if (ece391_process_manager.curr_pid == -1)
+        return -1;
     /*need special treatment for the first shell process*/
     if ((ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid != -1) {
         tss.esp0 = (ece391_process_manager.process_position[(ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid - 1])->esp;
@@ -161,8 +164,15 @@ int32_t halt (uint8_t status) {
     if (ece391_process_manager.curr_pid > 0) {
         user_page_mapping(ece391_process_manager.curr_pid);
     }
-    asm volatile("movzbl %%bl,%%ebx\n\t" : :);
-    asm volatile("jmp EXE_RETURN" : :);
+
+    if ( f == HALT_NORM ){
+        asm volatile("movzbl %%bl,%%ebx\n\t" : :);
+        asm volatile("jmp EXE_RETURN" : :);
+    }
+    else {
+        asm volatile("movl $256,%%ebx\n\t" : :);
+        asm volatile("jmp EXE_RETURN" : :);
+    }
     printf("error\n");
     return 0;       //prevent warning
 }
