@@ -4,7 +4,14 @@
 // this is the ece391 process/task manager, all the process info can be found in this data structure
 process_manager_t ece391_process_manager;
 
-/* need header */
+/*
+ * init_process_manager
+ *   DESCRIPTION: Initializes the process manager structure, called during boot time.
+ *   INPUTS: processmanager, pointer to the process manager to be initiated.
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: also initializes the file operation jumptables for different system calls.
+ */
 void init_process_manager(process_manager_t* processManager){
     uint32_t ii; // for traverse array in processManager
     // check if the passed-in pointer is valid
@@ -19,6 +26,14 @@ void init_process_manager(process_manager_t* processManager){
     init_file_operation_jumptables();
 }
 
+/*
+ * init_pcb
+ *   DESCRIPTION: Initializes a new pcb block for the process ready to be executed.
+ *   INPUTS: processmanager, pointer to the process manager to be initiated.
+ *   OUTPUTS: none.
+ *   RETURN VALUE: the available process id allocated, -1 on failure.
+ *   SIDE EFFECTS: none.
+ */
 // NOTE: this function should only be called when a current process wants to have a child process
 // return the pid_number that is initialized or -1 on failure
 int8_t init_pcb(process_manager_t* processManager){
@@ -57,6 +72,14 @@ int8_t init_pcb(process_manager_t* processManager){
     return ret_pid;
 }
 
+/*
+ * pop_process
+ *   DESCRIPTION: called when halting a process. changes current process id.
+ *   INPUTS: none.
+ *   OUTPUTS: none.
+ *   RETURN VALUE: 0 on success, -1 on failure.
+ *   SIDE EFFECTS: none.
+ */
 uint32_t pop_process() {
     if (ece391_process_manager.curr_pid == -1) return -1;
     ece391_process_manager.process_status[ece391_process_manager.curr_pid-1] = PROCESS_NOT_EXIST;
@@ -64,6 +87,14 @@ uint32_t pop_process() {
     return 0;
 }
 
+/*
+ * push_process
+ *   DESCRIPTION: called when executing a new process, changes current process id.
+ *   INPUTS: new_pid, the new process id to be pushed.
+ *   OUTPUTS: none.
+ *   RETURN VALUE: 0 on success, -1 on failure.
+ *   SIDE EFFECTS: none.
+ */
 uint32_t push_process(int8_t new_pid) {
     ece391_process_manager.process_status[new_pid-1] = PROCESS_EXIST;
     ece391_process_manager.curr_pid = new_pid;
