@@ -214,7 +214,7 @@ int32_t execute (const uint8_t* command) {
 
     /*copy the user image to the user level page*/
     uint32_t* execute_start = load_user_image(filename);
-    
+
     #if (EXCEPTION_TEST == 1)
     paging_test();
     #endif
@@ -233,7 +233,7 @@ int32_t execute (const uint8_t* command) {
     asm volatile("movw %%ax,%%ds\n\t": :);
     asm volatile("pushl %0\n\t" : :"g" (USER_DS));
     // asm volatile("pushl %0\n\t" : :"g" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp));
-    asm volatile("pushl %0\n\t" : :"g" (LOAD_PAGE_END_ADDR-4));
+    asm volatile("pushl %0\n\t" : :"g" (LOAD_PAGE_END_ADDR-1));
     asm volatile("pushfl\n\t" : :);
     // asm volatile("movl %%eax,%0\n\t" :"=r" (temp));
     // asm volatile("popl %%eax\n\t" : :);

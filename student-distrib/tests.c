@@ -999,7 +999,7 @@ int PCB_file_terminal_rtc_test(){
 #if (SHELL_TEST == 1)
 int shell_test() {
 	TEST_HEADER;
-	uint8_t cmd[] = "shell ";
+	uint8_t cmd[] = "testprint ";
 	execute(cmd);
 	return PASS;
 }
