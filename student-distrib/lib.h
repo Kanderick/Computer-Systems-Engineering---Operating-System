@@ -24,6 +24,7 @@
 #define RIGHT_ARROW     0x4D
 #define UP_ARROW        0x48
 #define DOWN_ARROW      0x50
+#define COLOR_TEXT      1           /* Set to 1 support colored PASS TEST FAIL ERROR WARN etc. */
 
 void set_color(unsigned char addr);
 

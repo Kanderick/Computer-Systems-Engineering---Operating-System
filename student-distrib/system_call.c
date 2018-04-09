@@ -256,6 +256,12 @@ int32_t execute (const uint8_t* command) {
       return -1;
     }
 
+    if (ece391_process_manager.curr_pid == MAX_PROCESS_NUM) {
+        ERROR_MSG;
+        printf("Maximum process number reached. Max %d.\n", ece391_process_manager.curr_pid);
+        return 1; // Program terminated abnormally
+    }
+
     //int8_t par_pid;
 
     while (command[idx] != ' ' && command[idx] != '\0')
@@ -282,7 +288,7 @@ int32_t execute (const uint8_t* command) {
       printf("ERROR: unable to create a new pcb.\n");
       return -1;
     }
-    
+
     //ece391_process_manager.process_position[(ece391_process_manager.pid)-1]->parent_pid = par_pid;
     /*now cur_pid is the new pid*/
     push_process(pid);

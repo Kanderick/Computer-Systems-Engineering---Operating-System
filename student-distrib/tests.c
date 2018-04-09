@@ -1045,6 +1045,7 @@ void launch_tests(){
 	#if (PCB_TEST == 1)
 	TEST_OUTPUT("pcb_ops_test", PCB_file_terminal_rtc_test());
 	#endif
+	printf("T TE TES TEST P PA PAS PASS F FA FAI FAIL E ER ERR ERRO ERROR W WA WAR WARN WARNI WARNIN WARNING %s %s %s %s %s %s\n", "TEST", "PASS", "PAS", "TE", "ER", "ERROR");
 	#if (SHELL_TEST == 1)
 	TEST_OUTPUT("Shell_execute_test", shell_test());
 	TEST_OUTPUT("Shell_execute_test", shell_test());

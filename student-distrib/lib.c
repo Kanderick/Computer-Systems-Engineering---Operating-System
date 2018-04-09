@@ -156,15 +156,16 @@ void spKey(unsigned char scancode) {
  *    Function: Output a string to the console */
 int32_t puts(int8_t* s) {
     register int32_t index = 0;
-    uint32_t length = strlen(s);
     while (s[index] != '\0') {
-        if (!strncmp(s, "PASS", length))
+        #if (COLOR_TEXT == 1)
+        if (!strncmp(s, "PASS", 4))
             putc_color(s[index], ATTRIB_GREEN);
-        else if (!strncmp(s, "FAIL", length) || !strncmp(s, "ERROR", length))
+        else if (!strncmp(s, "FAIL", 4) || !strncmp(s, "ERROR", 5))
             putc_color(s[index], ATTRIB_RED);
-        else if (!strncmp(s, "TEST", length) || !strncmp(s, "WARNING", length))
+        else if (!strncmp(s, "TEST", 4) || !strncmp(s, "WARNING", 7))
             putc_color(s[index], ATTRIB_YELLOW);
         else
+        #endif
             putc(s[index]);
         index++;
     }
@@ -648,7 +649,6 @@ format_char_switch:
 
                 }
                 break;
-
             case 'T': {
                 buf++;
                 switch (*buf) {
