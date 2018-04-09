@@ -41,7 +41,7 @@ void init_file_system(unsigned int addr_start, unsigned int addr_end){
     }
     // parsing the boot block
     ece391FileSystem.ece391_boot_block = (boot_block_t*) addr_start;
-    printf("CHECK_POINT_3\n");
+    // printf("CHECK_POINT_3\n");
     // check if boot statistic valid
     /* file system directory number*/
     if (ece391FileSystem.ece391_boot_block->dir_count > DIRENTRIES_NUM){

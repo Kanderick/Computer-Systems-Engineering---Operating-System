@@ -24,8 +24,10 @@ typedef unsigned char uint8_t;
 #endif /* ASM */
 
 #define ERROR_MSG       \
-    printf("[ERROR at %s:%s:%d]\n    ", __FILE__, __FUNCTION__, __LINE__)
+    printf("[ERROR at %s:%s:%d] ", __FILE__, __FUNCTION__, __LINE__)
 #define WARNING_MSG     \
-    printf("[WARNING at %s:%s:%d]\n    ", __FILE__, __FUNCTION__, __LINE__)
+    printf("[WARNING at %s:%s:%d] ", __FILE__, __FUNCTION__, __LINE__)
+#define TEST_MSG        \
+    printf("[TEST at %s:%s:%d]\n", __FILE__, __FUNCTION__, __LINE__)
 
 #endif /* _TYPES_H */
