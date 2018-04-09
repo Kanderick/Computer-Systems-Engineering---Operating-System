@@ -26,11 +26,11 @@ ece391_file_system_t   ece391FileSystem;
  */
 void init_file_system(unsigned int addr_start, unsigned int addr_end){
     unsigned int addr;
-    printf("\n\n\nCHECK_POINT_1\n");
+    // printf("\n\n\nCHECK_POINT_1\n");
     ece391FileSystem.dir_count = 0;
     ece391FileSystem.inode_count = 0;
     ece391FileSystem.data_count = 0;
-    printf("CHECK_POINT_2\n");
+    // printf("CHECK_POINT_2\n");
     // check if pointer valid
     if (addr_start==0 || addr_end<=addr_start){
         printf("ECE391 file system input address invalid.\n");
@@ -64,9 +64,9 @@ void init_file_system(unsigned int addr_start, unsigned int addr_end){
     ece391FileSystem.dir_count = ece391FileSystem.ece391_boot_block->dir_count;
     ece391FileSystem.inode_count = ece391FileSystem.ece391_boot_block->inode_count;
     ece391FileSystem.data_count = ece391FileSystem.ece391_boot_block->data_count;
-    printf("ece391FileSystem.dir_count %d\n", (unsigned long)ece391FileSystem.dir_count);
-    printf("ece391FileSystem.inode_count %d\n", (unsigned long)ece391FileSystem.inode_count);
-    printf("ece391FileSystem.data_count %d\n", (unsigned long)ece391FileSystem.data_count);
+    // printf("ece391FileSystem.dir_count %d\n", (unsigned long)ece391FileSystem.dir_count);
+    // printf("ece391FileSystem.inode_count %d\n", (unsigned long)ece391FileSystem.inode_count);
+    // printf("ece391FileSystem.data_count %d\n", (unsigned long)ece391FileSystem.data_count);
 
     // parsing the inodes
     addr = addr_start+BLOCK_SIZE_4KB;

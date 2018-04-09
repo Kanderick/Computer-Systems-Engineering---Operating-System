@@ -303,6 +303,7 @@ void exception_SS(void) {
 void exception_GP(void) {
     cli();          /*clean the interrupt flag*/
     printf("General Protection Exception\n");
+    while(1);
 }
 
 /*

@@ -15,6 +15,7 @@ void launch_tests();
                                              * please do not set this now, its functionality loses after CP3.3 */
 #define IDT_TEST                0           /* Set to 1 to run IDT test */
 #define PAGE_TEST               0           /* Set to 1 to run paging test */
+                                            /* Set to 2 to run paging test in system_call */
 #define EXCEPTION_TEST          0           /* Set to 1 to get divide zero */
                                             /* Set to 2 to get invalid opcode */
 
@@ -23,6 +24,9 @@ void launch_tests();
 #define PAGE_TEST_UNPRESENT     0x00012000  /* Random page address */
 #define PAGE_TEST_KERNEL_ADDR   0x0040000F  /* Random address within kernel page */
 #define PAGE_TEST_VIDEO_ADDR    0x000B800F  /* Random address within video page */
+#define PAGE_TEST_USER_ADDR     0x08000001
+#define PAGE_TEST_USER_ADDR1    0x08300000
+#define PAGE_TEST_USER_ADDR2    0x083FFFFF
 
 int idt_test();
 int paging_test();

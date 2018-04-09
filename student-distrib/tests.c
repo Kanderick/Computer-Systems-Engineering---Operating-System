@@ -91,11 +91,11 @@ int paging_test() {
 	} else {
 		printf("[PASS] page_directory[1]  0x%#x, contain addr of kernel with flags\n", page_directory[1]);
 	}
-	if (page_directory[2] != 0) {
-		printf("[FAIL] page_directory[2]  0x%#x, not empty\n", page_directory[2]);
+	if ((page_directory[32] & PBA_4M_MASK) != 0x00800000) {
+		printf("[FAIL] page_directory[32]  0x%#x, doesn't contain address of kernel\n", page_directory[32]);
 		result = FAIL;
 	} else {
-		printf("[PASS] page_directory[2]  0x%#x, empty\n", page_directory[2]);
+		printf("[PASS] page_directory[32]  0x%#x, contain addr of kernel with flags\n", page_directory[32]);
 	}
 	if (page_table_0[0] != 0) {
 		printf("[FAIL] page_table_0[0]    0x%#x, not empty\n", page_table_0[0]);
@@ -112,16 +112,24 @@ int paging_test() {
 
 	/* If anything trigger PFE, test failed */
 	printf("\n[TEST dereference at kernel address]\n");
-	test_variable = *((unsigned long *)KERNEL_START);
+	test_variable = *((unsigned char *)KERNEL_START);
 	printf("[PASS] M[%#x] is     0x%#x, didn't trigger PFE\n", KERNEL_START, test_variable);
-	test_variable = *((unsigned long *)PAGE_TEST_KERNEL_ADDR);
+	test_variable = *((unsigned char *)PAGE_TEST_KERNEL_ADDR);
 	printf("[PASS] M[%#x] is     0x%#x, didn't trigger PFE\n", PAGE_TEST_KERNEL_ADDR, test_variable);
 
 	printf("\n[TEST dereference at video address]\n");
-	test_variable = *((unsigned long *)VIDEO_START);
+	test_variable = *((unsigned char *)VIDEO_START);
 	printf("[PASS] M[%#x] is     0x%#x, didn't trigger PFE\n", VIDEO_START, test_variable);
-	test_variable = *((unsigned long *)PAGE_TEST_VIDEO_ADDR);
+	test_variable = *((unsigned char *)PAGE_TEST_VIDEO_ADDR);
 	printf("[PASS] M[%#x] is     0x%#x, didn't trigger PFE\n", PAGE_TEST_VIDEO_ADDR, test_variable);
+
+	printf("\n[TEST dereference at user address]\n");
+	test_variable = *((unsigned char *)PAGE_TEST_USER_ADDR);
+	printf("[PASS] M[%#x] is     0x%#x, didn't trigger PFE\n", PAGE_TEST_USER_ADDR, test_variable);
+	test_variable = *((unsigned char *)PAGE_TEST_USER_ADDR1);
+	printf("[PASS] M[%#x] is     0x%#x, didn't trigger PFE\n", PAGE_TEST_USER_ADDR1, test_variable);
+	test_variable = *((unsigned char *)PAGE_TEST_USER_ADDR2);
+	printf("[PASS] M[%#x] is     0x%#x, didn't trigger PFE\n", PAGE_TEST_USER_ADDR2, test_variable);
 
 	/* If PFE didn't triggered, test failed */
 	printf("\n[TEST dereference at unpresent address, should trigger PFE]\n");
