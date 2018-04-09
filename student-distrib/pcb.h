@@ -62,7 +62,7 @@ typedef struct process_control_block {
     uint32_t exc_flag;
 }pcb_t;
 
-
+/*initialized at boot time, stores pointer to pcbs, process status and current process id*/
 typedef struct process_manager{
     // NOTE: (pid-1) is the index of this array, and this is a !pointer! array
     // each element points to the position of a PCB
@@ -75,9 +75,9 @@ typedef struct process_manager{
 
 // this is the ece391 process/task manager, all the process info can be found in this data structure
 extern process_manager_t ece391_process_manager;
-
+/*called when halting a process. changes current process id*/
 uint32_t pop_process();
-
+/*called when executing a new process, changes current process id*/
 uint32_t push_process(int8_t new_pid);
 // this function initializes the ece391init_process_manager
 void init_process_manager(process_manager_t* processManager);

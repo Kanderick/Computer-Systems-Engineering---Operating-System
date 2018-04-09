@@ -156,8 +156,16 @@ void spKey(unsigned char scancode) {
  *    Function: Output a string to the console */
 int32_t puts(int8_t* s) {
     register int32_t index = 0;
+    uint32_t length = strlen(s);
     while (s[index] != '\0') {
-        putc(s[index]);
+        if (!strncmp(s, "PASS", length))
+            putc_color(s[index], ATTRIB_GREEN);
+        else if (!strncmp(s, "FAIL", length) || !strncmp(s, "ERROR", length))
+            putc_color(s[index], ATTRIB_RED);
+        else if (!strncmp(s, "TEST", length) || !strncmp(s, "WARNING", length))
+            putc_color(s[index], ATTRIB_YELLOW);
+        else
+            putc(s[index]);
         index++;
     }
     return index;
@@ -651,7 +659,7 @@ format_char_switch:
                                 buf++;
                                 switch (*buf) {
                                     case 'T': {
-                                        puts_color("TEST", ATTRIB_YELLOW);
+                                        puts("TEST");
                                         break;
                                     }
                                     default: {
@@ -688,7 +696,7 @@ format_char_switch:
                                 buf++;
                                 switch (*buf) {
                                     case 'S': {
-                                        puts_color("PASS", ATTRIB_GREEN);
+                                        puts("PASS");
                                         break;
                                     }
                                     default: {
@@ -725,7 +733,7 @@ format_char_switch:
                                 buf++;
                                 switch (*buf) {
                                     case 'L': {
-                                        puts_color("FAIL", ATTRIB_RED);
+                                        puts("FAIL");
                                         break;
                                     }
                                     default: {
@@ -765,7 +773,7 @@ format_char_switch:
                                         buf++;
                                         switch (*buf) {
                                             case 'R': {
-                                                puts_color("ERROR", ATTRIB_RED);
+                                                puts("ERROR");
                                                 break;
                                             }
                                             default: {
@@ -819,7 +827,7 @@ format_char_switch:
                                                         buf++;
                                                         switch (*buf) {
                                                             case 'G': {
-                                                                puts_color("WARNING", ATTRIB_YELLOW);
+                                                                puts("WARNING");
                                                                 break;
                                                             }
                                                             default: {
