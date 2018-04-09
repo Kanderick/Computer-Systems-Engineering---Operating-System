@@ -13,8 +13,8 @@
 #include "paging.h"
 #include "file_system.h"
 #include "pcb.h"
-#define RUN_TESTS
-
+#include "system_call.h"
+//#define RUN_TESTS
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
@@ -174,14 +174,13 @@ void entry(unsigned long magic, unsigned long addr) {
      * without showing you any output */
     // printf("Enabling Interrupts\n");
     sti();
-
-#ifdef RUN_TESTS
     set_color(0x0);
+#ifdef RUN_TESTS
     /* Run tests */
     launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
-
+    while(1) execute((void *)"shell");
     /* Spin (nicely, so we don't chew up cycles) */
     asm volatile (".1: hlt; jmp .1;");
 }
