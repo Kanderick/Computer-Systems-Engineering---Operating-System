@@ -180,7 +180,10 @@ void entry(unsigned long magic, unsigned long addr) {
     launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
-    while(1) execute((void *)"shell");
+    clearScreen();
+    while(1) {
+        execute((void *)"shell");
+    }
     /* Spin (nicely, so we don't chew up cycles) */
     asm volatile (".1: hlt; jmp .1;");
 }
