@@ -92,7 +92,7 @@ int32_t terminal_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
     if (buf == NULL) return -1;         /*check whether the buffer is valid*/
     if (nbytes < 0) return -1;          /*check whether nbytes is valid*/
     int i;
-    uint32_t buffLen = strlen((int8_t *)buf);               /*get the length of the string*/
+    uint32_t buffLen = nbytes;               /*get the length of the string*/
     if (buffLen < nbytes) nbytes = buffLen;                 /*check the length of the string that should be copied*/
     for (i = 0; i < nbytes; i ++) printf("%c", buf[i]);     /*print the string in the buffer onto screen*/
     return nbytes;                                          /*return the number of bytes printed*/

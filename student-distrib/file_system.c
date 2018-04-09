@@ -520,12 +520,12 @@ int32_t dir_read    (int32_t fd, unsigned char *buf, int32_t nbytes){
     else filesize = ece391FileSystem.ece391_inodes[temp_dentry.inode_num].length;
 
     /*prints out the filename, filetype, and filesize of the current file in the directory*/
-    printf("Filename: ");
+    // printf("Filename: ");
     for (i = 0; i < FILE_NAME_LEN; i++) {
       if (temp_dentry.filename[i] == '\0') break;
-      printf("%c", temp_dentry.filename[i]);
+      // printf("%c", temp_dentry.filename[i]);
     }
-    printf(", Filetype: %d, Filesize: %dbytes.\n", temp_dentry.filetype, filesize);
+    // printf(", Filetype: %d, Filesize: %dbytes.\n", temp_dentry.filetype, filesize);
     return 32;
 }
 

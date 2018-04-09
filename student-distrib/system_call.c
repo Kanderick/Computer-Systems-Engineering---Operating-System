@@ -38,7 +38,6 @@ int32_t open(const uint8_t *filename) {
         printf("Process wants to open invalid file.\n");
         return -1;
     }
-    printf("\nCP_0\n");
     // check if file status array has spare spot for new file to open
     fullFlag = 1;
     for (i = FD_PARAM_LOW; i <= FD_PARAM_UPPER; i ++) {
@@ -47,9 +46,7 @@ int32_t open(const uint8_t *filename) {
             fullFlag = 0;
             switch (dentry.filetype) {
                 case 0:
-                    printf("\nCP_1%#x\n", (rtcTable.oFunc));
                     fd = (*(rtcTable.oFunc))(filename);
-                    printf("\nCP_2%d\n",fd);
                     (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table = &rtcTable;
                     break;
                 case 1:
@@ -187,7 +184,6 @@ int32_t execute (const uint8_t* command) {
         idx++;
     memcpy(filename, command, idx);
     filename[idx] = '\0';
-    printf("%s\n", filename);
     /*checks whether the file is executable*/
     if (check_executable_validity(filename) == -1) {
       printf("ERROR: the file specified is inexecutable.\n");
@@ -254,9 +250,10 @@ int32_t execute (const uint8_t* command) {
     asm volatile("pushl %0\n\t" : :"g" (execute_start));
     asm volatile("iret" : :);
     asm volatile("EXE_RETURN:");
-    asm volatile("movl %%ebx,%0\n\t" :"=r" (temp));
+
     asm volatile("movl %0, %%ebp\n\t": :"g" (halt_ret));
     // asm volatile("movl %%ebx, %%eax\n\t" : :);
+    asm volatile("movl %%ebx,%0\n\t" :"=r" (temp));
     //asm volatile("ret \n\t" : :);
     return temp;
 }

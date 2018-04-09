@@ -9,7 +9,7 @@
 #define STATUS_OPENED   79      // 'O' indicates file opened
 // include "pcb.h" after FA_SIZE to avoid error
 
-#define MAX_PROCESS_NUM     2     // for now, set the process number upper limit to 2
+#define MAX_PROCESS_NUM     6     // for now, set the process number upper limit to 2
 // following two are for ece391_process_manager.process_status
 #define PROCESS_EXIST       1
 #define PROCESS_NOT_EXIST   0
