@@ -55,7 +55,7 @@ int32_t open(const uint8_t *filename) {
         // NOTE: (pid-1) is the index of this array, and this is a !pointer! array
         if((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[i].flags == STATUS_CLOSED) {
             fullFlag = 0;
-            switch (dentry.filetype) {
+            switch (dentry.filetype) {      //get the file type and set the operation table to the correct one
                 case 0:
                     fd = (*(rtcTable.oFunc))(filename);
                     (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table = &rtcTable;
@@ -93,23 +93,23 @@ int32_t open(const uint8_t *filename) {
  */
 
 int32_t close(int32_t fd) {
-    if(fd < FD_PARAM_LOW || fd > FD_PARAM_UPPER){
+    if(fd < FD_PARAM_LOW || fd > FD_PARAM_UPPER){       //check whether fd is valid
         printf("Process close has bad parameter.\n");
         return -1;
     }
-    if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].flags == STATUS_CLOSED) {
+    if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].flags == STATUS_CLOSED) {        //check whether the file is already closed
         printf("Process tries to close a already closed file.\n");
         return -1;
     }
-    if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table == NULL){
+    if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table == NULL){          //check whether the process has the right to close the file
         printf("Process tries to close priviledged file.\n");
         return -1;
     }
-    if(-1 == (*((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table->cFunc))(fd)){
+    if(-1 == (*((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table->cFunc))(fd)){     //close function fails due to an unkown bug
         printf("UNKOWN BUG IN CLOSE.\n");
         return -1;
     }
-    (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table = NULL;
+    (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table = NULL;            //reset the file descriptor in the file array
     (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].inode = 0xFFFF;
     (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].filePos = 0;
     (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].flags = STATUS_CLOSED;
@@ -128,28 +128,28 @@ int32_t close(int32_t fd) {
  */
 
 int32_t read(int32_t fd, void *buf, int32_t nbytes) {
-    if(ece391_process_manager.curr_pid == -1){
+    if(ece391_process_manager.curr_pid == -1){          //check whether this is process running
         printf("No process is running.\n");
         *((int8_t*) buf) = '\0';
         return -1;
     }
-    if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].flags == STATUS_CLOSED) {
+    if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].flags == STATUS_CLOSED) {            //check whether the file to read is open
         printf("Process tries to read a already closed file. %d\n", fd);
         *((int8_t*) buf) = '\0';
         return -1;
     }
-    if (fd < 0 || fd > FD_PARAM_UPPER) {
+    if (fd < 0 || fd > FD_PARAM_UPPER) {             //check whether the fd is valid
         printf("Process read has bad parameter.\n");
         *((int8_t*) buf) = '\0';
         return -1;
     }
-    if((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table->rFunc == NULL){
+    if((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table->rFunc == NULL){            //check whether the process has the right to read the file
         printf("File has no priviledge to read.\n");
         *((int8_t*) buf) = '\0';
         return -1;
     }
     {
-        return (*((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table->rFunc))(fd, buf, nbytes);
+        return (*((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table->rFunc))(fd, buf, nbytes);           //execute the right read function
     }
 }
 
@@ -165,24 +165,24 @@ int32_t read(int32_t fd, void *buf, int32_t nbytes) {
  */
 
 int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
-    if(ece391_process_manager.curr_pid == -1){
+    if(ece391_process_manager.curr_pid == -1){          //check whether this is process running
         printf("No process is running.\n");
         return -1;
     }
-    if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].flags == STATUS_CLOSED) {
+    if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].flags == STATUS_CLOSED) {        //check whether the file to write is open
         printf("Process tries to write to a already closed file.\n");
         return -1;
     }
-    if (fd < 0 || fd > FD_PARAM_UPPER) {
+    if (fd < 0 || fd > FD_PARAM_UPPER) {        //check whether the fd is valid
         printf("Process write has bad parameter. %d\n", fd);
         return -1;
     }
-    if((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table->wFunc == NULL){
+    if((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table->wFunc == NULL){            //check whether the process has the right to write the file
         printf("File has no priviledge to write.\n");
         return -1;
     }
     {
-        return (*((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table->wFunc))(fd, buf, nbytes);
+        return (*((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table->wFunc))(fd, buf, nbytes);       //execute the right write function
     }
 }
 
@@ -282,7 +282,7 @@ int32_t execute (const uint8_t* command) {
       printf("ERROR: unable to create a new pcb.\n");
       return -1;
     }
-
+    
     //ece391_process_manager.process_position[(ece391_process_manager.pid)-1]->parent_pid = par_pid;
     /*now cur_pid is the new pid*/
     push_process(pid);
