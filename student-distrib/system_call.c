@@ -16,8 +16,7 @@ static fileOperationTable_t outTable;   // 'stdout' jumptable
 static fileOperationTable_t rtcTable;   // 'rtc' jumptable
 static fileOperationTable_t dirTable;   // directory jumptable
 static fileOperationTable_t regTable;   // regular files jumptable
-#define FD_PARAM_LOW   2 // user has no priviledge to close fd 0, 1 or non-exist file
-#define FD_PARAM_UPPER  7 // any fd is greater then 7 is invalid
+static int32_t halt_ret;
 
 /*
  * open
@@ -172,7 +171,6 @@ int32_t read(int32_t fd, void *buf, int32_t nbytes) {
  *   RETURN VALUE: none
  *   SIDE EFFECTS: execute the correct write function decided by filetype
  */
-
 int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
     if (ece391_process_manager.curr_pid == -1) {          //check whether this is process running
         ERROR_MSG;
@@ -198,8 +196,6 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
         return (*((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table->wFunc))(fd, buf, nbytes);       //execute the right write function
     }
 }
-
-static int32_t halt_ret;
 
 /*
  * halt
@@ -254,7 +250,6 @@ int32_t halt(uint8_t status) {
  *   RETURN VALUE: none
  *   SIDE EFFECTS: execute the next process
  */
-
 int32_t execute (const uint8_t* command) {
     uint8_t filename[TERMINAL_BUFEER_SIZE];
     uint32_t idx = 0;
@@ -351,10 +346,21 @@ int32_t execute (const uint8_t* command) {
 }
 
 // the following funcions are not implemented
-int32_t getargs (uint8_t* buf, int32_t nbytes) {return 0;}
-int32_t vidmap (uint8_t** screen_start) {return 0;}
-int32_t set_handler (int32_t signum, void* handler_address) {return 0;}
-int32_t sigreturn (void) {return 0;}
+int32_t getargs (uint8_t* buf, int32_t nbytes) {
+    return 0;
+}
+
+int32_t vidmap (uint8_t** screen_start) {
+    return 0;
+}
+
+int32_t set_handler (int32_t signum, void* handler_address) {
+    return 0;
+}
+
+int32_t sigreturn (void) {
+    return 0;
+}
 
 // this funcion initilize the file array, automatically open the
 // terminal open/close

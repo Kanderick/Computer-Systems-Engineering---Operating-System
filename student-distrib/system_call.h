@@ -8,14 +8,8 @@
 #include "file_system.h"
 #include "pcb.h"
 
-// init the file array passed in by pointer
-void init_fileArray(fileArray_t* new_file_array);
-
-// this function should be called once,
-// NOTE can is called in function : void init_process_manager(process_manager_t* processManager)
-void init_file_operation_jumptables(void);
-
-// declare all the function to prevent system_call wrapper from complaining
+#define FD_PARAM_LOW   2 // user has no priviledge to close fd 0, 1 or non-exist file
+#define FD_PARAM_UPPER  7 // any fd is greater then 7 is invalid
 
 /*halt the current process*/
 extern int32_t halt (uint8_t status);
@@ -40,5 +34,12 @@ extern int32_t getargs (uint8_t* buf, int32_t nbytes);
 extern int32_t vidmap (uint8_t** screen_start);
 extern int32_t set_handler (int32_t signum, void* handler_address);
 extern int32_t sigreturn (void);
+
+// init the file array passed in by pointer
+void init_fileArray(fileArray_t* new_file_array);
+
+// this function should be called once,
+// NOTE can is called in function : void init_process_manager(process_manager_t* processManager)
+void init_file_operation_jumptables(void);
 
 #endif
