@@ -242,9 +242,9 @@ void rtc_interrupt() {
     sti();                      /*restore the interrupt flag*/
     outb(SR_C, RTC_REG_NUM);    /*select register C*/
     inb(RTC_REG_DATA);          /*throw away contents*/
-#if (RTC_TEST == 1)
+    #if (RTC_TEST == 1)
     test_interrupts();
-#endif
+    #endif
     // invoking ticks
     rtcFlag++;
     // make the rtcFlag in the proper range
@@ -261,7 +261,6 @@ void rtc_interrupt() {
  *   RETURN VALUE: none
  *   SIDE EFFECTS: initialize the rtc and enable rtc IRQ
  */
-
 void init_rtc() {
     char prev;
     enable_irq(RTC_IRQ);        /*enable rtc IRQ*/
@@ -282,14 +281,13 @@ void init_rtc() {
  *   RETURN VALUE: none
  *   SIDE EFFECTS: change the rate of rtc freqency
  */
-
 void set_rate(unsigned rate) {
-  char prev;
-  rate &= MAX_RATE;         /*rate must be above 2 and not over 15*/
-  outb(SR_A, RTC_REG_NUM);      /*set index to register A, disable NMI*/
-  prev = inb(RTC_REG_DATA);         /*get initial value of register A*/
-  outb(SR_A, RTC_REG_NUM);      /*reset index to A*/
-  outb((prev & 0xF0) | rate, RTC_REG_DATA);     /*write only our rate to A. Note, rate is the bottom 4 bits*/
+    char prev;
+    rate &= MAX_RATE;         /*rate must be above 2 and not over 15*/
+    outb(SR_A, RTC_REG_NUM);      /*set index to register A, disable NMI*/
+    prev = inb(RTC_REG_DATA);         /*get initial value of register A*/
+    outb(SR_A, RTC_REG_NUM);      /*reset index to A*/
+    outb((prev & 0xF0) | rate, RTC_REG_DATA);     /*write only our rate to A. Note, rate is the bottom 4 bits*/
 }
 
 /*
@@ -335,5 +333,6 @@ void resetEnter() {
  */
 void resetBuffer() {
     int i;
-    for (i = 0; i < BUFF_SIZE+1; i ++) keyBuffer[i] = '\0'; // +1 since we need to detect ENTER after filled
+    for (i = 0; i < BUFF_SIZE+1; i ++)
+        keyBuffer[i] = '\0'; // +1 since we need to detect ENTER after filled
 }

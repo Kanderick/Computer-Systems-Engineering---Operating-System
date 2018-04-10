@@ -10,10 +10,6 @@
 #define VIDEO           0xB8000
 #define NUM_COLS        80
 #define NUM_ROWS        25
-#define ATTRIB          0x1
-#define ATTRIB_GREEN    0x2
-#define ATTRIB_YELLOW   0x3
-#define ATTRIB_RED      0x4
 #define MEM_SIZE        3840
 #define CUR_REG_ADDR    0x3D4       /*cursor address register*/
 #define CUR_REG_DATA    0x3D5       /*cursor data register*/
@@ -24,10 +20,17 @@
 #define RIGHT_ARROW     0x4D
 #define UP_ARROW        0x48
 #define DOWN_ARROW      0x50
+
+/* Color Text Support */
 #define COLOR_TEXT      1           /* Set to 1 support colored PASS TEST FAIL ERROR WARN etc. */
+#define ATTRIB          0x1
+#define ATTRIB_GREEN    0x2
+#define ATTRIB_YELLOW   0x3
+#define ATTRIB_RED      0x4
+#define ATTRIB_BLUE     0x5
+#define COLOR_NUM       6
 
 void set_color(unsigned char addr);
-
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);
 void putc_color(uint8_t c, uint8_t attrib);

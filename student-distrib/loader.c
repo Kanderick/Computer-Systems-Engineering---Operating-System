@@ -49,7 +49,7 @@ int8_t check_executable_validity(uint8_t* filename) {
     for (i = 0; i < EXE_IDENTIFIER_SIZE; i++) {
         if (file_identifier[i] != EXE_IDENTIFIER_TABLE[i]) {
             ERROR_MSG;
-            printf("File identifier %d doesn't match. %u instead of %u.\n", i, file_identifier[i], EXE_IDENTIFIER_TABLE[i]);
+            printf("File identifier %d doesn't match. %u instead of %u.", i, file_identifier[i], EXE_IDENTIFIER_TABLE[i]);
             printf("Not an executable image.\n");;
             return -1;
         }
@@ -72,7 +72,7 @@ uint32_t* load_user_image(uint8_t* filename) {
     dentry_t dentry;
     if (read_dentry_by_name(filename, &dentry) == -1) {
         ERROR_MSG;
-        printf("ERROR: file does not exist.\n");
+        printf("File does not exist.\n");
         return NULL;
     }
     nbytes = ece391FileSystem.ece391_inodes[dentry.inode_num].length;

@@ -27,6 +27,7 @@ int32_t terminal_open(const uint8_t *filename) {
  */
 int32_t terminal_close(int32_t fd) {
     if (terminalFlag == 0) {        /*check whether the terminal is closed*/
+        ERROR_MSG;
         printf("Terminal has already closed.\n");
         return -1;
     }
@@ -47,11 +48,14 @@ int32_t terminal_close(int32_t fd) {
  */
 int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
     if (terminalFlag == 0) {             /*check whether the terminal is open*/
+        ERROR_MSG;
         printf("Terminal is not yet opened.\n");
         return -1;
     }
-    if (buf == NULL) return -1;         /*check whether the buffer is valid*/
-    if (nbytes < 0) return -1;          /*check whether nbytes is valid*/
+    if (buf == NULL)
+        return -1;         /*check whether the buffer is valid*/
+    if (nbytes < 0)
+        return -1;          /*check whether nbytes is valid*/
     int i;
     unsigned char *keyBuffer;
     uint32_t buffLen;
@@ -62,8 +66,10 @@ int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
             resetEnter();               /*reset the enter flag*/
             cli();
             buffLen = strlen((int8_t *)keyBuffer);              /*get the length of the string*/
-            for (i = 0; i < nbytes; i ++) buf[i] = '\0';        /*initialze the target buffer*/
-            if (buffLen < nbytes) nbytes = buffLen;             /*check the length of the string that should be copied*/
+            for (i = 0; i < nbytes; i ++)
+                buf[i] = '\0';        /*initialze the target buffer*/
+            if (buffLen < nbytes)
+                nbytes = buffLen;             /*check the length of the string that should be copied*/
             memcpy(buf, keyBuffer, nbytes);                     /*memory copy of the buffer*/
             resetBuffer();                                      /*reset the key buffer*/
             sti();
@@ -86,14 +92,28 @@ int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
  */
 int32_t terminal_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
     if (terminalFlag == 0) {             /*check whether the terminal is open*/
+        ERROR_MSG;
         printf("Terminal is not yet opened.\n");
         return -1;
     }
-    if (buf == NULL) return -1;         /*check whether the buffer is valid*/
-    if (nbytes < 0) return -1;          /*check whether nbytes is valid*/
+    if (buf == NULL)
+        return -1;         /*check whether the buffer is valid*/
+    if (nbytes < 0)
+        return -1;          /*check whether nbytes is valid*/
     int i;
     uint32_t buffLen = nbytes;               /*get the length of the string*/
-    if (buffLen < nbytes) nbytes = buffLen;                 /*check the length of the string that should be copied*/
-    for (i = 0; i < nbytes; i ++) printf("%c", buf[i]);     /*print the string in the buffer onto screen*/
+    if (buffLen < nbytes)
+        nbytes = buffLen;                 /*check the length of the string that should be copied*/
+
+    // Special treatment for 391OS> to print in color text
+    if (!strncmp((int8_t*)buf, "391OS> ", 7) && nbytes == 7) {
+        printf("391OS> ");
+        return nbytes;
+    }
+
+    for (i = 0; i < nbytes; i++) {
+        // printf("%c", buf[i]);     /*print the string in the buffer onto screen*/
+        putc(buf[i]);   // Any user level text will not be printed in color mode
+    }
     return nbytes;                                          /*return the number of bytes printed*/
 }

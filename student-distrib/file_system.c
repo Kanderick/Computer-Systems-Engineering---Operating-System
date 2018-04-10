@@ -11,9 +11,7 @@
 ece391_file_system_t   ece391FileSystem;
 
 // file_status_array_t fileStatusArray; this is only for CP_3.2
-
 // this file array pointer should points to current PCB's file array
-
 
 /*
  * init_file_system
@@ -24,15 +22,14 @@ ece391_file_system_t   ece391FileSystem;
  *   RETURN VALUE: none
  *   SIDE EFFECTS: copys the information of the fileimg into local datastructure
  */
-void init_file_system(unsigned int addr_start, unsigned int addr_end){
+void init_file_system(unsigned int addr_start, unsigned int addr_end) {
     unsigned int addr;
-    // printf("\n\n\nCHECK_POINT_1\n");
     ece391FileSystem.dir_count = 0;
     ece391FileSystem.inode_count = 0;
     ece391FileSystem.data_count = 0;
-    // printf("CHECK_POINT_2\n");
     // check if pointer valid
-    if (addr_start==0 || addr_end<=addr_start){
+    if (addr_start == 0 || addr_end <= addr_start) {
+        ERROR_MSG;
         printf("ECE391 file system input address invalid.\n");
         ece391FileSystem.ece391_boot_block = NULL;
         ece391FileSystem.ece391_inodes = NULL;
@@ -41,10 +38,10 @@ void init_file_system(unsigned int addr_start, unsigned int addr_end){
     }
     // parsing the boot block
     ece391FileSystem.ece391_boot_block = (boot_block_t*) addr_start;
-    // printf("CHECK_POINT_3\n");
     // check if boot statistic valid
     /* file system directory number*/
-    if (ece391FileSystem.ece391_boot_block->dir_count > DIRENTRIES_NUM){
+    if (ece391FileSystem.ece391_boot_block->dir_count > DIRENTRIES_NUM) {
+        ERROR_MSG;
         printf("ECE391 file system directory number invalid.\n");
         ece391FileSystem.ece391_boot_block = NULL;
         ece391FileSystem.ece391_inodes = NULL;
@@ -53,7 +50,8 @@ void init_file_system(unsigned int addr_start, unsigned int addr_end){
     }
     /* file inodes length plus data block length in bound */
     if ((ece391FileSystem.ece391_boot_block->inode_count + \
-        ece391FileSystem.ece391_boot_block->data_count + 1)*BLOCK_SIZE_4KB  > addr_end - addr_start + 1){
+        ece391FileSystem.ece391_boot_block->data_count + 1) * BLOCK_SIZE_4KB  > addr_end - addr_start + 1) {
+        ERROR_MSG;
         printf("ECE391 file system data out of boundary.\n");
         ece391FileSystem.ece391_boot_block = NULL;
         ece391FileSystem.ece391_inodes = NULL;
@@ -69,10 +67,10 @@ void init_file_system(unsigned int addr_start, unsigned int addr_end){
     // printf("ece391FileSystem.data_count %d\n", (unsigned long)ece391FileSystem.data_count);
 
     // parsing the inodes
-    addr = addr_start+BLOCK_SIZE_4KB;
+    addr = addr_start + BLOCK_SIZE_4KB;
     ece391FileSystem.ece391_inodes = (inode_t*) addr;
     // parsing the data blocks
-    addr += BLOCK_SIZE_4KB*ece391FileSystem.ece391_boot_block->inode_count;
+    addr += BLOCK_SIZE_4KB * ece391FileSystem.ece391_boot_block->inode_count;
     ece391FileSystem.ece391_data_blocks = (data_block_t*) addr;
     return;
 }
@@ -86,48 +84,51 @@ void init_file_system(unsigned int addr_start, unsigned int addr_end){
  *   RETURN VALUE: 0 for success and -1 for fail
  *   SIDE EFFECTS: copys the dentry informaiton for the desired filename
  */
-int32_t read_dentry_by_name(const uint8_t *fname, dentry_t* dentry){
+int32_t read_dentry_by_name(const uint8_t *fname, dentry_t* dentry) {
     unsigned int i, j;
     // Initialize find flag and index
     uint8_t find_flag = 0;
-    uint32_t index=0;
+    uint32_t index = 0;
     // find name string's length
     uint32_t fname_len = strlen((int8_t *)fname);
     // check if the file system is initialized
-    if(ece391FileSystem.ece391_boot_block == NULL || \
+    if (ece391FileSystem.ece391_boot_block == NULL || \
        ece391FileSystem.ece391_inodes == NULL ||\
-       ece391FileSystem.ece391_data_blocks == NULL){
+       ece391FileSystem.ece391_data_blocks == NULL) {
+        ERROR_MSG;
         printf("ECE391 file system is not valid. Please initialze it first.\n");
         return -1;
     }
     // check if input string name valid
-    if(fname_len>FILE_NAME_LEN){
+    if (fname_len > FILE_NAME_LEN) {
+        ERROR_MSG;
         printf("Input string too long.\n");
         return -1;
-        fname_len=FILE_NAME_LEN;
+        fname_len = FILE_NAME_LEN;  // QUESTION what does this line do?
     }
     // search for the input fname
-    for(i = 0; i < ece391FileSystem.dir_count; i++){    /* traverse each directories */
+    for (i = 0; i < ece391FileSystem.dir_count; i++) {    /* traverse each directories */
         find_flag = 1;
-        for(j = 0; j < fname_len; j++){     /* traverse each directory's name character */
-            if(find_flag==0)
+        for (j = 0; j < fname_len; j++) {     /* traverse each directory's name character */
+            if (find_flag==0)
                 continue;
-            if(fname[j]!=ece391FileSystem.ece391_boot_block->direntries[i].filename[j]) /* Need optimizing */
+            if (fname[j]!=ece391FileSystem.ece391_boot_block->direntries[i].filename[j]) /* Need optimizing */
                 find_flag = 0;
         }
         // check EOS
-        if(fname_len!=FILE_NAME_LEN && find_flag == 1){
-            if(ece391FileSystem.ece391_boot_block->direntries[i].filename[fname_len]!=NULL)
+        if (fname_len != FILE_NAME_LEN && find_flag == 1) {
+            if (ece391FileSystem.ece391_boot_block->direntries[i].filename[fname_len] != NULL)
                 find_flag = 0;
         }
         // find the correct name
-        if(find_flag==1){
+        if (find_flag == 1) {
             index = i;
             break;
         }
     }
     // name not found
-    if(find_flag==0){
+    if (find_flag==0) {
+        ERROR_MSG;
         printf("Directory not found.\n");
         return -1;
     }
@@ -144,34 +145,35 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t* dentry){
  *   RETURN VALUE: 0 for success and -1 for fail
  *   SIDE EFFECTS: copys the dentry informaiton for the desired index
  */
-int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry){
+int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
     unsigned int i;
     // check if the file system is initialized
-    if(ece391FileSystem.ece391_boot_block == NULL || \
+    if (ece391FileSystem.ece391_boot_block == NULL || \
        ece391FileSystem.ece391_inodes == NULL ||\
-       ece391FileSystem.ece391_data_blocks == NULL){
+       ece391FileSystem.ece391_data_blocks == NULL) {
+        ERROR_MSG;
         printf("ECE391 file system is not valid. Please initialze it first.\n");
         return -1;
     }
     // check if index is in bondary
-    if(index >= ece391FileSystem.dir_count){
+    if (index >= ece391FileSystem.dir_count) {
+        ERROR_MSG;
         printf("Input index outof bondary. \n");
         return -1;
     }
     // copy the dir name
-    for(i = 0; i < FILE_NAME_LEN; i++){
+    for (i = 0; i < FILE_NAME_LEN; i++) {
         dentry->filename[i] = ece391FileSystem.ece391_boot_block->direntries[index].filename[i]; /* Need optimizing */
     }
     // copy the file type
     dentry->filetype = ece391FileSystem.ece391_boot_block->direntries[index].filetype;
     // if filetype is regular then copy the inode
-    if(dentry->filetype == 2)
+    if (dentry->filetype == 2)
         dentry->inode_num = ece391FileSystem.ece391_boot_block->direntries[index].inode_num;
     return 0;
 
 }
 
-#define MAX_BLOCK_INDEX         1023        // in inodes' 4kB's memory has 1023 block numbers at large
 /*
  * read_data
  *   DESCRIPTION: copys length bytes of information into the buffer
@@ -183,28 +185,31 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry){
  *   RETURN VALUE: -1 for fail and non-negative number for actual number of bytes read into buffer
  *   SIDE EFFECTS: none
  */
-int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length){
+int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length) {
     uint32_t buf_index = 0;
     uint32_t data_block_index = 0;
     uint32_t data_byte_index = 0;
     uint32_t copy_position;
     // check if the file system is initialized
-    if(ece391FileSystem.ece391_boot_block == NULL || \
+    if (ece391FileSystem.ece391_boot_block == NULL || \
        ece391FileSystem.ece391_inodes == NULL ||\
-       ece391FileSystem.ece391_data_blocks == NULL){
+       ece391FileSystem.ece391_data_blocks == NULL) {
+        ERROR_MSG;
         printf("ECE391 file system is not valid. Please initialze it first.\n");
         return -1;
     }
 
     // check if inode input is in boundary
-    if(inode >= ece391FileSystem.inode_count){
+    if (inode >= ece391FileSystem.inode_count) {
+        ERROR_MSG;
         printf("Input inode out of bondary. \n");
         return -1;
     }
 
     // check if offset is in boundary
-    if(offset >= ece391FileSystem.ece391_inodes[inode].length){
-        printf("The file has reach its end, nothing to read.\n");
+    if (offset >= ece391FileSystem.ece391_inodes[inode].length) {
+        // WARNING_MSG; // This line cause interesting display BUG due to display refresh rate is limited to 256Hz.
+        printf("[WARNING] The file has reach its end, nothing to read.\n");
         return 0; // should return Zero
     }
     // start to copy the string
@@ -212,18 +217,20 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     data_block_index = offset / DATA_BLOCK_LEN_;
     data_byte_index = offset % DATA_BLOCK_LEN_;
     // if not reach end, keep copying
-    while(copy_position < ece391FileSystem.ece391_inodes[inode].length){
-        if(data_byte_index == DATA_BLOCK_LEN_){
+    while (copy_position < ece391FileSystem.ece391_inodes[inode].length) {
+        if (data_byte_index == DATA_BLOCK_LEN_) {
             data_byte_index = 0;
             data_block_index ++;
         }
         // check if data_block_index is out of inodes' block boundary
-        if (data_block_index >= MAX_BLOCK_INDEX){
-            printf("data block index is out of inode block boundary, failed to keep reading. \n");
+        if (data_block_index >= MAX_BLOCK_INDEX) {
+            ERROR_MSG;
+            printf("Data block index is out of inode block boundary, failed to keep reading. \n");
             return -1;
         }
         // check if data block num is out of ece391 file system boundary
-        if (ece391FileSystem.ece391_inodes[inode].data_block_num[data_block_index] >= ece391FileSystem.data_count ){
+        if (ece391FileSystem.ece391_inodes[inode].data_block_num[data_block_index] >= ece391FileSystem.data_count) {
+            WARNING_MSG;
             printf("Inode contains corrupted info and trys to access the memory that is out of the boundary of ece391 file syste, failed to keep reading.");
             return 0;
         }
@@ -235,7 +242,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
         data_byte_index++;
         buf_index++;
         // copy finished
-        if(length==0)
+        if (length == 0)
             return buf_index;
     }
     // end of file is reached, return the number of bytes copyed
@@ -250,24 +257,27 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
  *   SIDE EFFECTS: none
  */
 extern int32_t get_file_length(int32_t fd) {
-  int32_t ret_length;
-  /*checks bad input fd*/
-  if (fd < FD_LOW || fd > FD_UPPER) {
-    printf("ERROR: input fd out of range");
-    return -1;
-  }
-  /*checks if no process is opened*/
-  if (ece391_process_manager.curr_pid == -1) {
-    printf("ERROR: no process is opened.\n");
-    return -1;
-  }
-  if((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].inode == 0xFFFF){
-    printf("ERROR: priviledged file check length.\n");
-    return -1;
-  }
+    int32_t ret_length;
+    /*checks bad input fd*/
+    if (fd < FD_LOW || fd > FD_UPPER) {
+        ERROR_MSG;
+        printf("Input fd out of range.\n");
+        return -1;
+    }
+    /*checks if no process is opened*/
+    if (ece391_process_manager.curr_pid == -1) {
+        ERROR_MSG;
+        printf("No process is opened.\n");
+        return -1;
+    }
+    if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].inode == 0xFFFF) {
+        ERROR_MSG;
+        printf("Priviledged file, check length.\n");
+        return -1;
+    }
 
-  ret_length = ece391FileSystem.ece391_inodes[((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].inode)].length;
-  return ret_length;
+    ret_length = ece391FileSystem.ece391_inodes[((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].inode)].length;
+    return ret_length;
 }
 
 // following are higher level APIs to interact with file system, these functions are expected to be called
@@ -300,16 +310,16 @@ void init_file_status_array(file_status_array_t* array){
  *   RETURN VALUE: fd
  *   SIDE EFFECTS: none
  */
-int32_t file_open(const uint8_t* filename){
+int32_t file_open(const uint8_t* filename) {
     int32_t ii;    // traverse to check status file/dir array
     int32_t new_fd = -1;  // if can open a file, this will record the fd
     dentry_t dentry;    // check dentry
     // traverse the open file array
-    for (ii = FD_LOW; ii <= FD_UPPER; ii++){
+    for (ii = FD_LOW; ii <= FD_UPPER; ii++) {
         // check each opened file
-        if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[ii].flags == STATUS_CLOSED){
-                new_fd = ii;
-                break;
+        if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[ii].flags == STATUS_CLOSED) {
+            new_fd = ii;
+            break;
         }
     }
     // copy to local dentry for init file in file_array
@@ -330,7 +340,7 @@ int32_t file_open(const uint8_t* filename){
  *   RETURN VALUE: 0 on success
  *   SIDE EFFECTS: none
  */
-int32_t file_close   (int32_t fd){
+int32_t file_close(int32_t fd) {
     return 0;
 }
 
@@ -382,23 +392,26 @@ int32_t file_close   (int32_t fd){
  *   RETURN VALUE: -1 on failure and non-negative actual number of bytes we read
  *   SIDE EFFECTS: none
  */
-int32_t file_read    (int32_t fd, unsigned char* buf, int32_t nbytes){
+int32_t file_read(int32_t fd, unsigned char* buf, int32_t nbytes) {
     int32_t file_inode_num;
     uint32_t new_offset;
 
     // check input buf pointer is valid
     if (buf == NULL) {
+        ERROR_MSG;
         printf("Input buf is NULL.\n");
         return -1;
     }
-    if (nbytes < 0){
+    if (nbytes < 0) {
+        ERROR_MSG;
         printf("Input nbytes is negative.\n");
         return -1;
     }
     file_inode_num = (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].inode;
-    new_offset = read_data(file_inode_num,((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].filePos) ,(uint8_t*) buf, nbytes);
+    new_offset = read_data(file_inode_num,((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].filePos), (uint8_t*) buf, nbytes);
     // if fail to read
-    if (new_offset == -1){
+    if (new_offset == -1) {
+        ERROR_MSG;
         printf("File read fail.\n");
         return -1;
     }
@@ -417,7 +430,7 @@ int32_t file_read    (int32_t fd, unsigned char* buf, int32_t nbytes){
  *   RETURN VALUE: -1 on failure
  *   SIDE EFFECTS: none
  */
-int32_t file_write   (int32_t fd, const unsigned char *buf, int32_t nbytes){
+int32_t file_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
     return -1;
 }
 
@@ -431,28 +444,32 @@ int32_t file_write   (int32_t fd, const unsigned char *buf, int32_t nbytes){
  *   RETURN VALUE: 0 on success and -1 on failure
  *   SIDE EFFECTS: none
  */
-int32_t dir_open    (const uint8_t* filename){
-  int32_t ii;    // traverse to check status file/dir array
-  int32_t new_fd = -1; // new fd to return
-  dentry_t dentry;    // check dentry
-  //check for nonexisting directory
-  if (*filename != '.') return -1;
-  // traverse the open file array
-  for (ii = FD_LOW; ii <= FD_UPPER; ii++){
-      // check each opened file
-      if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[ii].flags == STATUS_CLOSED){
-              new_fd = ii;
-              break;
-      }
-  }
-  // copy to local dentry for init file in file_array
-  read_dentry_by_name(filename, &dentry);
-  // update the opened file's status
-  (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[new_fd].inode = -1;
-  (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[new_fd].filePos = 0;
-  (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[new_fd].flags = STATUS_OPENED;
-  // assign jumptables in system_call
-  return new_fd;
+int32_t dir_open(const uint8_t* filename) {
+    int32_t ii;    // traverse to check status file/dir array
+    int32_t new_fd = -1; // new fd to return
+    dentry_t dentry;    // check dentry
+    //check for nonexisting directory
+    if (*filename != '.') {
+        ERROR_MSG;
+        printf("Not a directory.\n");
+        return -1;
+    }
+    // traverse the open file array
+    for (ii = FD_LOW; ii <= FD_UPPER; ii++) {
+        // check each opened file
+        if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[ii].flags == STATUS_CLOSED) {
+            new_fd = ii;
+            break;
+        }
+    }
+    // copy to local dentry for init file in file_array
+    read_dentry_by_name(filename, &dentry);
+    // update the opened file's status
+    (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[new_fd].inode = -1;
+    (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[new_fd].filePos = 0;
+    (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[new_fd].flags = STATUS_OPENED;
+    // assign jumptables in system_call
+    return new_fd;
 }
 
 /*
@@ -463,8 +480,8 @@ int32_t dir_open    (const uint8_t* filename){
  *   RETURN VALUE: 0 on success and -1 on failure
  *   SIDE EFFECTS: none
  */
-int32_t dir_close   (int32_t fd){
-  return 0;
+int32_t dir_close(int32_t fd) {
+    return 0;
 }
 
 /*
@@ -477,7 +494,7 @@ int32_t dir_close   (int32_t fd){
  *   RETURN VALUE: -1 on failure and 0 on success
  *   SIDE EFFECTS: none
  */
-int32_t dir_read    (int32_t fd, unsigned char *buf, int32_t nbytes){
+int32_t dir_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
     /*index to copy to buffer*/
     int32_t i;
     /*size of a particular file*/
@@ -488,24 +505,28 @@ int32_t dir_read    (int32_t fd, unsigned char *buf, int32_t nbytes){
     uint32_t offset = (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].filePos;
     /*check for bad pointer*/
     if (buf == NULL) {
-      printf("Input buf pointer is NULL.\n");
-      return -1;
+        ERROR_MSG;
+        printf("Input buf pointer is NULL.\n");
+        return -1;
     }
 
     /*check whether reading 32 bytes*/
     if (nbytes != FILE_NAME_LEN) {
-      printf("Bytes to read is not 32.\n");
-      return -1;
+        ERROR_MSG;
+        printf("Bytes to read is not 32.\n");
+        return -1;
     }
 
     /*read the next file*/
-    if ( offset >= ece391FileSystem.dir_count) {
-      return 0;
+    if (offset >= ece391FileSystem.dir_count) {
+        return 0;
     }
 
     /*read the current file and copy its dentry information*/
     if (read_dentry_by_index(offset, &temp_dentry) == -1) {
-      return -1;
+        ERROR_MSG;
+        printf("Dentry read failed\n");
+        return -1;
     }
 
     // update counter
@@ -513,17 +534,20 @@ int32_t dir_read    (int32_t fd, unsigned char *buf, int32_t nbytes){
 
     /*copy filename into the buffer*/
     for (i = 0; i < FILE_NAME_LEN; i++) {
-      ((int8_t*)buf)[i] = temp_dentry.filename[i];
+        ((int8_t*)buf)[i] = temp_dentry.filename[i];
     }
 
-    if (temp_dentry.filetype != 2) filesize = 0;
-    else filesize = ece391FileSystem.ece391_inodes[temp_dentry.inode_num].length;
+    if (temp_dentry.filetype != 2)
+        filesize = 0;
+    else
+        filesize = ece391FileSystem.ece391_inodes[temp_dentry.inode_num].length;
 
     /*prints out the filename, filetype, and filesize of the current file in the directory*/
     // printf("Filename: ");
     for (i = 0; i < FILE_NAME_LEN; i++) {
-      if (temp_dentry.filename[i] == '\0') break;
-      // printf("%c", temp_dentry.filename[i]);
+        if (temp_dentry.filename[i] == '\0')
+            break;
+        // printf("%c", temp_dentry.filename[i]);
     }
     // printf(", Filetype: %d, Filesize: %dbytes.\n", temp_dentry.filetype, filesize);
     return 32;
@@ -539,6 +563,6 @@ int32_t dir_read    (int32_t fd, unsigned char *buf, int32_t nbytes){
  *   RETURN VALUE: -1 on failure
  *   SIDE EFFECTS: none
  */
-int32_t dir_write   (int32_t fd, const unsigned char* buf, int32_t nbytes){
+int32_t dir_write(int32_t fd, const unsigned char* buf, int32_t nbytes) {
     return -1;
 }

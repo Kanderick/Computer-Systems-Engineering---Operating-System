@@ -17,14 +17,15 @@
 #define FILESYS_IMG_LEN         0x7c000
 #define BLOCK_SIZE_4KB          4096
 // following functions are for system call
-#define FD_LOW   2 // user has no priviledge to close fd 0, 1 or non-exist file
-#define FD_UPPER  7 // any fd is greater then 7 is invalid
+#define FD_LOW                  2 // user has no priviledge to close fd 0, 1 or non-exist file
+#define FD_UPPER                7 // any fd is greater then 7 is invalid
 // filetypes
-#define RTC_FILE_TYPE       0
-#define DIR_FILE_TYPE       1
-#define REG_FILE_TPYE       2
-
+#define RTC_FILE_TYPE           0
+#define DIR_FILE_TYPE           1
+#define REG_FILE_TPYE           2
 #define FA_SIZE                 8
+#define MAX_BLOCK_INDEX         1023        // in inodes' 4kB's memory has 1023 block numbers at large
+
 /*  This is the data structure that holds the dentry for each regular file,
  *  directory, or RTC access file. ECE391 file system has 63 dentry
  *  in total. They are placed in the first block, boot_block, in the
@@ -89,8 +90,10 @@ struct ece391_file_system{
     int32_t data_count;
 }__attribute((packed));
 typedef struct ece391_file_system ece391_file_system_t;
+
 // extern file system
 extern ece391_file_system_t   ece391FileSystem;
+
 // utility
 /*Initializes the local ece391_file_system structure*/
 extern void init_file_system(unsigned int addr_start, unsigned int addr_end);
@@ -131,6 +134,7 @@ extern file_status_array_t fileStatusArray;
 //extern void init_file_status_array(file_status_array_t* array);
 /* A neat helper function that return the file descriptor of the file indicated by filename*/
 // extern int32_t file_find    (const uint8_t* filename);
+
 /* read function for non-directory files */
 extern int32_t file_read    (int32_t fd, unsigned char* buf, int32_t nbytes);
 /* write function for non-directory files */

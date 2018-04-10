@@ -7,7 +7,7 @@
 #ifndef _TYPES_H
 #define _TYPES_H
 
-#define NULL 0
+#define NULL        0
 
 #ifndef ASM
 
@@ -23,11 +23,28 @@ typedef unsigned char uint8_t;
 
 #endif /* ASM */
 
-#define ERROR_MSG       \
-    printf("[ERROR at %s:%s:%d] ", __FILE__, __FUNCTION__, __LINE__)
-#define WARNING_MSG     \
-    printf("[WARNING at %s:%s:%d] ", __FILE__, __FUNCTION__, __LINE__)
-#define TEST_MSG        \
+#define MSG_DETAIL  1   /* Set to 0 to turn off FILE, FUNCTION, LINE details. */
+
+#define ERROR_MSG                                                           \
+do {                                                                        \
+    if (MSG_DETAIL)                                                         \
+        printf("[ERROR at %s:%s:%d] ", __FILE__, __FUNCTION__, __LINE__);   \
+    else                                                                    \
+        printf("[ERROR] ");                                                 \
+} while (0)
+
+#define WARNING_MSG                                                         \
+do {                                                                        \
+    if (MSG_DETAIL)                                                         \
+        printf("[WARNING at %s:%s:%d] ", __FILE__, __FUNCTION__, __LINE__); \
+    else                                                                    \
+        printf("[WARNING] ");                                               \
+} while (0)
+
+#define TEST_MSG                                                            \
     printf("[TEST at %s:%s:%d]\n", __FILE__, __FUNCTION__, __LINE__)
+
+#define EXCEPTION_MSG                                                       \
+    printf("[EXCEPTION] ")
 
 #endif /* _TYPES_H */

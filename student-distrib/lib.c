@@ -6,9 +6,9 @@
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
-static unsigned char text_RGB[5][3] = {
+static unsigned char text_RGB[COLOR_NUM][3] = {
     { 0x00, 0x00, 0x00 },{ 0x28, 0x28, 0x28 },{ 0x13, 0x2B, 0x14 },  // Black, White, Green
-    { 0x3F, 0x30, 0x02 },{ 0x3C, 0x11, 0x0D }   // Yellow, Red
+    { 0x3F, 0x30, 0x02 },{ 0x3C, 0x11, 0x0D },{ 0x1B, 0x31, 0x3F }  // Yellow, Red, Blue
 };
 
 /*
@@ -23,7 +23,7 @@ void set_color(unsigned char addr) {
     /* Start writing at index. */
     outb(0x03C8, addr);
     /* Write colors from array. */
-    REP_OUTSB(0x03C9, text_RGB, 5 * 3);
+    REP_OUTSB(0x03C9, text_RGB, COLOR_NUM * 3);
 }
 
 /* void clear(void);
@@ -160,10 +160,12 @@ int32_t puts(int8_t* s) {
         #if (COLOR_TEXT == 1)
         if (!strncmp(s, "PASS", 4))
             putc_color(s[index], ATTRIB_GREEN);
-        else if (!strncmp(s, "FAIL", 4) || !strncmp(s, "ERROR", 5))
+        else if (!strncmp(s, "FAIL", 4) || !strncmp(s, "ERROR", 5) || !strncmp(s, "EXCEPTION", 9))
             putc_color(s[index], ATTRIB_RED);
         else if (!strncmp(s, "TEST", 4) || !strncmp(s, "WARNING", 7))
             putc_color(s[index], ATTRIB_YELLOW);
+        else if (!strncmp(s, "391OS>", 6))
+            putc_color(s[index], ATTRIB_BLUE);
         else
         #endif
             putc(s[index]);
@@ -760,54 +762,6 @@ format_char_switch:
                 }
                 break;
             }
-            case 'E': {
-                buf++;
-                switch (*buf) {
-                    case 'R': {
-                        buf++;
-                        switch (*buf) {
-                            case 'R': {
-                                buf++;
-                                switch (*buf) {
-                                    case 'O': {
-                                        buf++;
-                                        switch (*buf) {
-                                            case 'R': {
-                                                puts("ERROR");
-                                                break;
-                                            }
-                                            default: {
-                                                puts("ERRO");
-                                                putc(*buf);
-                                                break;
-                                            }
-                                        }
-                                        break;
-                                    }
-                                    default: {
-                                        puts("ERR");
-                                        putc(*buf);
-                                        break;
-                                    }
-                                }
-                                break;
-                            }
-                            default: {
-                                puts("ER");
-                                putc(*buf);
-                                break;
-                            }
-                        }
-                        break;
-                    }
-                    default: {
-                        putc('E');
-                        putc(*buf);
-                        break;
-                    }
-                }
-                break;
-            }
             case 'W': {
                 buf++;
                 switch (*buf) {
@@ -872,6 +826,194 @@ format_char_switch:
                     }
                     default: {
                         putc('W');
+                        putc(*buf);
+                        break;
+                    }
+                }
+                break;
+            }
+            case 'E': {
+                buf++;
+                switch (*buf) {
+                    case 'X': {
+                        buf++;
+                        switch (*buf) {
+                            case 'C': {
+                                buf++;
+                                switch (*buf) {
+                                    case 'E': {
+                                        buf++;
+                                        switch (*buf) {
+                                            case 'P': {
+                                                buf++;
+                                                switch (*buf) {
+                                                    case 'T': {
+                                                        buf++;
+                                                        switch (*buf) {
+                                                            case 'I': {
+                                                                buf++;
+                                                                switch (*buf) {
+                                                                    case 'O': {
+                                                                        buf++;
+                                                                        switch (*buf) {
+                                                                            case 'N': {
+                                                                                puts("EXCEPTION");
+                                                                                break;
+                                                                            }
+                                                                            default: {
+                                                                                puts("EXCEPTIO");
+                                                                                putc(*buf);
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                        break;
+                                                                    }
+                                                                    default: {
+                                                                        puts("EXCEPTI");
+                                                                        putc(*buf);
+                                                                        break;
+                                                                    }
+                                                                }
+                                                                break;
+                                                            }
+                                                            default: {
+                                                                puts("EXCEPT");
+                                                                putc(*buf);
+                                                                break;
+                                                            }
+                                                        }
+                                                        break;
+                                                    }
+                                                    default: {
+                                                        puts("EXCEP");
+                                                        putc(*buf);
+                                                        break;
+                                                    }
+                                                }
+                                                break;
+                                            }
+                                            default: {
+                                                puts("EXCE");
+                                                putc(*buf);
+                                                break;
+                                            }
+                                        }
+                                        break;
+                                    }
+                                    default: {
+                                        puts("EXC");
+                                        putc(*buf);
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                            default: {
+                                puts("EX");
+                                putc(*buf);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    case 'R': {
+                        buf++;
+                        switch (*buf) {
+                            case 'R': {
+                                buf++;
+                                switch (*buf) {
+                                    case 'O': {
+                                        buf++;
+                                        switch (*buf) {
+                                            case 'R': {
+                                                puts("ERROR");
+                                                break;
+                                            }
+                                            default: {
+                                                puts("ERRO");
+                                                putc(*buf);
+                                                break;
+                                            }
+                                        }
+                                        break;
+                                    }
+                                    default: {
+                                        puts("ERR");
+                                        putc(*buf);
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                            default: {
+                                puts("ER");
+                                putc(*buf);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    default: {
+                        putc('E');
+                        putc(*buf);
+                        break;
+                    }
+                }
+                break;
+            }
+            case '3': {
+                buf++;
+                switch (*buf) {
+                    case '9': {
+                        buf++;
+                        switch (*buf) {
+                            case '1': {
+                                buf++;
+                                switch (*buf) {
+                                    case 'O': {
+                                        buf++;
+                                        switch (*buf) {
+                                            case 'S': {
+                                                buf++;
+                                                switch (*buf) {
+                                                    case '>': {
+                                                        puts("391OS>");
+                                                        break;
+                                                    }
+                                                    default: {
+                                                        puts("391OS");
+                                                        putc(*buf);
+                                                        break;
+                                                    }
+                                                }
+                                                break;
+                                            }
+                                            default: {
+                                                puts("391O");
+                                                putc(*buf);
+                                                break;
+                                            }
+                                        }
+                                        break;
+                                    }
+                                    default: {
+                                        puts("391");
+                                        putc(*buf);
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                            default: {
+                                puts("39");
+                                putc(*buf);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    default: {
+                        putc('3');
                         putc(*buf);
                         break;
                     }

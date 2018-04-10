@@ -12,7 +12,7 @@ process_manager_t ece391_process_manager;
  *   RETURN VALUE: none
  *   SIDE EFFECTS: also initializes the file operation jumptables for different system calls.
  */
-void init_process_manager(process_manager_t* processManager){
+void init_process_manager(process_manager_t* processManager) {
     uint32_t ii; // for traverse array in processManager
     // check if the passed-in pointer is valid
     if (processManager == NULL)
@@ -36,15 +36,15 @@ void init_process_manager(process_manager_t* processManager){
  */
 // NOTE: this function should only be called when a current process wants to have a child process
 // return the pid_number that is initialized or -1 on failure
-int8_t init_pcb(process_manager_t* processManager){
+int8_t init_pcb(process_manager_t* processManager) {
     uint32_t ii; // for traverse array in processManager
     int8_t ret_pid = -1;    // init pid to be invalid
     // check if the passed-in pointer is valid
     if (processManager == NULL)
         return ret_pid;
-    for (ii = 0; ii < MAX_PROCESS_NUM; ii++){
+    for (ii = 0; ii < MAX_PROCESS_NUM; ii++) {
         // if there is a spare process position
-        if(processManager->process_status[ii] == PROCESS_NOT_EXIST){
+        if (processManager->process_status[ii] == PROCESS_NOT_EXIST) {
             // set returned pid
             ret_pid = ii+1;
             // update the process position: PCB starts at 8MB – 8KB * pid

@@ -14,7 +14,9 @@
 #include "file_system.h"
 #include "pcb.h"
 #include "system_call.h"
-//#define RUN_TESTS
+
+// #define RUN_TESTS
+
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
@@ -174,16 +176,21 @@ void entry(unsigned long magic, unsigned long addr) {
      * without showing you any output */
     // printf("Enabling Interrupts\n");
     sti();
-    set_color(0x0);
-#ifdef RUN_TESTS
-    /* Run tests */
-    launch_tests();
-#endif
+
+    #if (COLOR_TEXT == 1)
+    set_color(0);   // This is used to display color text in terminal
+    #endif
+
+    #ifdef RUN_TESTS
+    launch_tests();    /* Run tests */
+    #endif
+
     /* Execute the first program ("shell") ... */
-    clearScreen();
     while(1) {
+        clearScreen();
         execute((void *)"shell");
     }
+
     /* Spin (nicely, so we don't chew up cycles) */
     asm volatile (".1: hlt; jmp .1;");
 }

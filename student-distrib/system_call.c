@@ -28,24 +28,26 @@ static fileOperationTable_t regTable;   // regular files jumptable
  *   RETURN VALUE: fd -- the index of file array
  *   SIDE EFFECTS: change the file descriptor due to the index
  */
-
 int32_t open(const uint8_t *filename) {
     int i;
     int fd = -1;
     dentry_t dentry;
     int8_t fullFlag;
     // check if the processManager has a process to run
-    if(ece391_process_manager.curr_pid == -1){
+    if (ece391_process_manager.curr_pid == -1) {
+        ERROR_MSG;
         printf("No process is running.\n");
         return -1;
     }
     // check bad param
     if (filename == NULL) {
+        ERROR_MSG;
         printf("Process open file has bad parameter.\n");
         return -1;
     }
     // check if the passed-in file exists in the file system
     if (read_dentry_by_name(filename, &dentry) == -1) {
+        ERROR_MSG;
         printf("Process wants to open invalid file.\n");
         return -1;
     }
@@ -75,6 +77,7 @@ int32_t open(const uint8_t *filename) {
 
     // if no space, then return on error
     if (fullFlag == 1) {
+        ERROR_MSG;
         printf("Process file_array is full.\n");
         return -1;
     }
@@ -91,21 +94,24 @@ int32_t open(const uint8_t *filename) {
  *   RETURN VALUE: none
  *   SIDE EFFECTS: close the file of the file array index
  */
-
 int32_t close(int32_t fd) {
     if(fd < FD_PARAM_LOW || fd > FD_PARAM_UPPER){       //check whether fd is valid
+        ERROR_MSG;
         printf("Process close has bad parameter.\n");
         return -1;
     }
     if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].flags == STATUS_CLOSED) {        //check whether the file is already closed
+        ERROR_MSG;
         printf("Process tries to close a already closed file.\n");
         return -1;
     }
     if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table == NULL){          //check whether the process has the right to close the file
+        ERROR_MSG;
         printf("Process tries to close priviledged file.\n");
         return -1;
     }
     if(-1 == (*((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table->cFunc))(fd)){     //close function fails due to an unkown bug
+        ERROR_MSG;
         printf("UNKOWN BUG IN CLOSE.\n");
         return -1;
     }
@@ -126,24 +132,27 @@ int32_t close(int32_t fd) {
  *   RETURN VALUE: none
  *   SIDE EFFECTS: execute the correct read function decided by filetype
  */
-
 int32_t read(int32_t fd, void *buf, int32_t nbytes) {
-    if(ece391_process_manager.curr_pid == -1){          //check whether this is process running
+    if (ece391_process_manager.curr_pid == -1) {          //check whether this is process running
+        ERROR_MSG;
         printf("No process is running.\n");
         *((int8_t*) buf) = '\0';
         return -1;
     }
     if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].flags == STATUS_CLOSED) {            //check whether the file to read is open
+        ERROR_MSG;
         printf("Process tries to read a already closed file. %d\n", fd);
         *((int8_t*) buf) = '\0';
         return -1;
     }
     if (fd < 0 || fd > FD_PARAM_UPPER) {             //check whether the fd is valid
+        ERROR_MSG;
         printf("Process read has bad parameter.\n");
         *((int8_t*) buf) = '\0';
         return -1;
     }
     if((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table->rFunc == NULL){            //check whether the process has the right to read the file
+        ERROR_MSG;
         printf("File has no priviledge to read.\n");
         *((int8_t*) buf) = '\0';
         return -1;
@@ -165,19 +174,23 @@ int32_t read(int32_t fd, void *buf, int32_t nbytes) {
  */
 
 int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
-    if(ece391_process_manager.curr_pid == -1){          //check whether this is process running
+    if (ece391_process_manager.curr_pid == -1) {          //check whether this is process running
+        ERROR_MSG;
         printf("No process is running.\n");
         return -1;
     }
     if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].flags == STATUS_CLOSED) {        //check whether the file to write is open
+        ERROR_MSG;
         printf("Process tries to write to a already closed file.\n");
         return -1;
     }
     if (fd < 0 || fd > FD_PARAM_UPPER) {        //check whether the fd is valid
+        ERROR_MSG;
         printf("Process write has bad parameter. %d\n", fd);
         return -1;
     }
     if((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table->wFunc == NULL){            //check whether the process has the right to write the file
+        ERROR_MSG;
         printf("File has no priviledge to write.\n");
         return -1;
     }
@@ -197,16 +210,14 @@ static int32_t halt_ret;
  *   RETURN VALUE: this function should never be returned
  *   SIDE EFFECTS: halt the current process
  */
-
-int32_t halt (uint8_t status) {
+int32_t halt(uint8_t status) {
     uint32_t f = ((ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->exc_flag);
     if (ece391_process_manager.curr_pid == -1)
         return -1;
     /*need special treatment for the first shell process*/
     if ((ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid != -1) {
         tss.esp0 = (ece391_process_manager.process_position[(ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid - 1])->esp;
-    }
-    else {
+    } else {
         /*need special treatment*/
         tss.esp0+=4;
     }
@@ -245,15 +256,16 @@ int32_t halt (uint8_t status) {
  */
 
 int32_t execute (const uint8_t* command) {
-    uint8_t filename[128];
+    uint8_t filename[TERMINAL_BUFEER_SIZE];
     uint32_t idx = 0;
     int16_t cur_ds;
     int32_t temp;
     int32_t temp_esp;
     /*check for bad input command*/
     if (command == NULL) {
-      printf("ERROR: command does not exist.\n");
-      return -1;
+        ERROR_MSG;
+        printf("Command does not exist.\n");
+        return -1;
     }
 
     if (ece391_process_manager.curr_pid == MAX_PROCESS_NUM) {
@@ -262,18 +274,16 @@ int32_t execute (const uint8_t* command) {
         return 1; // Program terminated abnormally
     }
 
-    //int8_t par_pid;
-
     while (command[idx] != ' ' && command[idx] != '\0')
         idx++;
     memcpy(filename, command, idx);
     filename[idx] = '\0';
     /*checks whether the file is executable*/
     if (check_executable_validity(filename) == -1) {
-      printf("ERROR: the file specified is inexecutable.\n");
-      return -1;
+        ERROR_MSG;
+        printf("The file specified is not an executable.\n");
+        return -1;
     }
-
 
     /*stores current process ebp, esp into the process manager*/
     /*not right, need to delete*/
@@ -285,8 +295,9 @@ int32_t execute (const uint8_t* command) {
 
     int8_t pid = init_pcb(&ece391_process_manager);
     if (pid < 1) {
-      printf("ERROR: unable to create a new pcb.\n");
-      return -1;
+        ERROR_MSG;
+        printf("Unable to create a new pcb.\n");
+        return -1;
     }
 
     //ece391_process_manager.process_position[(ece391_process_manager.pid)-1]->parent_pid = par_pid;
@@ -299,7 +310,7 @@ int32_t execute (const uint8_t* command) {
     /*copy the user image to the user level page*/
     uint32_t* execute_start = load_user_image(filename);
 
-    #if (EXCEPTION_TEST == 1)
+    #if (PAGE_TEST == 2)
     paging_test();
     #endif
 
@@ -309,7 +320,7 @@ int32_t execute (const uint8_t* command) {
 
     /*code for context switch*/
     if((ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid == -1){ // if it is the first process, maintain the current esp
-      (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp )= temp_esp-4;
+        (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp )= temp_esp-4;
     }
     tss.esp0 = ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp;
     tss.ss0 = KERNEL_DS;
@@ -332,13 +343,10 @@ int32_t execute (const uint8_t* command) {
     asm volatile("pushl %0\n\t" : :"g" (USER_CS));
     /* eip*/
     asm volatile("pushl %0\n\t" : :"g" (execute_start));
-    asm volatile("iret" : :);
-    asm volatile("EXE_RETURN:");
-
-    asm volatile("movl %0, %%ebp\n\t": :"g" (halt_ret));
-    // asm volatile("movl %%ebx, %%eax\n\t" : :);
-    asm volatile("movl %%ebx,%0\n\t" :"=r" (temp));
-    //asm volatile("ret \n\t" : :);
+    asm volatile("iret" : :);                               // Go IRET!
+    asm volatile("EXE_RETURN:");                            // Come back from HALT
+    asm volatile("movl %0, %%ebp\n\t": :"g" (halt_ret));    // Restore EBP
+    asm volatile("movl %%ebx,%0\n\t" :"=r" (temp));         // Update return value
     return temp;
 }
 
@@ -351,7 +359,6 @@ int32_t sigreturn (void) {return 0;}
 // this funcion initilize the file array, automatically open the
 // terminal open/close
 // this function is called by PCB
-
 /*
  * init_fileArray
  *   DESCRIPTION: this function initialize the file array
@@ -360,8 +367,7 @@ int32_t sigreturn (void) {return 0;}
  *   RETURN VALUE: none
  *   SIDE EFFECTS: initialize the file array
  */
-
-void init_fileArray(fileArray_t* new_file_array){
+void init_fileArray(fileArray_t* new_file_array) {
     int32_t ii; // for traverse the file array
     // open stdin automatically
     new_file_array->files[0].table = &inTable;
@@ -379,11 +385,10 @@ void init_fileArray(fileArray_t* new_file_array){
     for (ii = 2; ii < FA_SIZE; ii++)
         new_file_array->files[ii].flags = STATUS_CLOSED;
     // make sure that the all the drivers are interacting with the correct file array
-
 }
+
 // this function should be called once,
 // NOTE can is called in function : void init_process_manager(process_manager_t* processManager)
-
 /*
  * init_file_operation_jumptables
  *   DESCRIPTION: this function initialize the file operation jumptable
@@ -393,8 +398,7 @@ void init_fileArray(fileArray_t* new_file_array){
  *   RETURN VALUE: none
  *   SIDE EFFECTS: initialize the file operation jumptable
  */
-
-void init_file_operation_jumptables(void){
+void init_file_operation_jumptables(void) {
     // init the local jumptables
     // 'stdin' jumptable
     inTable.oFunc = NULL;

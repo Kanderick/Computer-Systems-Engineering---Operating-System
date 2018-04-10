@@ -2,6 +2,9 @@
 #define TERMINAL_H
 
 #include "types.h"
+#include "device.h"
+
+#define TERMINAL_BUFEER_SIZE    BUFF_SIZE
 
 /*terminal open function*/
 int32_t terminal_open(const uint8_t *filename);

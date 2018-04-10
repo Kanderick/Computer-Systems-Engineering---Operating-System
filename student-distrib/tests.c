@@ -1036,7 +1036,6 @@ void launch_tests(){
 	TEST_OUTPUT("rtc_test", rtc_test());
 	TEST_OUTPUT("terminal_test", terminal_test());
 	#endif
-	// need macro
 	#if (FILE_SYSTEM_TEST == 1)
 	TEST_OUTPUT("txt_file_ops_test", test_file_open_read_close());
 	TEST_OUTPUT("exe_file_ops_test", test_file_open_read_close_exe());

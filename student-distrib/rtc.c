@@ -4,10 +4,10 @@
 #include "file_system.h"
 #include "pcb.h"
 
-#define CHECK_FAIL       -1          /* this is the open/close-failed code indicates a failure on open a file */
-#define RTC_NAME_LEN           4     /* rtc file name length  */
-#define RTC_CLOSED   67              /* 'C' indecates file closed */
-#define RTC_OPENED   79              /* 'O' indicates file opened */
+#define CHECK_FAIL      -1              /* this is the open/close-failed code indicates a failure on open a file */
+#define RTC_NAME_LEN    4               /* rtc file name length  */
+#define RTC_CLOSED      67              /* 'C' indecates file closed */
+#define RTC_OPENED      79              /* 'O' indicates file opened */
 // uint8_t RTC_STATUS;
 
 /*
@@ -24,11 +24,11 @@ int32_t rtc_open(const uint8_t *filename) {
     int32_t new_fd = -1;  // if can open a file, this will record the fd
     dentry_t dentry;    // check dentry
     // traverse the open file array
-    for (ii = FD_LOW; ii <= FD_UPPER; ii++){
+    for (ii = FD_LOW; ii <= FD_UPPER; ii++) {
         // check each opened file
-        if (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[ii].flags == STATUS_CLOSED){
-                new_fd = ii;
-                break;
+        if (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[ii].flags == STATUS_CLOSED) {
+            new_fd = ii;
+            break;
         }
     }
     // copy to local dentry for init file in file_array
@@ -68,7 +68,7 @@ int32_t rtc_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
     unsigned int rtcRelativeFreq = (unsigned int)(ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[fd].filePos);
     sti();
     rtcFlag = 0;    /*set the rtc flag to 1*/
-    while (rtcFlag<rtcRelativeFreq);    /*check whether a rtc interrupt completed*/
+    while (rtcFlag < rtcRelativeFreq);    /*check whether a rtc interrupt completed*/
     return 0;
 }
 

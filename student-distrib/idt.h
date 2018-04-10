@@ -39,6 +39,7 @@
                         virtual-8086 mode when the handler’s code segment DPL
                         is greater than 0.*/
 #define DPL_SC      3   /*dpl of system call*/
+#define IDT_SIZE    256 /* Size of IDT */
 
 /*initialize all the entry with specific instruction*/
 void idt_init_exceptions(void);

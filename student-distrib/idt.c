@@ -6,6 +6,7 @@
 #include "rtc.h"
 #include "pcb.h"
 #include "system_call.h"
+
 /*
  * idt_init_exceptions
  *   DESCRIPTION: this function will be called in the kernel.c and
@@ -16,10 +17,9 @@
  *   RETURN VALUE: none
  *   SIDE EFFECTS: initialize all the entry with specific instruction
  */
-
-void idt_init_exceptions(void){
+void idt_init_exceptions(void) {
     unsigned i;
-    for (i = 0; i < 256; i ++) {            /*fill all the entry in the idt table with unkown interrupt*/
+    for (i = 0; i < IDT_SIZE; i ++) {            /*fill all the entry in the idt table with unkown interrupt*/
         idt_init(i, INT_GATE, &unkown_int_wrapper);
     }
     idt_init(DE, INT_GATE, &exception_DE_wrapper);         /*fill the exception part with each specific instruction*/
@@ -60,7 +60,6 @@ void idt_init_exceptions(void){
  *   RETURN VALUE: none
  *   SIDE EFFECTS: initialize the specific entry
  */
-
 void idt_init(unsigned index, unsigned gateType, void *handler) {
     idt_desc_t desc = idt[index];       /*get the position of the entry in the idt table*/
     SET_IDT_ENTRY(desc, handler);       /*set handler for this entry*/
@@ -109,6 +108,7 @@ void idt_init(unsigned index, unsigned gateType, void *handler) {
 
 void exception_DE(void) {
     cli();          /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("Divide Error Exception\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -125,7 +125,8 @@ void exception_DE(void) {
  */
 
 void exception_DB(void) {
-     cli();         /*clean the interrupt flag*/
+    cli();         /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("Debug Exception\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -142,7 +143,8 @@ void exception_DB(void) {
  */
 
 void exception_NMI(void) {
-     cli();         /*clean the interrupt flag*/
+    cli();         /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("NMI Interrupt\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -159,7 +161,8 @@ void exception_NMI(void) {
  */
 
 void exception_BP(void) {
-     cli();         /*clean the interrupt flag*/
+    cli();         /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("Breakpoint Exception\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -176,7 +179,8 @@ void exception_BP(void) {
  */
 
 void exception_OF(void) {
-     cli();         /*clean the interrupt flag*/
+    cli();         /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("Overflow Exception\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -193,7 +197,8 @@ void exception_OF(void) {
  */
 
 void exception_BR(void) {
-     cli();         /*clean the interrupt flag*/
+    cli();         /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("BOUND Range Exceeded Exception\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -210,7 +215,7 @@ void exception_BR(void) {
  */
 
 void exception_UD(void) {
-     cli();         /*clean the interrupt flag*/
+    cli();         /*clean the interrupt flag*/
     printf("Invalid Opcode Exception\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -227,7 +232,8 @@ void exception_UD(void) {
  */
 
 void exception_NM(void) {
-     cli();         /*clean the interrupt flag*/
+    cli();         /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("Device Not Available Exception\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -244,7 +250,8 @@ void exception_NM(void) {
  */
 
 void exception_DF(void) {
-     cli();         /*clean the interrupt flag*/
+    cli();         /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("Double Fault Exception\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -261,7 +268,8 @@ void exception_DF(void) {
  */
 
 void exception_CSO(void) {
-     cli();         /*clean the interrupt flag*/
+    cli();         /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("Coprocessor Segment Overrun\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -278,7 +286,8 @@ void exception_CSO(void) {
  */
 
 void exception_TS(void) {
-     cli();         /*clean the interrupt flag*/
+    cli();         /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("Invalid TSS Exception\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -296,6 +305,7 @@ void exception_TS(void) {
 
 void exception_NP(void) {
     cli();          /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("Segment Not Present\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -313,6 +323,7 @@ void exception_NP(void) {
 
 void exception_SS(void) {
     cli();          /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("Stack Fault Exception\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -330,6 +341,7 @@ void exception_SS(void) {
 
 void exception_GP(void) {
     cli();          /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("General Protection Exception\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -347,6 +359,7 @@ void exception_GP(void) {
 
 void exception_PF(void) {
     cli();          /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("Page-Fault Exception\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -364,6 +377,7 @@ void exception_PF(void) {
 
 void exception_MF(void) {
     cli();          /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("x87 FPU Floating-Point Error\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -381,6 +395,7 @@ void exception_MF(void) {
 
 void exception_AC(void) {
     cli();          /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("Alignment Check Exception\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -398,6 +413,7 @@ void exception_AC(void) {
 
 void exception_MC(void) {
     cli();          /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("Machine-Check Exception\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -415,6 +431,7 @@ void exception_MC(void) {
 
 void exception_XF(void) {
     cli();          /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("SIMD Floating-Point Exception\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);
@@ -432,6 +449,7 @@ void exception_XF(void) {
 
 void unkown_int(void) {
     cli();          /*clean the interrupt flag*/
+    EXCEPTION_MSG;
     printf("unkown interruption\n");
     ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->exc_flag = HALT_EXC;
     halt(0);

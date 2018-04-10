@@ -5,20 +5,19 @@
 
 // total number of files a single PCB is holding
 #define FA_SIZE                 8
-#define STATUS_CLOSED   67      // 'C' indecates file closed
-#define STATUS_OPENED   79      // 'O' indicates file opened
-// include "pcb.h" after FA_SIZE to avoid error
-
-#define MAX_PROCESS_NUM     2     // for now, set the process number upper limit to 2
+#define STATUS_CLOSED           67      // 'C' indecates file closed
+#define STATUS_OPENED           79      // 'O' indicates file opened
+#define MAX_PROCESS_NUM         2     // for now, set the process number upper limit to 2
 // following two are for ece391_process_manager.process_status
-#define PROCESS_EXIST       1
-#define PROCESS_NOT_EXIST   0
+#define PROCESS_EXIST           1
+#define PROCESS_NOT_EXIST       0
 // constant for initialzing pcb
-#define PCB_BASE_ADDR       0x800000    // the base address for storing PCB, 8MB
-#define PCB_SEG_LENGTH      0x2000      // each segment should be offset from the base, 8KB
+#define PCB_BASE_ADDR           0x800000    // the base address for storing PCB, 8MB
+#define PCB_SEG_LENGTH          0x2000      // each segment should be offset from the base, 8KB
 // signal for exception
-#define HALT_NORM       0
-#define HALT_EXC        1
+#define HALT_NORM               0
+#define HALT_EXC                1
+
 // the file operation table should be contained in each file struct in the file array
 typedef struct fileOperationTable {
     // definition of file operation table function pointers, currently we only have four
@@ -60,10 +59,10 @@ typedef struct process_control_block {
     //uint32_t page_directory_index;
     uint32_t halt_ebp;
     uint32_t exc_flag;
-}pcb_t;
+} pcb_t;
 
 /*initialized at boot time, stores pointer to pcbs, process status and current process id*/
-typedef struct process_manager{
+typedef struct process_manager {
     // NOTE: (pid-1) is the index of this array, and this is a !pointer! array
     // each element points to the position of a PCB
     pcb_t* process_position[MAX_PROCESS_NUM];
@@ -71,14 +70,17 @@ typedef struct process_manager{
     uint8_t process_status[MAX_PROCESS_NUM];
     // indicates current process, -1 on no process
     int8_t curr_pid;
-}process_manager_t;
+} process_manager_t;
 
 // this is the ece391 process/task manager, all the process info can be found in this data structure
 extern process_manager_t ece391_process_manager;
+
 /*called when halting a process. changes current process id*/
 uint32_t pop_process();
+
 /*called when executing a new process, changes current process id*/
 uint32_t push_process(int8_t new_pid);
+
 // this function initializes the ece391init_process_manager
 void init_process_manager(process_manager_t* processManager);
 

@@ -176,6 +176,9 @@ void user_page_mapping(uint8_t pid) {
         //map the virtual 128mb to the corresponding physical address
         page_directory[PDEIDX_128MB] = page_128mb;
         write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
+    } else {
+        ERROR_MSG;
+        printf("Invalid PID.\n");
     }
 }
 
@@ -190,5 +193,9 @@ void user_page_unmapping(uint8_t pid) {
         //unmaps the virtual 128mb
         page_directory[PDEIDX_128MB] = 0;
         write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
+    }
+    else {
+        ERROR_MSG;
+        printf("Invalid PID.\n");
     }
 }

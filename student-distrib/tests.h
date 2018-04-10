@@ -52,7 +52,8 @@ int rtc_test();
 int terminal_test();
 
 /* Checkpoint 3 tests */
-#define SHELL_TEST              1
+#define SHELL_TEST              0
+
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
