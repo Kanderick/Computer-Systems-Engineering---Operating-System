@@ -76,7 +76,16 @@ int8_t init_pcb(process_manager_t* processManager, uint8_t* argument) {
     if (buf_len == 0) {
         processManager->process_position[ret_pid-1]->argument_buffer[0] = '\0';
     }
-    strncpy((int8_t *)(processManager->process_position[ret_pid-1]->argument_buffer), )
+    // check if the passed-in buffer is too long
+    else if (buf_len >= ARG_BUF_LEN) {
+        strncpy((int8_t *)(processManager->process_position[ret_pid-1]->argument_buffer), (int8_t *) argument, ARG_BUF_LEN-1);
+        processManager->process_position[ret_pid-1]->argument_buffer[ARG_BUF_LEN] = '\0';
+    }
+    // passed-in buff is good to process
+    else {
+        strncpy((int8_t *)(processManager->process_position[ret_pid-1]->argument_buffer), (int8_t *) argument, buf_len);
+        processManager->process_position[ret_pid-1]->argument_buffer[buf_len] = '\0';
+    }
     return ret_pid;
 }
 
