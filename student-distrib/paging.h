@@ -34,6 +34,9 @@
 #define USER_START_VIRTUAL      0x08000000
 #define PDEIDX_128MB            32
 #define USER_IMAGE_START        0x08048000
+#define USER_VIDEO              (USER_START_VIRTUAL + _4MB + _4KB)
+#define PDEIDX_132MB            33
+#define PTEIDX_132_4KB          1
 
 /* Control Registers' Flag Masks */
 #define CR0_PG_FLAG             0x80000000
@@ -48,6 +51,7 @@ typedef unsigned int pte_t;
 /* Definition of Global Page Directory/Table */
 extern pde_t page_directory[PAGE_DIRECTORY_SIZE];
 extern pte_t page_table_0[PAGE_TABLE_SIZE];
+extern pte_t page_table_33[PAGE_TABLE_SIZE];
 
 /* Global Function */
 extern void init_paging(void);
@@ -57,5 +61,11 @@ extern void user_page_mapping(uint8_t pid);
 
 //unmaps the 128MB virtual address of the process
 extern void user_page_unmapping(uint8_t pid);
+
+//maps the 132mb+4kb address to the video memory physical address
+extern void user_video_mapping();
+
+//unmaps the 132mb+4kb address to the video memory physical address
+extern void user_video_unmapping();
 
 #endif

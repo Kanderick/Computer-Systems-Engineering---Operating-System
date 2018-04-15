@@ -6,6 +6,7 @@
 /* Declaration of Global Page Directory/Table */
 pde_t page_directory[PAGE_DIRECTORY_SIZE] __attribute__((aligned (_4KB)));
 pte_t page_table_0[PAGE_TABLE_SIZE] __attribute__((aligned (_4KB)));
+pte_t page_table_33[PAGE_TABLE_SIZE] __attribute__((aligned (_4KB)));
 
 /* Static function definition */
 static inline unsigned long read_cr0(void);
@@ -198,4 +199,34 @@ void user_page_unmapping(uint8_t pid) {
         ERROR_MSG;
         printf("Invalid PID.\n");
     }
+}
+
+/* user_video_mapping
+ * Purpose	maps the 132mb+4kb address to the video memory physical address
+ * Inputs none
+ * Outputs	None
+ * Side Effects flushes tlb
+ */
+extern void user_video_mapping() {
+  pde_t page_132mb;
+  pte_t page_132mb_4kb;
+
+  page_132mb = ((unsigned long)&(page_table_33[PTEIDX_132_4KB]) & PTBA_MASK) | U_S_MASK | R_W_MASK | PRESENT_MASK;
+  page_132mb_4kb =  VIDEO_START | U_S_MASK | R_W_MASK | PRESENT_MASK;
+
+  page_directory[PDEIDX_132MB] = page_132mb;
+  page_table_33[PTEIDX_132_4KB] = page_132mb_4kb;
+  write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
+}
+
+/* user_video_unmapping
+ * Purpose	unmaps the 132mb+4kb address to the video memory physical address
+ * Inputs none
+ * Outputs	None
+ * Side Effects flushes tlb
+ */
+extern void user_video_unmapping() {
+  page_table_33[PTEIDX_132_4KB] = 0;
+  page_directory[PDEIDX_132MB] = 0;
+  write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
 }
