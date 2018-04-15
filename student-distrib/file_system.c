@@ -103,6 +103,7 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t* dentry) {
     if (fname_len > FILE_NAME_LEN) {
         ERROR_MSG;
         printf("Input string too long.\n");
+        printf("%s::::::\n", fname);
         return -1;
         fname_len = FILE_NAME_LEN;  // QUESTION what does this line do?
     }

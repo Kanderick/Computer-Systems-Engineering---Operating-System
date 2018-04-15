@@ -115,5 +115,8 @@ int32_t terminal_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
         // printf("%c", buf[i]);     /*print the string in the buffer onto screen*/
         putc(buf[i]);   // Any user level text will not be printed in color mode
     }
+    if (strlen((int8_t*) buf) == TERMINAL_BUFEER_SIZE) {
+        printf("\n");
+    }
     return nbytes;                                          /*return the number of bytes printed*/
 }

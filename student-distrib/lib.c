@@ -120,6 +120,7 @@ void spKey(unsigned char scancode) {
         memmove(video_mem + ((NUM_COLS * screen_y + screen_x) << 1), video_mem + ((NUM_COLS * screen_y + screen_x + 1) << 1), (NUM_COLS * NUM_ROWS - (NUM_COLS * screen_y + screen_x)) << 1);
     }
     if (scancode == BACKSPACE) {        /*the case of backspace*/
+        if (check_head() == 1) return;
         if (screen_x == 0 && screen_y == 0) return;     /*if it is at the front of the screen, just return*/
         screen_x --;        /*left move the cursor for one block*/
         /*every block after the cursor in this line become the next block because of the backspace*/
@@ -130,6 +131,7 @@ void spKey(unsigned char scancode) {
         }
     }
     if (scancode == LEFT_ARROW) {       /*the case of left arrow*/
+        if (check_head() == 1) return;
         if (screen_x == 0 && screen_y == 0) return;     /*if it is at the front of the screen, just return*/
             screen_x --;        /*left move the cursor for one block*/
         if (screen_x < 0) {
@@ -148,6 +150,41 @@ void spKey(unsigned char scancode) {
     if (scancode == DOWN_ARROW) {
         if (screen_y < NUM_ROWS - 1) screen_y ++;
     }
+}
+
+int8_t check_head() {
+    uint8_t *head = (uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x - 7) << 1));
+    switch (*head) {
+    case '3': {
+        head += 2;
+        switch (*head) {
+            case '9': {
+                head += 2;
+                switch (*head) {
+                    case '1': {
+                        head += 2;
+                        switch (*head) {
+                            case 'O': {
+                                head += 2;
+                                switch (*head) {
+                                    case 'S': {
+                                        head += 2;
+                                        switch (*head) {
+                                            case '>': {
+                                                return 1;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return 0;
 }
 
 /* int32_t puts(int8_t* s);

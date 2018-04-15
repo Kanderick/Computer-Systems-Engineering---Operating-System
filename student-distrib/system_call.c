@@ -278,6 +278,19 @@ int32_t execute(const uint8_t* command) {
         printf("Maximum process number reached. Max %d.\n", ece391_process_manager.curr_pid);
         return 1; // Program terminated abnormally
     }
+    // omit the space
+    while (command[0] == ' ' && idx < TERMINAL_BUFEER_SIZE){
+        command = command + 1;
+        idx++;
+    }
+    // check if command only has space
+    if (idx == TERMINAL_BUFEER_SIZE){
+        ERROR_MSG;
+        printf("Command does not exist.\n");
+        return -1;
+    }
+    // init idx again
+    idx = 0;
     while (command[idx] != ' ' && command[idx] != '\0')
         idx++;
     memcpy(filename, command, idx);
@@ -369,18 +382,24 @@ int32_t execute(const uint8_t* command) {
 // the following funcions are not implemented
 int32_t getargs(uint8_t* buf, int32_t nbytes) {
     int32_t arg_buff_len;
-    if (buf == NULL)
+    if (buf == NULL) {
+        ERROR_MSG;
+        printf("Buffer is NULL.\n");
         return -1;
+    }
     if (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->argument_buffer[0] == '\0') {       /*if there is no argumment*/
-        printf("cannot get the argument.");
+        ERROR_MSG;
+        printf("Cannot get the argument.");
         return -1;
     }
     arg_buff_len = strlen((int8_t*) (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->argument_buffer));
-    if (arg_buff_len > nbytes) {       /*if the argument do not fit in the buffer*/
-        printf("the size of argument do not fit in the buffer.");
+    if (arg_buff_len >= nbytes) {       /* if the argument do not fit in the buffer */
+        ERROR_MSG;
+        printf("The size of argument do not fit in the buffer.");
         return -1;
     }
     memcpy(buf, (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->argument_buffer), arg_buff_len);
+    buf[arg_buff_len] = '\0';
     return 0;
 }
 
