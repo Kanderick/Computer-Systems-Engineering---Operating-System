@@ -7,8 +7,7 @@
 #include "loader.h"
 #include "pcb.h"
 #include "x86_desc.h"
-
-#include "tests.h"
+#include "tests.h"  // Macro inserted from tests.h
 
 // these following variables act as function jumptables for different files; static is thus safe
 static fileOperationTable_t inTable;    // 'stdin' jumptable
@@ -219,6 +218,14 @@ int32_t halt(uint8_t status) {
     }
     /*no longer stores parent_pid*/
     //tss.esp0 = ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_esp;
+
+    /* Deallocate user video mapping if necessary */
+    if (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->vidmap_flag == VIDMAP_EXIST) {
+        /* Deallocate user video mapping */
+        user_video_unmapping();
+        ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->vidmap_flag = VIDMAP_NOT_EXIST;
+    }
+
     user_page_unmapping(ece391_process_manager.curr_pid);
     halt_ret = ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->halt_ebp;
     pop_process();
@@ -250,7 +257,7 @@ int32_t halt(uint8_t status) {
  *   RETURN VALUE: none
  *   SIDE EFFECTS: execute the next process
  */
-int32_t execute (const uint8_t* command) {
+int32_t execute(const uint8_t* command) {
     uint8_t filename[TERMINAL_BUFEER_SIZE];
     uint8_t argument[TERMINAL_BUFEER_SIZE];
     uint32_t idx = 0;
@@ -357,10 +364,10 @@ int32_t execute (const uint8_t* command) {
 }
 
 // the following funcions are not implemented
-int32_t getargs (uint8_t* buf, int32_t nbytes) {
+int32_t getargs(uint8_t* buf, int32_t nbytes) {
     int32_t arg_buff_len;
     if (buf == NULL)
-        return -1; 
+        return -1;
     if (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->argument_buffer[0] == '\0') {       /*if there is no argumment*/
         printf("cannot get the argument.");
         return -1;
@@ -374,15 +381,36 @@ int32_t getargs (uint8_t* buf, int32_t nbytes) {
     return 0;
 }
 
-int32_t vidmap (uint8_t** screen_start) {
+int32_t vidmap(uint8_t** screen_start) {
+    /* Check if argument is valid - Check if it falls into 4MB user page */
+    if (USER_START_VIRTUAL > (uint32_t)screen_start || (uint32_t)screen_start >= (USER_START_VIRTUAL + _4MB)) {
+        ERROR_MSG;
+        printf("Vidmap screen start addr invalid. %#x\n", screen_start);
+        return -1;
+    }
+    /* Find current pcb location */
+    pcb_t* current_pcb = ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1];
+    /* If we already set vidmap before, error */
+    if (current_pcb->vidmap_flag == VIDMAP_EXIST) {
+        ERROR_MSG;
+        printf("Vidmap already exist.\n");
+        return -1;
+    }
+    /* Allocate user video page */
+    user_video_mapping();
+    /* Set flag to exist */
+    current_pcb->vidmap_flag = VIDMAP_EXIST; // Defined in pcb.h
+    /* Set return value */
+    *screen_start = USER_VIDEO; // Defined in paging.h
+    /* Vidmap set success */
     return 0;
 }
 
-int32_t set_handler (int32_t signum, void* handler_address) {
+int32_t set_handler(int32_t signum, void* handler_address) {
     return 0;
 }
 
-int32_t sigreturn (void) {
+int32_t sigreturn(void) {
     return 0;
 }
 

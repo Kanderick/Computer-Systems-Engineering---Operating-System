@@ -21,7 +21,7 @@
 #define ARG_BUF_LEN             128     // argument buffer length
 // flag signal for vidmap
 #define VIDMAP_EXIST            1       // the flag for vidmap that is allocated
-#define VIMMAP_NOT_EXIST        0       // the flag for vidmap that is deallocated
+#define VIDMAP_NOT_EXIST        0       // the flag for vidmap that is deallocated
 
 // the file operation table should be contained in each file struct in the file array
 typedef struct fileOperationTable {
