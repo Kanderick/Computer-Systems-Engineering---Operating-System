@@ -1,6 +1,6 @@
 #include "pcb.h"
 #include "system_call.h"    // for init operation jumptables
-
+#include "lib.h"            // call strncpy function
 // this is the ece391 process/task manager, all the process info can be found in this data structure
 process_manager_t ece391_process_manager;
 
@@ -30,15 +30,17 @@ void init_process_manager(process_manager_t* processManager) {
  * init_pcb
  *   DESCRIPTION: Initializes a new pcb block for the process ready to be executed.
  *   INPUTS: processmanager, pointer to the process manager to be initiated.
+ *         : argument, the argument buffer pointer
  *   OUTPUTS: none.
  *   RETURN VALUE: the available process id allocated, -1 on failure.
  *   SIDE EFFECTS: none.
  */
 // NOTE: this function should only be called when a current process wants to have a child process
 // return the pid_number that is initialized or -1 on failure
-int8_t init_pcb(process_manager_t* processManager) {
+int8_t init_pcb(process_manager_t* processManager, uint8_t* argument) {
     uint32_t ii; // for traverse array in processManager
     int8_t ret_pid = -1;    // init pid to be invalid
+    uint32_t buf_len = strlen(argument);    // argument buffer length
     // check if the passed-in pointer is valid
     if (processManager == NULL)
         return ret_pid;
@@ -69,6 +71,12 @@ int8_t init_pcb(process_manager_t* processManager) {
         }
     }
     processManager->process_position[ret_pid-1]->exc_flag = HALT_NORM;
+    processManager->process_position[ret_pid-1]->vidmap_flag = VIMMAP_NOT_EXIST;
+    // check input argument is bad pointer
+    if (buf_len == 0) {
+        processManager->process_position[ret_pid-1]->argument_buffer[0] = '\0';
+    }
+    strncpy((int8_t *)(processManager->process_position[ret_pid-1]->argument_buffer), )
     return ret_pid;
 }
 

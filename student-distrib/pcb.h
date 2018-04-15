@@ -7,7 +7,7 @@
 #define FA_SIZE                 8
 #define STATUS_CLOSED           67      // 'C' indecates file closed
 #define STATUS_OPENED           79      // 'O' indicates file opened
-#define MAX_PROCESS_NUM         2     // for now, set the process number upper limit to 2
+#define MAX_PROCESS_NUM         2       // for now, set the process number upper limit to 2
 // following two are for ece391_process_manager.process_status
 #define PROCESS_EXIST           1
 #define PROCESS_NOT_EXIST       0
@@ -17,6 +17,11 @@
 // signal for exception
 #define HALT_NORM               0
 #define HALT_EXC                1
+// argument bufferlength
+#define ARG_BUF_LEN             128     // argument buffer length
+// flag signal for vidmap
+#define VIDMAP_EXIST            1       // the flag for vidmap that is allocated
+#define VIMMAP_NOT_EXIST        0       // the flag for vidmap that is deallocated
 
 // the file operation table should be contained in each file struct in the file array
 typedef struct fileOperationTable {
@@ -59,6 +64,10 @@ typedef struct process_control_block {
     //uint32_t page_directory_index;
     uint32_t halt_ebp;
     uint32_t exc_flag;
+    /* the buffer for getarg system_call */
+    uint8_t argument_buffer[ARG_BUF_LEN];
+    /* flag for vidmap */
+    uint8_t vidmap_flag;
 } pcb_t;
 
 /*initialized at boot time, stores pointer to pcbs, process status and current process id*/
@@ -85,6 +94,6 @@ uint32_t push_process(int8_t new_pid);
 void init_process_manager(process_manager_t* processManager);
 
 // this function init a new process, return a pid and -1 on failure
-int8_t init_pcb(process_manager_t* processManager);
+int8_t init_pcb(process_manager_t* processManager, uint8_t* argument);
 
 #endif
