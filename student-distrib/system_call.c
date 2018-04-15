@@ -282,8 +282,11 @@ int32_t execute(const uint8_t* command) {
         idx++;
     memcpy(filename, command, idx);
     filename[idx] = '\0';       /*set the last index as end of string*/
-    if (command[idx] == ' ') {      /*if there is argument*/
-        idx ++;
+    // omit all the space
+    while (command[idx] == ' '){
+        idx++;
+    }
+    if (command[idx] != '\0') {      /*if there is argument*/
         arg_begin = idx;        /*save the beginning addr of the argument*/
         while (command[idx] != '\0') {
             idx ++;
@@ -293,7 +296,7 @@ int32_t execute(const uint8_t* command) {
         argument[arg_idx] = '\0';       /*set the last index as end of string*/
     }
     else {
-        argument = NULL;
+        argument[0] = '\0';
     }
     /*checks whether the file is executable*/
     if (check_executable_validity(filename) == -1) {
@@ -372,7 +375,7 @@ int32_t getargs(uint8_t* buf, int32_t nbytes) {
         printf("cannot get the argument.");
         return -1;
     }
-    arg_buff_len = strlen(ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->argument_buffer);
+    arg_buff_len = strlen((int8_t*) (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->argument_buffer));
     if (arg_buff_len > nbytes) {       /*if the argument do not fit in the buffer*/
         printf("the size of argument do not fit in the buffer.");
         return -1;
@@ -401,7 +404,7 @@ int32_t vidmap(uint8_t** screen_start) {
     /* Set flag to exist */
     current_pcb->vidmap_flag = VIDMAP_EXIST; // Defined in pcb.h
     /* Set return value */
-    *screen_start = USER_VIDEO; // Defined in paging.h
+    *screen_start = (uint8_t*)USER_VIDEO; // Defined in paging.h
     /* Vidmap set success */
     return 0;
 }

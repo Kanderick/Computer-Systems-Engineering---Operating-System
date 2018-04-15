@@ -40,7 +40,7 @@ void init_process_manager(process_manager_t* processManager) {
 int8_t init_pcb(process_manager_t* processManager, uint8_t* argument) {
     uint32_t ii; // for traverse array in processManager
     int8_t ret_pid = -1;    // init pid to be invalid
-    uint32_t buf_len = strlen(argument);    // argument buffer length
+    uint32_t buf_len = strlen((int8_t*) argument);    // argument buffer length
     // check if the passed-in pointer is valid
     if (processManager == NULL)
         return ret_pid;
@@ -71,7 +71,7 @@ int8_t init_pcb(process_manager_t* processManager, uint8_t* argument) {
         }
     }
     processManager->process_position[ret_pid-1]->exc_flag = HALT_NORM;
-    processManager->process_position[ret_pid-1]->vidmap_flag = VIMMAP_NOT_EXIST;
+    processManager->process_position[ret_pid-1]->vidmap_flag = VIDMAP_NOT_EXIST;
     // check input argument is bad pointer
     if (buf_len == 0) {
         processManager->process_position[ret_pid-1]->argument_buffer[0] = '\0';

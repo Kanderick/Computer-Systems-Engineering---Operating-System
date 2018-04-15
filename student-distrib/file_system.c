@@ -209,7 +209,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     // check if offset is in boundary
     if (offset >= ece391FileSystem.ece391_inodes[inode].length) {
         // WARNING_MSG; // This line cause interesting display BUG due to display refresh rate is limited to 256Hz.
-        printf("[WARNING] The file has reach its end, nothing to read.\n");
+        // printf("[WARNING] The file has reach its end, nothing to read.\n");
         return 0; // should return Zero
     }
     // start to copy the string
