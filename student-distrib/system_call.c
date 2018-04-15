@@ -252,7 +252,10 @@ int32_t halt(uint8_t status) {
  */
 int32_t execute (const uint8_t* command) {
     uint8_t filename[TERMINAL_BUFEER_SIZE];
+    uint8_t argument[TERMINAL_BUFEER_SIZE];
     uint32_t idx = 0;
+    uint32_t arg_idx = 0;
+    uint32_t arg_begin;
     int16_t cur_ds;
     int32_t temp;
     int32_t temp_esp;
@@ -268,11 +271,23 @@ int32_t execute (const uint8_t* command) {
         printf("Maximum process number reached. Max %d.\n", ece391_process_manager.curr_pid);
         return 1; // Program terminated abnormally
     }
-
     while (command[idx] != ' ' && command[idx] != '\0')
         idx++;
     memcpy(filename, command, idx);
-    filename[idx] = '\0';
+    filename[idx] = '\0';       /*set the last index as end of string*/
+    if (command[idx] == ' ') {      /*if there is argument*/
+        idx ++;
+        arg_begin = idx;        /*save the beginning addr of the argument*/
+        while (command[idx] != '\0') {
+            idx ++;
+            arg_idx ++;
+        }
+        memcpy(argument, command + arg_begin, arg_idx);     /*copy the argument into the right place*/
+        argument[arg_idx] = '\0';       /*set the last index as end of string*/
+    }
+    else {
+        argument = NULL;
+    }
     /*checks whether the file is executable*/
     if (check_executable_validity(filename) == -1) {
         ERROR_MSG;
@@ -281,14 +296,10 @@ int32_t execute (const uint8_t* command) {
     }
 
     /*stores current process ebp, esp into the process manager*/
-    /*not right, need to delete*/
-    //asm volatile("movl %%ebp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->ebp));
-    //asm volatile("movl %%esp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp));
-    //par_pid = ece391_process_manager.curr_pid;
     /*initialize a pcb for the current process, get the process number*/
     /*current esp, */
 
-    int8_t pid = init_pcb(&ece391_process_manager);
+    int8_t pid = init_pcb(&ece391_process_manager, argument);
     if (pid < 1) {
         ERROR_MSG;
         printf("Unable to create a new pcb.\n");
@@ -347,6 +358,19 @@ int32_t execute (const uint8_t* command) {
 
 // the following funcions are not implemented
 int32_t getargs (uint8_t* buf, int32_t nbytes) {
+    int32_t arg_buff_len;
+    if (buf == NULL)
+        return -1; 
+    if (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->argument_buffer[0] == '\0') {       /*if there is no argumment*/
+        printf("cannot get the argument.");
+        return -1;
+    }
+    arg_buff_len = strlen(ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->argument_buffer);
+    if (arg_buff_len > nbytes) {       /*if the argument do not fit in the buffer*/
+        printf("the size of argument do not fit in the buffer.");
+        return -1;
+    }
+    memcpy(buf, (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->argument_buffer), arg_buff_len);
     return 0;
 }
 
