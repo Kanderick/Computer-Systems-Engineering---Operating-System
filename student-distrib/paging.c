@@ -210,13 +210,14 @@ void user_page_unmapping(uint8_t pid) {
 extern void user_video_mapping() {
   pde_t page_132mb;
   pte_t page_132mb_4kb;
-
+  /*set the correct pde and pte*/
   page_132mb = ((unsigned long)&(page_table_33[PTEIDX_132_4KB]) & PTBA_MASK) | U_S_MASK | R_W_MASK | PRESENT_MASK;
   page_132mb_4kb =  VIDEO_START | U_S_MASK | R_W_MASK | PRESENT_MASK;
-
+  /*set value in the correct position*/
   page_directory[PDEIDX_132MB] = page_132mb;
   page_table_33[PTEIDX_132_4KB] = page_132mb_4kb;
-  write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
+  /* This instruction flushed the tlb */
+  write_cr3((unsigned long)page_directory);
 }
 
 /* user_video_unmapping
@@ -226,7 +227,9 @@ extern void user_video_mapping() {
  * Side Effects flushes tlb
  */
 extern void user_video_unmapping() {
+  /*clean appropriate pde and pte*/
   page_table_33[PTEIDX_132_4KB] = 0;
   page_directory[PDEIDX_132MB] = 0;
-  write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
+  /* This instruction flushed the tlb */
+  write_cr3((unsigned long)page_directory);
 }
