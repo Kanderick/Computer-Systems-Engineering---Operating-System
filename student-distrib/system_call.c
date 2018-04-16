@@ -379,7 +379,17 @@ int32_t execute(const uint8_t* command) {
     return temp;
 }
 
-// the following funcions are not implemented
+/*
+ * getargs
+ *   DESCRIPTION: this function will be called by system call wrapper,
+                  get arguments after the executable name
+ *   INPUTS: buf    which buffer to write to
+ *           nbytes how long the argument is
+ *   OUTPUTS: -1    Error
+              0     Normal
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: none
+ */
 int32_t getargs(uint8_t* buf, int32_t nbytes) {
     int32_t arg_buff_len;
     if (buf == NULL) {
@@ -403,6 +413,16 @@ int32_t getargs(uint8_t* buf, int32_t nbytes) {
     return 0;
 }
 
+/*
+ * vidmap
+ *   DESCRIPTION: this function will be called by system call wrapper,
+                  set user space video mapping
+ *   INPUTS: screen_start    pointer to the user space start pointer.
+ *   OUTPUTS: -1    Error
+              0     Normal
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: none
+ */
 int32_t vidmap(uint8_t** screen_start) {
     /* Check if argument is valid - Check if it falls into 4MB user page */
     if (USER_START_VIRTUAL > (uint32_t)screen_start || (uint32_t)screen_start >= (USER_START_VIRTUAL + _4MB)) {
@@ -428,10 +448,10 @@ int32_t vidmap(uint8_t** screen_start) {
     return 0;
 }
 
+/* Following syscalls are not yet implemented */
 int32_t set_handler(int32_t signum, void* handler_address) {
     return 0;
 }
-
 int32_t sigreturn(void) {
     return 0;
 }
