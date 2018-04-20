@@ -496,14 +496,18 @@ int32_t dir_close(int32_t fd) {
  *   SIDE EFFECTS: none
  */
 int32_t dir_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
+    /*number of file directorys to be read into buffer*/
+    int32_t nfile = nbytes / FILE_NAME_LEN;
     /*index to copy to buffer*/
     int32_t i;
+    /*index for reading dentry*/
+    int32_t ii;
     /*size of a particular file*/
     int32_t filesize;
     /*stores the current dentry*/
     dentry_t temp_dentry;
     /*offset to read dir*/
-    uint32_t offset = (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].filePos;
+    uint32_t offset;
     /*check for bad pointer*/
     if (buf == NULL) {
         ERROR_MSG;
@@ -512,46 +516,52 @@ int32_t dir_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
     }
 
     /*check whether reading 32 bytes*/
-    if (nbytes != FILE_NAME_LEN) {
+    if (nbytes < 0) {
         ERROR_MSG;
-        printf("Bytes to read is not 32.\n");
+        printf("Input nbytes is negative.\n");
         return -1;
     }
+    /*check whether buffer is too big*/
+    nfile = (nfile > ece391FileSystem.dir_count) ? ece391FileSystem.dir_count : nfile;
 
-    /*read the next file*/
-    if (offset >= ece391FileSystem.dir_count) {
-        return 0;
+    for (ii = 0; ii < nfile; ii++){
+        /*current directory read to*/
+        offset = (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].filePos;
+
+        /*read the next file*/
+        if (offset >= ece391FileSystem.dir_count) {
+            return 0;
+        }
+
+        /*read the current file and copy its dentry information*/
+        if (read_dentry_by_index(offset, &temp_dentry) == -1) {
+            ERROR_MSG;
+            printf("Dentry read failed\n");
+            return -1;
+        }
+
+        // update counter
+        ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].filePos)++;
+
+        /*copy filename into the buffer*/
+        for (i = ii * FILE_NAME_LEN; i < (ii+1) * FILE_NAME_LEN; i++) {
+            ((int8_t*)buf)[i] = temp_dentry.filename[i - ii * FILE_NAME_LEN];
+        }
+
+        if (temp_dentry.filetype != 2)
+            filesize = 0;
+        else
+            filesize = ece391FileSystem.ece391_inodes[temp_dentry.inode_num].length;
     }
-
-    /*read the current file and copy its dentry information*/
-    if (read_dentry_by_index(offset, &temp_dentry) == -1) {
-        ERROR_MSG;
-        printf("Dentry read failed\n");
-        return -1;
-    }
-
-    // update counter
-    ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].filePos)++;
-
-    /*copy filename into the buffer*/
-    for (i = 0; i < FILE_NAME_LEN; i++) {
-        ((int8_t*)buf)[i] = temp_dentry.filename[i];
-    }
-
-    if (temp_dentry.filetype != 2)
-        filesize = 0;
-    else
-        filesize = ece391FileSystem.ece391_inodes[temp_dentry.inode_num].length;
-
     /*prints out the filename, filetype, and filesize of the current file in the directory*/
     // printf("Filename: ");
-    for (i = 0; i < FILE_NAME_LEN; i++) {
-        if (temp_dentry.filename[i] == '\0')
-            break;
+    //for (i = 0; i < FILE_NAME_LEN; i++) {
+        //if (temp_dentry.filename[i] == '\0')
+            //break;
         // printf("%c", temp_dentry.filename[i]);
-    }
+    //}
     // printf(", Filetype: %d, Filesize: %dbytes.\n", temp_dentry.filetype, filesize);
-    return 32;
+    return nfile * FILE_NAME_LEN;
 }
 
 /*
