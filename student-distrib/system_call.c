@@ -501,14 +501,14 @@ void init_fileArray(fileArray_t* new_file_array) {
 void init_file_operation_jumptables(void) {
     // init the local jumptables
     // 'stdin' jumptable
-    inTable.oFunc = NULL;
-    inTable.cFunc = NULL;
+    inTable.oFunc = &stdin_open;
+    inTable.cFunc = &stdin_closed;
     inTable.rFunc = &terminal_read;
-    inTable.wFunc = NULL;
+    inTable.wFunc = &stdin_write;
     // 'stdout' jumptable
-    outTable.oFunc = NULL;
-    outTable.cFunc = NULL;
-    outTable.rFunc = NULL;
+    outTable.oFunc = &stdout_open;
+    outTable.cFunc = &stdout_closed;
+    outTable.rFunc = &stdout_read;
     outTable.wFunc = &terminal_write;
     // 'rtc' jumptable
     rtcTable.oFunc = &rtc_open;
