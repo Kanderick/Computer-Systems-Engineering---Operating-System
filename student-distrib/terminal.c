@@ -43,7 +43,7 @@ int32_t terminal_close(int32_t fd) {
              buf -- the keyboard buffer
              nbytes -- the number of bytes that need to be read in
  *   OUTPUTS: none
- *   RETURN VALUE: none
+ *   RETURN VALUE: number of bytes that copied
  *   SIDE EFFECTS: read the keyboard to the target buffer
  */
 int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
@@ -87,7 +87,7 @@ int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
              buf -- the keyboard buffer
              nbytes -- the number of bytes that need to be read in
  *   OUTPUTS: the chars in the target buffer
- *   RETURN VALUE: none
+ *   RETURN VALUE:  number of bytes printed
  *   SIDE EFFECTS: print the char in target buffer onto the screen
  */
 int32_t terminal_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
@@ -119,4 +119,92 @@ int32_t terminal_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
         printf("\n");
     }
     return nbytes;                                          /*return the number of bytes printed*/
+}
+
+/*
+ * stdin_open
+ *   DESCRIPTION: stdin open function
+ *   INPUTS: filename -- the file name of the terminal
+ *   OUTPUTS: none
+ *   RETURN VALUE: -1
+ *   SIDE EFFECTS: always return on failure
+ */
+int32_t stdin_open(const uint8_t *filename){
+    ERROR_MSG;
+    printf("User no privilege open stdin file.\n");
+    return -1;
+}
+
+/*
+ * stdin_close
+ *   DESCRIPTION: stdin close function
+ *   INPUTS: fd -- file discriptor number for the flie array
+ *   OUTPUTS: none
+ *   RETURN VALUE: -1
+ *   SIDE EFFECTS: always return on failure
+ */
+int32_t stdin_closed(int32_t fd){
+    ERROR_MSG;
+    printf("User no privilege close stdin file.\n");
+    return -1;
+}
+
+/*
+ * stdin_write
+ *   DESCRIPTION: stdin write function
+ *   INPUTS: fd -- file discriptor number for the flie array
+             buf -- the keyboard buffer
+             nbytes -- the number of bytes that need to be read in
+ *   OUTPUTS: none
+ *   RETURN VALUE: -1
+ *   SIDE EFFECTS: always return failure
+ */
+int32_t stdin_write(int32_t fd, const unsigned char *buf, int32_t nbytes){
+    ERROR_MSG;
+    printf("User no privilege write stdin file.\n");
+    return -1;
+}
+
+/*
+ * stdout_open
+ *   DESCRIPTION: stdout open function
+ *   INPUTS: filename -- the file name of the terminal
+ *   OUTPUTS: none
+ *   RETURN VALUE: -1
+ *   SIDE EFFECTS: always return failure
+ */
+int32_t stdout_open(const uint8_t *filename){
+    ERROR_MSG;
+    printf("User no privilege open stdout file.\n");
+    return -1;
+}
+
+/*
+ * stdout_close
+ *   DESCRIPTION: stdout close function
+ *   INPUTS: fd -- file discriptor number for the flie array
+ *   OUTPUTS: none
+ *   RETURN VALUE: -1
+ *   SIDE EFFECTS: always return on failure
+ */
+int32_t stdout_closed(int32_t fd){
+    ERROR_MSG;
+    printf("User no privilege close stdout file.\n");
+    return -1;
+}
+
+/*
+ * stdout_read
+ *   DESCRIPTION: stdout read function
+ *   INPUTS: fd -- file discriptor number for the flie array
+             buf -- the keyboard buffer
+             nbytes -- the number of bytes that need to be read in
+ *   OUTPUTS: none
+ *   RETURN VALUE: -1
+ *   SIDE EFFECTS: always return on failure
+ */
+int32_t stdout_read(int32_t fd, unsigned char *buf, int32_t nbytes){
+    ERROR_MSG;
+    printf("User no privilege read stdout file.\n");
+    return -1;
 }

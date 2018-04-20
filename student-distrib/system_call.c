@@ -137,15 +137,15 @@ int32_t read(int32_t fd, void *buf, int32_t nbytes) {
         *((int8_t*) buf) = '\0';
         return -1;
     }
-    if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].flags == STATUS_CLOSED) {            //check whether the file to read is open
-        ERROR_MSG;
-        printf("Process tries to read a already closed file. %d\n", fd);
-        *((int8_t*) buf) = '\0';
-        return -1;
-    }
     if (fd < 0 || fd > FD_PARAM_UPPER) {             //check whether the fd is valid
         ERROR_MSG;
         printf("Process read has bad parameter.\n");
+        *((int8_t*) buf) = '\0';
+        return -1;
+    }
+    if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].flags == STATUS_CLOSED) {            //check whether the file to read is open
+        ERROR_MSG;
+        printf("Process tries to read a already closed file. %d\n", fd);
         *((int8_t*) buf) = '\0';
         return -1;
     }
@@ -176,14 +176,14 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
         printf("No process is running.\n");
         return -1;
     }
-    if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].flags == STATUS_CLOSED) {        //check whether the file to write is open
-        ERROR_MSG;
-        printf("Process tries to write to a already closed file.\n");
-        return -1;
-    }
     if (fd < 0 || fd > FD_PARAM_UPPER) {        //check whether the fd is valid
         ERROR_MSG;
         printf("Process write has bad parameter. %d\n", fd);
+        return -1;
+    }
+    if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].flags == STATUS_CLOSED) {        //check whether the file to write is open
+        ERROR_MSG;
+        printf("Process tries to write to a already closed file.\n");
         return -1;
     }
     if((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].table->wFunc == NULL){            //check whether the process has the right to write the file
@@ -276,7 +276,7 @@ int32_t execute(const uint8_t* command) {
     if (ece391_process_manager.curr_pid == MAX_PROCESS_NUM) {
         ERROR_MSG;
         printf("Maximum process number reached. Max %d.\n", ece391_process_manager.curr_pid);
-        return 1; // Program terminated abnormally
+        return 0; // Program terminated abnormally
     }
     // omit the space
     while (command[0] == ' ' && idx < TERMINAL_BUFEER_SIZE){
@@ -501,14 +501,14 @@ void init_fileArray(fileArray_t* new_file_array) {
 void init_file_operation_jumptables(void) {
     // init the local jumptables
     // 'stdin' jumptable
-    inTable.oFunc = NULL;
-    inTable.cFunc = NULL;
+    inTable.oFunc = &stdin_open;
+    inTable.cFunc = &stdin_closed;
     inTable.rFunc = &terminal_read;
-    inTable.wFunc = NULL;
+    inTable.wFunc = &stdin_write;
     // 'stdout' jumptable
-    outTable.oFunc = NULL;
-    outTable.cFunc = NULL;
-    outTable.rFunc = NULL;
+    outTable.oFunc = &stdout_open;
+    outTable.cFunc = &stdout_closed;
+    outTable.rFunc = &stdout_read;
     outTable.wFunc = &terminal_write;
     // 'rtc' jumptable
     rtcTable.oFunc = &rtc_open;
