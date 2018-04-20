@@ -22,10 +22,11 @@ static int buffIdx = 0;
                   and print the pressed key onto the screen
  *   INPUTS: none
  *   OUTPUTS: none
- *   RETURN VALUE: none
+ *   RETURN VALUE: 0 on no terminal shift
+                   if need terminal shift, return the &(ece391_multi_ter_info[cur_ter_num])
  *   SIDE EFFECTS: print the pressed key onto the screen
  */
-void keyboard_interrupt() {
+int32_t keyboard_interrupt() {
     cli();                          /*clean the interrupt flag*/
     send_eoi(KEYBOARD_IRQ);         /*send the end of interrupt signal to PIC*/
     sti();                          /*restore the interrupt flag*/
@@ -69,6 +70,8 @@ void keyboard_interrupt() {
     }
     if (pressedKey == 0) spKey(scancode);       /*if the key is not a normal key, check whether it is a special key*/
     moveCursor();
+
+    return 0;
 }
 
 /*

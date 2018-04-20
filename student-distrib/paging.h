@@ -31,6 +31,9 @@
 #define KERNEL_START            0x00400000
 #define VIDEO_START             0x000B8000
 #define VIDEO_VIRTUAL           0xB8
+#define TERMINAL1_START         0x000B5000
+#define TERMINAL2_START         0x000B6000
+#define TERMINAL3_START         0x000B7000
 #define USER_START_VIRTUAL      0x08000000
 #define PDEIDX_128MB            32
 #define USER_IMAGE_START        0x08048000
@@ -67,5 +70,8 @@ extern void user_video_mapping();
 
 //unmaps the 132mb+4kb address to the video memory physical address
 extern void user_video_unmapping();
+
+//used to map actual video memory to the correct terminal, does not map background tasks
+extern void switch_terminal_video(uint32_t from, uint32_t to);
 
 #endif

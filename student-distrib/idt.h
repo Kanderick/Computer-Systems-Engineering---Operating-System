@@ -28,6 +28,7 @@
 #define AC      17      /*Alignment Check Exception*/
 #define MC      18      /*Machine-Check Exception*/
 #define XF      19      /*SIMD Floating-Point Exception*/
+#define PIT_INI 0x20    /*PIT*/
 #define KB_INT  0x21    /*keyboard*/
 #define RTC_INT 0x28    /*real time clock*/
 #define SCV     0x80    /*system call vector*/

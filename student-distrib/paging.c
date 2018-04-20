@@ -233,3 +233,20 @@ extern void user_video_unmapping() {
   /* This instruction flushed the tlb */
   write_cr3((unsigned long)page_directory);
 }
+
+/* switch_terminal_video
+ * Purpose	used to map actual video memory to the correct terminal, does not map background tasks
+ * Inputs from: the current terminal; to: the terminal switching to.
+ * Outputs	None
+ * Side Effects flushes tlb
+ */
+extern void switch_terminal_video(uint32_t from, uint32_t to) {
+    if (from < 1 || from > 3 || to < 1 || to > 3) {
+        ERROR_MSG;
+        printf("Invalid terminal number.\n");
+    }
+
+    //save displayed video memory to temp, echo the temp to displayed video memory
+    memcpy((void*)(TERMINAL1_START + (from - 1) * _4KB), (void*)(VIDEO_START), _4KB);
+    memcpy((void*)(VIDEO_START), (void*)(TERMINAL1_START + (to - 1) * _4KB), _4KB);
+}

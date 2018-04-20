@@ -34,7 +34,7 @@
 #define BACKSPACE           0x0E
 
 /*print the pressed key onto the screen*/
-void keyboard_interrupt(void);
+int32_t keyboard_interrupt(void);
 
 /* Check if ALT key pressed */
 int key_pressed();
