@@ -50,7 +50,7 @@ int32_t keyboard_interrupt() {
     if (scancode == L_PRESS && ctrlFlag == 1) {
         clearScreen();    /*clear the screen*/
         ctrlFlag = 0;       /*reset the strl flag*/
-        return;
+        return 0;
     }
     if (scancode == BACKSPACE) {        /*if the backspace key is pressed, delete a char in the buffer*/
         if (buffIdx != 0) {

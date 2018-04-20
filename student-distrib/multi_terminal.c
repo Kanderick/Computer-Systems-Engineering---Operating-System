@@ -26,9 +26,9 @@ void switch_terminal(uint32_t next_terminal){
 
     // extract the terminal number to jump to
     if (next_terminal == TO_DESTI)
-        next_ter_number = ece391_multi_ter_info[cur_ter_num].Dest_ter;
+        next_ter_number = ece391_multi_ter_info[(uint32_t)cur_ter_num].Dest_ter;
     else if (next_terminal == TO_PARENT)
-        next_ter_number = ece391_multi_ter_info[cur_ter_num].Parent_ter;
+        next_ter_number = ece391_multi_ter_info[(uint32_t)cur_ter_num].Parent_ter;
     else
         return ;
     // handle invalid terminal number
@@ -38,9 +38,9 @@ void switch_terminal(uint32_t next_terminal){
         while(1);
     }
     // handle the parent terminal not exist
-    if(next_terminal == TO_PARENT && ece391_multi_ter_statusp[next_ter_number] == TER_NOT_EXIST){
+    if(next_terminal == TO_PARENT && ece391_multi_ter_status[(uint32_t)next_ter_number] == TER_NOT_EXIST){
         for (ii = 0; ii < TER_MAX; ii ++){
-            if(ece391_multi_ter_status[ii] == TER_EXIST){
+            if(ece391_multi_ter_status[(uint32_t)ii] == TER_EXIST){
                 ece391_multi_ter_info[cur_ter_num].Parent_ter = ii;
                 switch_terminal(TO_PARENT);
                 return ;
@@ -51,11 +51,11 @@ void switch_terminal(uint32_t next_terminal){
         while(1);
     }
     // handle the destination terminal not exist
-    if(next_terminal == TO_DESTI && ece391_multi_ter_statusp[next_ter_number] == TER_NOT_EXIST){
+    if(next_terminal == TO_DESTI && ece391_multi_ter_status[next_ter_number] == TER_NOT_EXIST){
         // TODO switch terminal and initiate to execute "shell"
-        ece391_multi_ter_info[next_ter_number].Parent_ter = cur_ter_num;
+        ece391_multi_ter_info[(uint32_t)next_ter_number].Parent_ter = cur_ter_num;
         /* TODO paging, cur_pid, */
-        execute("shell");
+        execute((void *)"shell");
         switch_terminal(TO_PARENT);
         ERROR_MSG;
         printf("TERMINAL FAIL TO RETURN TO PARENT");
@@ -63,7 +63,7 @@ void switch_terminal(uint32_t next_terminal){
     }
     // handle the destination that exists
     // TODO switch terminal and initiate to execute "shell"
-    ece391_multi_ter_info[next_ter_number].Parent_ter = cur_ter_num;
+    ece391_multi_ter_info[(uint32_t)next_ter_number].Parent_ter = cur_ter_num;
     /* TODO paging, cur_pid, */
     /* ss */
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].SS));

@@ -1,3 +1,5 @@
+#ifndef   MULTI_TER_H
+#define   MULTI_TER_H
 #include "paging.h"
 #include "types.h"
 
@@ -33,7 +35,7 @@ struct MULTI_TER_INFO {
     // the destination terminal number
     int8_t Dest_ter;
 } __attribute((packed)); // NOTE: MUST BE PACKED
-typedef MULTI_TER_INFO MULTI_TER_INFO_t;
+typedef struct MULTI_TER_INFO MULTI_TER_INFO_t;
 
 // current terminal number, should be either 0, 1, or 2
 extern uint8_t cur_ter_num;
@@ -49,3 +51,5 @@ void multi_terminal_init();
 
 // switch_terminal function
 void switch_terminal(uint32_t next_terminal);
+
+#endif
