@@ -248,8 +248,8 @@ void rtc_interrupt() {
     // invoking ticks
     rtcFlag++;
     // make the rtcFlag in the proper range
-    if (rtcFlag > HIGHEST)
-        rtcFlag = 1;
+    if (rtcFlag >= HIGHEST)
+        rtcFlag = 0;
 }
 
 /*

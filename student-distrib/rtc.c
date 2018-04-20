@@ -66,9 +66,10 @@ int32_t rtc_close(int32_t fd) {
  */
 int32_t rtc_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
     unsigned int rtcRelativeFreq = (unsigned int)(ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->file_array.files[fd].filePos);
+    const unsigned int dest = (rtcFlag + rtcRelativeFreq)%HIGHEST;
+    unsigned flag = 0;   // make sure at least wait one tound of the while loop
     sti();
-    rtcFlag = 0;    /*set the rtc flag to 1*/
-    while (rtcFlag < rtcRelativeFreq);    /*check whether a rtc interrupt completed*/
+    while (rtcFlag != dest || flag == 0) {flag = 1;}    /*check whether a rtc interrupt completed*/
     return 0;
 }
 
