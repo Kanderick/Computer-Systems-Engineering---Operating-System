@@ -39,6 +39,7 @@ void switch_terminal(uint32_t next_terminal){
     }
     // handle the parent terminal not exist
     if(next_terminal == TO_PARENT && ece391_multi_ter_status[(uint32_t)next_ter_number] == TER_NOT_EXIST){
+        // traverse the terminal list, assign whichever terminal exist to be its head
         for (ii = 0; ii < TER_MAX; ii ++){
             if(ece391_multi_ter_status[(uint32_t)ii] == TER_EXIST){
                 ece391_multi_ter_info[cur_ter_num].Parent_ter = ii;
@@ -51,11 +52,13 @@ void switch_terminal(uint32_t next_terminal){
         while(1);
     }
     // handle the destination terminal not exist
-    if(next_terminal == TO_DESTI && ece391_multi_ter_status[next_ter_number] == TER_NOT_EXIST){
+    if(next_terminal == TO_DESTI && ece391_multi_ter_status[(uint32_t)next_ter_number] == TER_NOT_EXIST){
         // TODO switch terminal and initiate to execute "shell"
-        ece391_multi_ter_info[(uint32_t)next_ter_number].Parent_ter = cur_ter_num;
+        ece391_multi_ter_info[(uint32_t)next_ter_number].Parent_ter = cur_ter_num; // assign the next_terminal's parent to be the current one
         /* TODO paging, cur_pid, */
+        ece391_multi_ter_status[(uint32_t)next_ter_number] = TER_EXIST;
         execute((void *)"shell");
+        ece391_multi_ter_status[(uint32_t)next_ter_number] = TER_NOT_EXIST;
         switch_terminal(TO_PARENT);
         ERROR_MSG;
         printf("TERMINAL FAIL TO RETURN TO PARENT");
@@ -63,7 +66,7 @@ void switch_terminal(uint32_t next_terminal){
     }
     // handle the destination that exists
     // TODO switch terminal and initiate to execute "shell"
-    ece391_multi_ter_info[(uint32_t)next_ter_number].Parent_ter = cur_ter_num;
+    ece391_multi_ter_info[(uint32_t)next_ter_number].Parent_ter = cur_ter_num;  // assign the next_terminal's parent to be the current one
     /* TODO paging, cur_pid, */
     /* ss */
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].SS));
@@ -95,6 +98,9 @@ void switch_terminal(uint32_t next_terminal){
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].ECX));
     /* ebx*/
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EBX));
-
+    /* pop all the register just poped on the stack*/
+    asm volatile("popal" : :);
+    /* use iret to switch context */
+    asm volatile("iret" : :);
 
 }

@@ -113,7 +113,8 @@ keyboard_wrapper:
     # tell switch_terminal to switch to Dest_ter
     pushl $0
     call switch_terminal
-    # should not pop parameter, needs popal and iret immediately
+    # naive fault, after calling switch_terminal, it should never return, unless it failed
+    pushl %eax  # pop the parameter
 # return on normal keyboard interrupt
 NO_TER_SHIFT:
     popal
