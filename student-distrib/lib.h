@@ -29,6 +29,7 @@
 #define ATTRIB_RED      0x4
 #define ATTRIB_BLUE     0x5
 #define COLOR_NUM       6
+#define TITLE_LEN       7
 
 void set_color(unsigned char addr);
 int32_t printf(int8_t *format, ...);

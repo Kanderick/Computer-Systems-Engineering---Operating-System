@@ -21,6 +21,7 @@
 #define RATE                15          /*2Hz rate*/
 #define DEFAULT_RATE        6           /*1024Hz rate*/
 #define BUFF_SIZE           128         /*keyboard buffer size*/
+#define HIST_SIZE           8
 #define LEFT_SHIFT_PRESS    0x2A
 #define RIGHT_SHIFT_PRESS   0x36
 #define LEFT_SHIFT_REL      0xAA
@@ -65,5 +66,15 @@ void resetEnter(void);
 
 /*reset the keyboard buffer*/
 void resetBuffer(void);
+
+unsigned char** getHistBuffer(void);
+
+uint32_t getHistPointer(void);
+
+void inHistPos(void);
+
+void deHistPos(void);
+
+uint32_t getHisPos(void);
 
 #endif

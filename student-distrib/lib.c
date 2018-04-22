@@ -2,6 +2,7 @@
  * vim:ts=4 noexpandtab */
 
 #include "lib.h"
+#include "device.h"
 
 static int screen_x;
 static int screen_y;
@@ -77,7 +78,7 @@ void setCursor(int x, int y) {
  *   SIDE EFFECTS: move the cursor to the right position
  */
 void moveCursor() {
-    uint16_t pos = screen_y * NUM_COLS + screen_x;      /*get the position of the cursor*/
+  uint16_t pos = screen_y * NUM_COLS + screen_x;      /*get the position of the cursor*/
 	outb(0x0F, CUR_REG_ADDR);
 	outb((uint8_t)(pos & CUR_MASK), CUR_REG_DATA);
 	outb(0x0E, CUR_REG_ADDR);
@@ -115,6 +116,10 @@ void scrolling() {
  *   SIDE EFFECTS: handle some special keys reactions
  */
 void spKey(unsigned char scancode) {
+    unsigned char *tempKeyBuffer = getBuffer();
+    unsigned char **tempHistoryBuffer = getHistBuffer();
+    uint32_t tempHistoryPos;
+    uint32_t i;
     if (scancode == DEL) {      /*the case of del*/
         /*every block after the cursor in this line become the next block because of the del*/
         memmove(video_mem + ((NUM_COLS * screen_y + screen_x) << 1), video_mem + ((NUM_COLS * screen_y + screen_x + 1) << 1), (NUM_COLS * NUM_ROWS - (NUM_COLS * screen_y + screen_x)) << 1);
@@ -145,15 +150,30 @@ void spKey(unsigned char scancode) {
             screen_x %= NUM_COLS;
     }
     if (scancode == UP_ARROW) {
-        if (screen_y > 0) screen_y --;
+        deHistPos();
+        tempHistoryPos = getHisPos();
+        printf("\n%s\n", (int8_t *)(&(tempHistoryBuffer[tempHistoryPos][0])));
+        while(1);
+        strncpy((int8_t *)tempKeyBuffer, (int8_t *)(&(tempHistoryBuffer[tempHistoryPos][0])), BUFF_SIZE);
+
+        setCursor(TITLE_LEN, screen_y);
+        for (i = 0; i < strlen((int8_t *)tempKeyBuffer); i++) {
+            putc(tempKeyBuffer[i]);
+        }
     }
     if (scancode == DOWN_ARROW) {
-        if (screen_y < NUM_ROWS - 1) screen_y ++;
+      inHistPos();
+      tempHistoryPos = getHisPos();
+      strncpy((int8_t *)tempKeyBuffer, (int8_t *)(&(tempHistoryBuffer[tempHistoryPos][0])), BUFF_SIZE);
+      setCursor(TITLE_LEN, screen_y);
+      for (i = 0; i < strlen((int8_t *)tempKeyBuffer); i++) {
+          putc(tempKeyBuffer[i]);
+        }
     }
 }
 
 int8_t check_head() {
-    uint8_t *head = (uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x - 7) << 1));
+    uint8_t *head = (uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x - TITLE_LEN) << 1));
     switch (*head) {
     case '3': {
         head += 2;

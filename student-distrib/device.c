@@ -14,6 +14,10 @@ static uint8_t capsFlag;
 static volatile uint8_t keyFlag;
 static volatile uint8_t enterFlag;
 static unsigned char keyBuffer[BUFF_SIZE + 1]; // +1 since we need to detect ENTER after filled
+static unsigned char historyBuffer[HIST_SIZE][BUFF_SIZE];  // history buffer for every terminal read
+static uint32_t historyPointer = 0;
+static uint32_t historyPos = 0;
+static uint8_t histFlag = 0;
 static int buffIdx = 0;
 
 /*
@@ -29,6 +33,7 @@ void keyboard_interrupt() {
     cli();                          /*clean the interrupt flag*/
     send_eoi(KEYBOARD_IRQ);         /*send the end of interrupt signal to PIC*/
     sti();                          /*restore the interrupt flag*/
+    if (check_head() == 1) histFlag = 1;
     unsigned char scancode = 0;     /*initialize scancode*/
     unsigned char pressedKey = 0;   /*initialize pressedKey*/
     scancode = inb(KEY_REG_DATA);
@@ -49,6 +54,7 @@ void keyboard_interrupt() {
     if (scancode == L_PRESS && ctrlFlag == 1) {
         clearScreen();    /*clear the screen*/
         ctrlFlag = 0;       /*reset the strl flag*/
+        printf("391OS> ");
         return;
     }
     if (scancode == BACKSPACE) {        /*if the backspace key is pressed, delete a char in the buffer*/
@@ -96,6 +102,18 @@ unsigned char KB_decode(unsigned char scancode) {
     switch(scancode) {
         case 0x1C: {
             enterFlag = 1;
+            if (histFlag == 1) {
+                strncpy((int8_t *)(&(historyBuffer[historyPointer][0])), (int8_t *)keyBuffer, BUFF_SIZE);
+                historyBuffer[historyPointer][strlen((int8_t *)keyBuffer)] = '\0';
+                printf("NEXTHIST[%d]%s", historyPointer, (int8_t *)(&(historyBuffer[historyPointer][0])));
+                historyPointer ++;
+                historyPos = historyPointer;
+                histFlag = 0;
+
+                if (historyPointer == HIST_SIZE) {
+                    printf("ATTENTION: history buffer reach its maxmum, cannot store more history.");
+                }
+            }
             return '\n';
         }
         case 0x39: return ' ';
@@ -300,6 +318,10 @@ void set_rate(unsigned rate) {
  */
 unsigned char *getBuffer() {return keyBuffer;}
 
+unsigned char** getHistBuffer() { return (unsigned char**) (historyBuffer);}
+
+uint32_t getHistPointer() {return historyPointer;}
+
 /*
  * getEnter
  *   DESCRIPTION: get the enter flag
@@ -335,4 +357,18 @@ void resetBuffer() {
     int i;
     for (i = 0; i < BUFF_SIZE+1; i ++)
         keyBuffer[i] = '\0'; // +1 since we need to detect ENTER after filled
+}
+
+void inHistPos() {
+    if (historyPos+1 < historyPointer)
+        historyPos ++;
+}
+
+void deHistPos() {
+    if (historyPos > 0)
+        historyPos --;
+}
+
+uint32_t getHisPos() {
+    return historyPos;
 }
