@@ -248,10 +248,10 @@ void switch_terminal_video(uint8_t from, uint8_t to) {
         ERROR_MSG;
         printf("Invalid terminal number.\n");
     }
-
     //save displayed video memory to temp, echo the temp to displayed video memory
-    memcpy((void*)(TERMINAL1_START +  (uint32_t)from * _4KB), (void*)(VIDEO_START), _4KB);
-    memcpy((void*)(VIDEO_START), (void*)(TERMINAL1_START + (uint32_t)to * _4KB), _4KB);
+    memcpy((char*)(TERMINAL1_START +  (uint32_t)from * _4KB), (char*)(VIDEO_START), 4000);
+    memcpy((char*)(VIDEO_START), (char*)(TERMINAL1_START + (uint32_t)to * _4KB), 4000);
+    write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
 }
 
 /* switch_terminal_paging

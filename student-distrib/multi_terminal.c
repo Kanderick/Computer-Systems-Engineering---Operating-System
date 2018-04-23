@@ -20,6 +20,7 @@ void multi_terminal_init(){
         ece391_multi_ter_info[ii].ter_screen_x = TER_NOT_EXIST;
         ece391_multi_ter_info[ii].ter_screen_y = TER_NOT_EXIST;
         ece391_multi_ter_info[ii].ter_bufferIdx = TER_NOT_EXIST;
+        ece391_multi_ter_info[ii].PID_num = -1;
         for (i = 0; i < ter_buffer_len+1; i ++)
             ece391_multi_ter_info[ii].ter_buffer[i] = '\0'; // +1 since we need to detect ENTER after filled
     }
@@ -72,9 +73,13 @@ void switch_terminal(uint32_t next_terminal) {
         /*switch terminal video memory*/
         switch_terminal_video(cur_ter_num, next_ter_number);
         ece391_multi_ter_status[(uint32_t)next_ter_number] = TER_EXIST;
+        /*change the current terminal to the next one */
+        cur_ter_num = next_ter_number;
         clear();
+
         execute((void *)"shell");
-        ece391_multi_ter_status[(uint32_t)next_ter_number] = TER_NOT_EXIST;
+
+        ece391_multi_ter_status[(uint32_t)cur_ter_num] = TER_NOT_EXIST;
         switch_terminal(TO_PARENT);
         ERROR_MSG;
         printf("TERMINAL FAIL TO RETURN TO PARENT");
@@ -86,14 +91,15 @@ void switch_terminal(uint32_t next_terminal) {
     /* TODO paging, cur_pid, */
     /*switch terminal video memory*/
     switch_terminal_video(cur_ter_num, next_ter_number);
-    /*change the current terminal to the next one */
-    cur_ter_num = next_ter_number;
     /* update cur_pid */
     ece391_process_manager.curr_pid = ece391_multi_ter_info[(uint32_t)next_ter_number].PID_num;
+    printf("current pid is : %d\n", ece391_process_manager.curr_pid);
+    /*change the current terminal to the next one */
+    cur_ter_num = next_ter_number;
     /*switch destination terminal process user memory*/
     switch_terminal_paging(ece391_process_manager.curr_pid);
     /* gives the notification */
-    printf("[ATTENTION] SWITCH TO TERMINAL %d\n", (uint32_t)next_ter_number);
+    printf("[ATTENTION] SWITCH TO TERMINAL %d\n", (uint32_t)cur_ter_num);
     /* ss */
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].SS_reg));
     /* esp */
