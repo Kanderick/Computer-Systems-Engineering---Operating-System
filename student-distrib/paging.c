@@ -241,7 +241,7 @@ extern void user_video_unmapping() {
  * Side Effects None
  */
 extern void switch_terminal_video(uint8_t from, uint8_t to) {
-    if (from < 0 || from > 2 || to < 0 || to > 2) {
+    if (from > 2 || to > 2) {
         ERROR_MSG;
         printf("Invalid terminal number.\n");
     }

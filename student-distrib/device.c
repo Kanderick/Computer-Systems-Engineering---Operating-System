@@ -392,6 +392,6 @@ void context_switch(int terNum) {
     memcpy(ece391_multi_ter_info[cur_ter_num].ter_buffer, keyBuffer, BUFF_SIZE);
     memcpy(keyBuffer, ece391_multi_ter_info[terNum].ter_buffer, BUFF_SIZE);
     ece391_multi_ter_info[cur_ter_num].ter_bufferIdx = buffIdx;
-    buffIdx = ece391_multi_ter_info[terNum].ter_bufferIdx = buffIdx;
-    cur_ter_num = terNum;
+    buffIdx = ece391_multi_ter_info[terNum].ter_bufferIdx;
+    // cur_ter_num = terNum; // NOTE
 }
