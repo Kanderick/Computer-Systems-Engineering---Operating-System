@@ -28,19 +28,20 @@ struct MULTI_TER_INFO {
     uint32_t EFLAGS_reg;
     uint32_t ESP_reg;
     uint32_t SS_reg;
-    // if return to a terminal, use this pid to restore the cur_pid
-    int8_t PID_num;
-    // the parent terminal
-    int8_t Parent_ter;
-    // the destination terminal number
-    int8_t Dest_ter;
+
     // for user runtime
     // cursor information
     int ter_screen_x;
     int ter_screen_y;
     // info for terminal read
     int ter_bufferIdx;
-    uint8_t ter_buffer[ter_buffer_len];
+    uint8_t ter_buffer[ter_buffer_len+1];
+    // if return to a terminal, use this pid to restore the cur_pid
+    int8_t PID_num;
+    // the parent terminal
+    int8_t Parent_ter;
+    // the destination terminal number
+    int8_t Dest_ter;
 } __attribute((packed)); // NOTE: MUST BE PACKED
 typedef struct MULTI_TER_INFO MULTI_TER_INFO_t;
 

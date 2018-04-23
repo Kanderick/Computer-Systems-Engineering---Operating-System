@@ -13,12 +13,20 @@ uint8_t ece391_multi_ter_status[TER_MAX];
 
 // init multi-terminal
 void multi_terminal_init(){
-    uint8_t ii;
-    for (ii = 0; ii < TER_MAX; ii++)
+    uint8_t ii, i;
+    for (ii = 0; ii < TER_MAX; ii++) {
         ece391_multi_ter_status[ii] = TER_NOT_EXIST;
+        ece391_multi_ter_info[ii].ter_screen_x = TER_NOT_EXIST;
+        ece391_multi_ter_info[ii].ter_screen_y = TER_NOT_EXIST;
+        ece391_multi_ter_info[ii].ter_bufferIdx = TER_NOT_EXIST;
+        for (i = 0; i < ter_buffer_len+1; i ++)
+            ece391_multi_ter_info[ii].ter_buffer[i] = '\0'; // +1 since we need to detect ENTER after filled
+    }
+    // open terminal 0
     cur_ter_num = 0;
     ece391_multi_ter_status[cur_ter_num] = TER_EXIST;
     ece391_multi_ter_info[cur_ter_num].Parent_ter = -1; // set Parent_ter to nonsense
+
 }
 
 // switch_terminal function
