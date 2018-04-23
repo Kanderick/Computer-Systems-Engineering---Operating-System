@@ -6,6 +6,8 @@ their handler
 #include "tests.h"
 #include "rtc.h"
 #include "lib.h"
+#include "multi_terminal.h"
+#include "pcb.h"
 
 static uint8_t shiftFlag;       /* check whether the shiftkey is pressed */
 static uint8_t ctrlFlag;
@@ -51,6 +53,40 @@ int32_t keyboard_interrupt() {
         clearScreen();    /*clear the screen*/
         ctrlFlag = 0;       /*reset the strl flag*/
         return 0;
+    }
+    if (altFlag == 1) {
+        switch(scancode) {
+            case F_ONE:
+            if (cur_ter_num == TER_ZERO) return 0;
+            else {
+                ece391_multi_ter_info[cur_ter_num].Dest_ter = TER_ZERO;
+                ece391_multi_ter_info[cur_ter_num].PID_num = ece391_process_manager.curr_pid;
+                ece391_multi_ter_info[TER_ZERO].Parent_ter = cur_ter_num;
+                cur_ter_num = TER_ZERO;
+                return (int32_t)(&ece391_multi_ter_info[cur_ter_num]);
+            }
+            break;
+            case F_TWO:
+            if (cur_ter_num == TER_ONE) return 0;
+            else {
+                ece391_multi_ter_info[cur_ter_num].Dest_ter = TER_ONE;
+                ece391_multi_ter_info[cur_ter_num].PID_num = ece391_process_manager.curr_pid;
+                ece391_multi_ter_info[TER_ONE].Parent_ter = cur_ter_num;
+                cur_ter_num = TER_ONE;
+                return (int32_t)(&ece391_multi_ter_info[cur_ter_num]);
+            }
+            break;
+            case F_THREE:
+            if (cur_ter_num == TER_TWO) return 0;
+            else {
+                ece391_multi_ter_info[cur_ter_num].Dest_ter = TER_TWO;
+                ece391_multi_ter_info[cur_ter_num].PID_num = ece391_process_manager.curr_pid;
+                ece391_multi_ter_info[TER_TWO].Parent_ter = cur_ter_num;
+                cur_ter_num = TER_TWO;
+                return (int32_t)(&ece391_multi_ter_info[cur_ter_num]);
+            }
+            break;
+        }
     }
     if (pressedKey == 0) spKey(scancode);       /*if the key is not a normal key, check whether it is a special key*/
     if (scancode == BACKSPACE) {        /*if the backspace key is pressed, delete a char in the buffer*/

@@ -32,6 +32,12 @@
 #define CAPS_PRESS          0x3A
 #define L_PRESS             0x26
 #define BACKSPACE           0x0E
+#define F_ONE               0x3B
+#define F_TWO               0x3C
+#define F_THREE             0x3D
+#define TER_ZERO            0
+#define TER_ONE             1
+#define TER_TWO             2
 
 /*print the pressed key onto the screen*/
 int32_t keyboard_interrupt(void);
