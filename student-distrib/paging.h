@@ -32,8 +32,11 @@
 #define VIDEO_START             0x000B8000
 #define VIDEO_VIRTUAL           0xB8
 #define TERMINAL1_START         0x000B5000
+#define TERMINAL1_VIRTUAL       0xB5
 #define TERMINAL2_START         0x000B6000
+#define TERMINAL2_VIRTUAL       0xB6
 #define TERMINAL3_START         0x000B7000
+#define TERMINAL3_VIRTUAL       0xB7
 #define USER_START_VIRTUAL      0x08000000
 #define PDEIDX_128MB            32
 #define USER_IMAGE_START        0x08048000

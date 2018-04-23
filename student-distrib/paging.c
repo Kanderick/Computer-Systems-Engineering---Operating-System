@@ -149,7 +149,10 @@ void init_paging(void) {
 
     /* Points to the start of Video memory */
     page_table_0[VIDEO_VIRTUAL] = VIDEO_START | R_W_MASK | PRESENT_MASK;
-
+    /*3 terminal memory*/
+    page_table_0[TERMINAL1_VIRTUAL] = TERMINAL1_START | R_W_MASK | PRESENT_MASK;
+    page_table_0[TERMINAL2_VIRTUAL] = TERMINAL2_START | R_W_MASK | PRESENT_MASK;
+    page_table_0[TERMINAL3_VIRTUAL] = TERMINAL3_START | R_W_MASK | PRESENT_MASK;
     /* Kernel 4MB page, present, R/W on */
     page_directory[1] = KERNEL_START | PAGE_SIZE_MASK | R_W_MASK | PRESENT_MASK;
 
