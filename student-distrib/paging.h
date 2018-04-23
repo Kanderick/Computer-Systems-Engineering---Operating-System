@@ -80,4 +80,6 @@ extern void switch_terminal_video(uint8_t from, uint8_t to);
 //used to set up paging for the current process in the destination terminal, do not need if no
 //process exists in the destination terminal, because paging is set up by execute call in that case
 extern void switch_terminal_paging(int8_t destination_pid);
+
+extern void clear_terminal_video(char* terminal_video);
 #endif

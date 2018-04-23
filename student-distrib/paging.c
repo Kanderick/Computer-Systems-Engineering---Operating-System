@@ -210,7 +210,7 @@ void user_page_unmapping(uint8_t pid) {
  * Outputs	None
  * Side Effects flushes tlb
  */
-extern void user_video_mapping() {
+void user_video_mapping() {
   pde_t page_132mb;
   pte_t page_132mb_4kb;
   /*set the correct pde and pte*/
@@ -229,7 +229,7 @@ extern void user_video_mapping() {
  * Outputs	None
  * Side Effects flushes tlb
  */
-extern void user_video_unmapping() {
+void user_video_unmapping() {
   /*clean appropriate pde and pte*/
   page_table_33[PTEIDX_132_4KB] = 0;
   page_directory[PDEIDX_132MB] = 0;
@@ -243,15 +243,15 @@ extern void user_video_unmapping() {
  * Outputs	None
  * Side Effects None
  */
-extern void switch_terminal_video(uint8_t from, uint8_t to) {
+void switch_terminal_video(uint8_t from, uint8_t to) {
     if (from > 2 || to > 2) {
         ERROR_MSG;
         printf("Invalid terminal number.\n");
     }
 
     //save displayed video memory to temp, echo the temp to displayed video memory
-    memcpy((void*)(TERMINAL1_START + from * _4KB), (void*)(VIDEO_START), _4KB);
-    memcpy((void*)(VIDEO_START), (void*)(TERMINAL1_START + to * _4KB), _4KB);
+    memcpy((void*)(TERMINAL1_START +  (uint32_t)from * _4KB), (void*)(VIDEO_START), _4KB);
+    memcpy((void*)(VIDEO_START), (void*)(TERMINAL1_START + (uint32_t)to * _4KB), _4KB);
 }
 
 /* switch_terminal_paging
@@ -261,7 +261,7 @@ extern void switch_terminal_video(uint8_t from, uint8_t to) {
  * Outputs	None
  * Side Effects flushes tlb
  */
-extern void switch_terminal_paging(int8_t destination_pid) {
+void switch_terminal_paging(int8_t destination_pid) {
     pde_t page_128mb;
     if (destination_pid >= 1) {
         page_128mb = ((destination_pid + 1) * _4MB) | PAGE_SIZE_MASK | R_W_MASK | U_S_MASK | PRESENT_MASK;
@@ -271,5 +271,17 @@ extern void switch_terminal_paging(int8_t destination_pid) {
     } else {
         ERROR_MSG;
         printf("Invalid PID.\n");
+    }
+}
+
+/* void clear_terminal_video(void);
+ * Inputs: video_mem: the video memory to initialize
+ * Return Value: none
+ * Function: Clears video memory */
+void clear_terminal_video(char* terminal_video) {
+    int32_t i;
+    for (i = 0; i < NUM_ROWS * NUM_COLS; i ++) {
+        *(uint8_t *)(terminal_video + (i << 1)) = ' ';
+        *(uint8_t *)(terminal_video + (i << 1) + 1) = ATTRIB;
     }
 }

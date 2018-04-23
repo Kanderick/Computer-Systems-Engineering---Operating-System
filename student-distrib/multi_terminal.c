@@ -1,6 +1,7 @@
 #include "multi_terminal.h"
 #include "system_call.h"
 #include "types.h"
+#include "lib.h"
 #include "pcb.h"
 // current terminal number
 uint8_t cur_ter_num;
@@ -71,6 +72,7 @@ void switch_terminal(uint32_t next_terminal) {
         /*switch terminal video memory*/
         switch_terminal_video(cur_ter_num, next_ter_number);
         ece391_multi_ter_status[(uint32_t)next_ter_number] = TER_EXIST;
+        clear();
         execute((void *)"shell");
         ece391_multi_ter_status[(uint32_t)next_ter_number] = TER_NOT_EXIST;
         switch_terminal(TO_PARENT);

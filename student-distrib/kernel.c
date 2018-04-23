@@ -162,7 +162,10 @@ void entry(unsigned long magic, unsigned long addr) {
 
     /* Init the paging */
     init_paging();
-
+    /*initialize terminal video*/
+    clear_terminal_video((char *)TERMINAL1_START);
+    clear_terminal_video((char *)TERMINAL2_START);
+    clear_terminal_video((char *)TERMINAL3_START);
     /* Init processManager */
     init_process_manager(&ece391_process_manager);
     {
