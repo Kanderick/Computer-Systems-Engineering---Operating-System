@@ -2,6 +2,7 @@
  * vim:ts=4 noexpandtab */
 
 #include "lib.h"
+#include "device.h"
 
 static int screen_x;
 static int screen_y;
@@ -120,7 +121,7 @@ void spKey(unsigned char scancode) {
         memmove(video_mem + ((NUM_COLS * screen_y + screen_x) << 1), video_mem + ((NUM_COLS * screen_y + screen_x + 1) << 1), (NUM_COLS * NUM_ROWS - (NUM_COLS * screen_y + screen_x)) << 1);
     }
     if (scancode == BACKSPACE) {        /*the case of backspace*/
-        if (check_head() == 1) return;
+        if (check_head() == 1 || getIdx() <= 0) return;
         if (screen_x == 0 && screen_y == 0) return;     /*if it is at the front of the screen, just return*/
         screen_x --;        /*left move the cursor for one block*/
         /*every block after the cursor in this line become the next block because of the backspace*/
@@ -143,13 +144,14 @@ void spKey(unsigned char scancode) {
             screen_x ++;     /*if it is not the end of the string, right move the cursor by one block*/
             screen_y = screen_y + (screen_x / NUM_COLS);
             screen_x %= NUM_COLS;
+            scrolling();
     }
-    if (scancode == UP_ARROW) {
-        if (screen_y > 0) screen_y --;
-    }
-    if (scancode == DOWN_ARROW) {
-        if (screen_y < NUM_ROWS - 1) screen_y ++;
-    }
+    // if (scancode == UP_ARROW) {
+    //     if (screen_y > 0) screen_y --;
+    // }
+    // if (scancode == DOWN_ARROW) {
+    //     if (screen_y < NUM_ROWS - 1) screen_y ++;
+    // }
 }
 
 int8_t check_head() {

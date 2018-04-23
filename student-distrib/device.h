@@ -66,4 +66,7 @@ void resetEnter(void);
 /*reset the keyboard buffer*/
 void resetBuffer(void);
 
+/*get the buffer idx*/
+int getIdx(void);
+
 #endif

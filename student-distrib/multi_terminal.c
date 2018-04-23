@@ -64,7 +64,7 @@ void switch_terminal(uint32_t next_terminal){
         printf("TERMINAL FAIL TO RETURN TO PARENT");
         while(1);
     }
-    // handle the destination that exists
+    // handle the next_terminal that exists
     // TODO switch terminal and initiate to execute "shell"
     ece391_multi_ter_info[(uint32_t)next_ter_number].Parent_ter = cur_ter_num;  // assign the next_terminal's parent to be the current one
     /* TODO paging, cur_pid, */

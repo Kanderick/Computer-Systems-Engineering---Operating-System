@@ -52,6 +52,7 @@ int32_t keyboard_interrupt() {
         ctrlFlag = 0;       /*reset the strl flag*/
         return 0;
     }
+    if (pressedKey == 0) spKey(scancode);       /*if the key is not a normal key, check whether it is a special key*/
     if (scancode == BACKSPACE) {        /*if the backspace key is pressed, delete a char in the buffer*/
         if (buffIdx != 0) {
             keyBuffer[buffIdx] = '\0';
@@ -68,7 +69,7 @@ int32_t keyboard_interrupt() {
         }
         buffIdx ++;
     }
-    if (pressedKey == 0) spKey(scancode);       /*if the key is not a normal key, check whether it is a special key*/
+
     moveCursor();
 
     return 0;
@@ -338,4 +339,16 @@ void resetBuffer() {
     int i;
     for (i = 0; i < BUFF_SIZE+1; i ++)
         keyBuffer[i] = '\0'; // +1 since we need to detect ENTER after filled
+}
+
+/*
+ * getIdx
+ *   DESCRIPTION: get the buffer idx
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: buffIdx
+ *   SIDE EFFECTS: get the buffer idx
+ */
+int getIdx() {
+    return buffIdx;
 }
