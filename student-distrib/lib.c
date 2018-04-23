@@ -121,7 +121,7 @@ void spKey(unsigned char scancode) {
         memmove(video_mem + ((NUM_COLS * screen_y + screen_x) << 1), video_mem + ((NUM_COLS * screen_y + screen_x + 1) << 1), (NUM_COLS * NUM_ROWS - (NUM_COLS * screen_y + screen_x)) << 1);
     }
     if (scancode == BACKSPACE) {        /*the case of backspace*/
-        if (check_head() == 1 || getIdx() <= 0) return;
+        if (getIdx() <= 0) return;
         if (screen_x == 0 && screen_y == 0) return;     /*if it is at the front of the screen, just return*/
         screen_x --;        /*left move the cursor for one block*/
         /*every block after the cursor in this line become the next block because of the backspace*/
@@ -132,7 +132,7 @@ void spKey(unsigned char scancode) {
         }
     }
     if (scancode == LEFT_ARROW) {       /*the case of left arrow*/
-        if (check_head() == 1) return;
+        //if (check_head() == 1) return;
         if (screen_x == 0 && screen_y == 0) return;     /*if it is at the front of the screen, just return*/
             screen_x --;        /*left move the cursor for one block*/
         if (screen_x < 0) {
