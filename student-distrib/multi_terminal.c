@@ -84,6 +84,8 @@ void switch_terminal(uint32_t next_terminal) {
     /* TODO paging, cur_pid, */
     /*switch terminal video memory*/
     switch_terminal_video(cur_ter_num, next_ter_number);
+    /*change the current terminal to the next one */
+    cur_ter_num = next_ter_number;
     /* update cur_pid */
     ece391_process_manager.curr_pid = ece391_multi_ter_info[(uint32_t)next_ter_number].PID_num;
     /*switch destination terminal process user memory*/
