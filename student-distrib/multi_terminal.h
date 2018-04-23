@@ -8,32 +8,39 @@
 #define TER_NOT_EXIST   0       // for ece391_multi_ter_status, indicating non-existance
 #define TO_DESTI        0       // tell switch_terminal jump to destination terminal
 #define TO_PARENT       1       // tell switch_terminal jump to parent terminal
-
+#define ter_buffer_len  128     // for restore terminal buffer
 
 // NOTE: DONOT change even the element order of the following structure
 struct MULTI_TER_INFO {
     // runtime info, use this to jump back to old terminal
-    uint32_t EBX;
-    uint32_t ECX;
-    uint32_t EDX;
-    uint32_t ESI;
-    uint32_t EDI;
-    uint32_t EBP;
-    uint32_t EAX;
-    uint32_t DS;
-    uint32_t ES;
-    uint32_t FS;
-    uint32_t old_EIP;
-    uint32_t CS;
-    uint32_t EFLAGS;
-    uint32_t ESP;
-    uint32_t SS;
+    uint32_t EBX_reg;
+    uint32_t ECX_reg;
+    uint32_t EDX_reg;
+    uint32_t ESI_reg;
+    uint32_t EDI_reg;
+    uint32_t EBP_reg;
+    uint32_t EAX_reg;
+    uint32_t DS_reg;
+    uint32_t ES_reg;
+    uint32_t FS_reg;
+    uint32_t old_EIP_reg;
+    uint32_t CS_reg;
+    uint32_t EFLAGS_reg;
+    uint32_t ESP_reg;
+    uint32_t SS_reg;
     // if return to a terminal, use this pid to restore the cur_pid
     int8_t PID_num;
     // the parent terminal
     int8_t Parent_ter;
     // the destination terminal number
     int8_t Dest_ter;
+    // for user runtime
+    // cursor information
+    int ter_screen_x;
+    int ter_screen_y;
+    // info for terminal read
+    int ter_bufferIdx;
+    uint8_t ter_buffer[ter_buffer_len];
 } __attribute((packed)); // NOTE: MUST BE PACKED
 typedef struct MULTI_TER_INFO MULTI_TER_INFO_t;
 

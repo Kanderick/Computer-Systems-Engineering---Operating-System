@@ -1,6 +1,7 @@
 #include "multi_terminal.h"
 #include "system_call.h"
 #include "types.h"
+#include "pcb.h"
 // current terminal number
 uint8_t cur_ter_num;
 
@@ -21,16 +22,19 @@ void multi_terminal_init(){
 }
 
 // switch_terminal function
-void switch_terminal(uint32_t next_terminal){
+void switch_terminal(uint32_t next_terminal) {
     int8_t next_ter_number, ii;
 
     // extract the terminal number to jump to
-    if (next_terminal == TO_DESTI)
+    if (next_terminal == TO_DESTI) {
         next_ter_number = ece391_multi_ter_info[(uint32_t)cur_ter_num].Dest_ter;
-    else if (next_terminal == TO_PARENT)
+    }
+    else if (next_terminal == TO_PARENT) {
         next_ter_number = ece391_multi_ter_info[(uint32_t)cur_ter_num].Parent_ter;
-    else
+    }
+    else {
         return ;
+    }
     // handle invalid terminal number
     if(next_terminal<0 || next_terminal>2){
         ERROR_MSG;
@@ -54,7 +58,7 @@ void switch_terminal(uint32_t next_terminal){
     // handle the destination terminal not exist
     if(next_terminal == TO_DESTI && ece391_multi_ter_status[(uint32_t)next_ter_number] == TER_NOT_EXIST){
         // TODO switch terminal and initiate to execute "shell"
-        ece391_multi_ter_info[(uint32_t)next_ter_number].Parent_ter = cur_ter_num; // assign the next_terminal's parent to be the current one
+        // ece391_multi_ter_info[(uint32_t)next_ter_number].Parent_ter = cur_ter_num; // assign the next_terminal's parent to be the current one
         /* TODO paging, cur_pid, */
         ece391_multi_ter_status[(uint32_t)next_ter_number] = TER_EXIST;
         execute((void *)"shell");
@@ -66,38 +70,42 @@ void switch_terminal(uint32_t next_terminal){
     }
     // handle the next_terminal that exists
     // TODO switch terminal and initiate to execute "shell"
-    ece391_multi_ter_info[(uint32_t)next_ter_number].Parent_ter = cur_ter_num;  // assign the next_terminal's parent to be the current one
+    // ece391_multi_ter_info[(uint32_t)next_ter_number].Parent_ter = cur_ter_num;  // assign the next_terminal's parent to be the current one
     /* TODO paging, cur_pid, */
+    /* update cur_pid */
+    ece391_process_manager.curr_pid = ece391_multi_ter_info[(uint32_t)next_ter_number].PID_num;
+    /* gives the notification */
+    printf("[ATTENTION] SWITCH TO TERMINAL %d\n", (uint32_t)next_ter_number);
     /* ss */
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].SS));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].SS_reg));
     /* esp */
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].ESP));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].ESP_reg));
     /* eflags */
-    asm volatile("push  %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EFLAGS));
+    asm volatile("push  %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EFLAGS_reg));
     /* cs */
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].CS));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].CS_reg));
     /* eip*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].old_EIP));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].old_EIP_reg));
     /* fs*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].FS));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].FS_reg));
     /* es*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].ES));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].ES_reg));
     /* ds*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].DS));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].DS_reg));
     /* eax*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EAX));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EAX_reg));
     /* ebp*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EBP));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EBP_reg));
     /* edi*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EDI));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EDI_reg));
     /* esi*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].ESI));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].ESI_reg));
     /* edx*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EDX));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EDX_reg));
     /* ecx*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].ECX));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].ECX_reg));
     /* ebx*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EBX));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EBX_reg));
     /* pop all the register just poped on the stack*/
     asm volatile("popal" : :);
     /* use iret to switch context */

@@ -14,6 +14,7 @@
 #include "file_system.h"
 #include "pcb.h"
 #include "system_call.h"
+#include "multi_terminal.h"
 
 // #define RUN_TESTS
 
@@ -170,6 +171,10 @@ void entry(unsigned long magic, unsigned long addr) {
         clear();
         init_file_system(ECE391_FILE_SYSTEM_ADDR_START, ECE391_FILE_SYSTEM_ADDR_END);
     }
+
+    /* Init maultiple terminal */
+    multi_terminal_init();
+
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
