@@ -59,31 +59,22 @@ int32_t keyboard_interrupt() {
             case F_ONE:
             if (cur_ter_num == TER_ZERO) return 0;
             else {
-                ece391_multi_ter_info[cur_ter_num].Dest_ter = TER_ZERO;
-                ece391_multi_ter_info[cur_ter_num].PID_num = ece391_process_manager.curr_pid;
-                ece391_multi_ter_info[TER_ZERO].Parent_ter = cur_ter_num;
-                cur_ter_num = TER_ZERO;
-                return (int32_t)(&ece391_multi_ter_info[cur_ter_num]);
+                context_switch(TER_ZERO);
+                return (int32_t)(&ece391_multi_ter_info[TER_ZERO]);
             }
             break;
             case F_TWO:
             if (cur_ter_num == TER_ONE) return 0;
             else {
-                ece391_multi_ter_info[cur_ter_num].Dest_ter = TER_ONE;
-                ece391_multi_ter_info[cur_ter_num].PID_num = ece391_process_manager.curr_pid;
-                ece391_multi_ter_info[TER_ONE].Parent_ter = cur_ter_num;
-                cur_ter_num = TER_ONE;
-                return (int32_t)(&ece391_multi_ter_info[cur_ter_num]);
+                context_switch(TER_ONE);
+                return (int32_t)(&ece391_multi_ter_info[TER_ONE]);
             }
             break;
             case F_THREE:
             if (cur_ter_num == TER_TWO) return 0;
             else {
-                ece391_multi_ter_info[cur_ter_num].Dest_ter = TER_TWO;
-                ece391_multi_ter_info[cur_ter_num].PID_num = ece391_process_manager.curr_pid;
-                ece391_multi_ter_info[TER_TWO].Parent_ter = cur_ter_num;
-                cur_ter_num = TER_TWO;
-                return (int32_t)(&ece391_multi_ter_info[cur_ter_num]);
+                context_switch(TER_TWO);
+                return (int32_t)(&ece391_multi_ter_info[TER_TWO]);
             }
             break;
         }
@@ -387,4 +378,20 @@ void resetBuffer() {
  */
 int getIdx() {
     return buffIdx;
+}
+
+void context_switch(int terNum) {
+    ece391_multi_ter_info[cur_ter_num].Dest_ter = terNum;
+    ece391_multi_ter_info[terNum].Parent_ter = cur_ter_num;
+    ece391_multi_ter_info[cur_ter_num].PID_num = ece391_process_manager.curr_pid;
+    ece391_multi_ter_info[cur_ter_num].ter_screen_x = getScreen_x();
+    ece391_multi_ter_info[cur_ter_num].ter_screen_y = getScreen_y();
+    setScreen_x(ece391_multi_ter_info[terNum].ter_screen_x);
+    setScreen_y(ece391_multi_ter_info[terNum].ter_screen_y);
+    moveCursor();
+    memcpy(ece391_multi_ter_info[cur_ter_num].ter_buffer, keyBuffer, BUFF_SIZE);
+    memcpy(keyBuffer, ece391_multi_ter_info[terNum].ter_buffer, BUFF_SIZE);
+    ece391_multi_ter_info[cur_ter_num].ter_bufferIdx = buffIdx;
+    buffIdx = ece391_multi_ter_info[terNum].ter_bufferIdx = buffIdx;
+    cur_ter_num = terNum;
 }

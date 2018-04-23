@@ -154,6 +154,21 @@ void spKey(unsigned char scancode) {
     // }
 }
 
+int getScreen_x() {
+    return screen_x;
+}
+
+int getScreen_y() {
+    return screen_y;
+}
+
+void setScreen_x(int x) {
+    screen_x = x;
+}
+void setScreen_y(int y) {
+    screen_y = y;
+}
+
 int8_t check_head() {
     uint8_t *head = (uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x - 7) << 1));
     switch (*head) {

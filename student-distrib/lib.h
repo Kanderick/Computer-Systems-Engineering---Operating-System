@@ -57,6 +57,13 @@ void scrolling(void);
 /*clear the screen*/
 void clearScreen(void);
 
+int getScreen_x(void);
+
+int getScreen_y(void);
+
+void setScreen_x(int x);
+void setScreen_y(int y);
+
 void* memset(void* s, int32_t c, uint32_t n);
 void* memset_word(void* s, int32_t c, uint32_t n);
 void* memset_dword(void* s, int32_t c, uint32_t n);
