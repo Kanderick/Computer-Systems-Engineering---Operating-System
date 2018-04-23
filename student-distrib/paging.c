@@ -238,7 +238,7 @@ extern void user_video_unmapping() {
  * Purpose	used to map actual video memory to the correct terminal, does not map background tasks
  * Inputs from: the current terminal; to: the terminal switching to.
  * Outputs	None
- * Side Effects flushes tlb
+ * Side Effects None
  */
 extern void switch_terminal_video(uint32_t from, uint32_t to) {
     if (from < 1 || from > 3 || to < 1 || to > 3) {
@@ -249,4 +249,24 @@ extern void switch_terminal_video(uint32_t from, uint32_t to) {
     //save displayed video memory to temp, echo the temp to displayed video memory
     memcpy((void*)(TERMINAL1_START + (from - 1) * _4KB), (void*)(VIDEO_START), _4KB);
     memcpy((void*)(VIDEO_START), (void*)(TERMINAL1_START + (to - 1) * _4KB), _4KB);
+}
+
+/* switch_terminal_paging
+ * Purpose	used to set up paging for the current process in the destination terminal, do not need if no
+            //process exists in the destination terminal, because paging is set up by execute call in that case
+ * Inputs destination_pid: the pid number of current process in the destination terminal
+ * Outputs	None
+ * Side Effects flushes tlb
+ */
+extern void switch_terminal_paging(uint32_t destination_pid) {
+    pde_t page_128mb;
+    if (destination_pid >= 1) {
+        page_128mb = ((destination_pid + 1) * _4MB) | PAGE_SIZE_MASK | R_W_MASK | U_S_MASK | PRESENT_MASK;
+        //map the virtual 128mb to the corresponding physical address
+        page_directory[PDEIDX_128MB] = page_128mb;
+        write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
+    } else {
+        ERROR_MSG;
+        printf("Invalid PID.\n");
+    }
 }

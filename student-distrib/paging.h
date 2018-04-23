@@ -74,4 +74,7 @@ extern void user_video_unmapping();
 //used to map actual video memory to the correct terminal, does not map background tasks
 extern void switch_terminal_video(uint32_t from, uint32_t to);
 
+//used to set up paging for the current process in the destination terminal, do not need if no
+//process exists in the destination terminal, because paging is set up by execute call in that case
+extern void switch_terminal_paging(uint32_t destination_pid);
 #endif
