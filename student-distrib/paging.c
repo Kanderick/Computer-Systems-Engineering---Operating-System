@@ -247,8 +247,8 @@ extern void switch_terminal_video(uint32_t from, uint32_t to) {
     }
 
     //save displayed video memory to temp, echo the temp to displayed video memory
-    memcpy((void*)(TERMINAL1_START + (from - 1) * _4KB), (void*)(VIDEO_START), _4KB);
-    memcpy((void*)(VIDEO_START), (void*)(TERMINAL1_START + (to - 1) * _4KB), _4KB);
+    memcpy((void*)(TERMINAL1_START + from * _4KB), (void*)(VIDEO_START), _4KB);
+    memcpy((void*)(VIDEO_START), (void*)(TERMINAL1_START + to * _4KB), _4KB);
 }
 
 /* switch_terminal_paging
