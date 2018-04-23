@@ -68,6 +68,8 @@ void switch_terminal(uint32_t next_terminal) {
         // TODO switch terminal and initiate to execute "shell"
         // ece391_multi_ter_info[(uint32_t)next_ter_number].Parent_ter = cur_ter_num; // assign the next_terminal's parent to be the current one
         /* TODO paging, cur_pid, */
+        /*switch terminal video memory*/
+        switch_terminal_video(cur_ter_num, next_ter_number);
         ece391_multi_ter_status[(uint32_t)next_ter_number] = TER_EXIST;
         execute((void *)"shell");
         ece391_multi_ter_status[(uint32_t)next_ter_number] = TER_NOT_EXIST;
@@ -80,8 +82,12 @@ void switch_terminal(uint32_t next_terminal) {
     // TODO switch terminal and initiate to execute "shell"
     // ece391_multi_ter_info[(uint32_t)next_ter_number].Parent_ter = cur_ter_num;  // assign the next_terminal's parent to be the current one
     /* TODO paging, cur_pid, */
+    /*switch terminal video memory*/
+    switch_terminal_video(cur_ter_num, next_ter_number);
     /* update cur_pid */
     ece391_process_manager.curr_pid = ece391_multi_ter_info[(uint32_t)next_ter_number].PID_num;
+    /*switch destination terminal process user memory*/
+    switch_terminal_paging(ece391_process_manager.curr_pid);
     /* gives the notification */
     printf("[ATTENTION] SWITCH TO TERMINAL %d\n", (uint32_t)next_ter_number);
     /* ss */

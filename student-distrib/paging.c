@@ -240,7 +240,7 @@ extern void user_video_unmapping() {
  * Outputs	None
  * Side Effects None
  */
-extern void switch_terminal_video(uint32_t from, uint32_t to) {
+extern void switch_terminal_video(uint8_t from, uint8_t to) {
     if (from < 1 || from > 3 || to < 1 || to > 3) {
         ERROR_MSG;
         printf("Invalid terminal number.\n");
@@ -258,7 +258,7 @@ extern void switch_terminal_video(uint32_t from, uint32_t to) {
  * Outputs	None
  * Side Effects flushes tlb
  */
-extern void switch_terminal_paging(uint32_t destination_pid) {
+extern void switch_terminal_paging(int8_t destination_pid) {
     pde_t page_128mb;
     if (destination_pid >= 1) {
         page_128mb = ((destination_pid + 1) * _4MB) | PAGE_SIZE_MASK | R_W_MASK | U_S_MASK | PRESENT_MASK;
