@@ -158,7 +158,7 @@ void init_paging(void) {
 
     /* Set CR4 Flags */
     clear_in_cr4(CR4_PAE_FLAG); /* PAE set to 0 */
-	set_in_cr4(CR4_PSE_FLAG);   /* PSE set to 1 */
+	  set_in_cr4(CR4_PSE_FLAG);   /* PSE set to 1 */
 
 	/* Set CR3 */
     write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
@@ -249,8 +249,8 @@ void switch_terminal_video(uint8_t from, uint8_t to) {
         printf("Invalid terminal number.\n");
     }
     //save displayed video memory to temp, echo the temp to displayed video memory
-    memcpy((char*)(TERMINAL1_START +  (uint32_t)from * _4KB), (char*)(VIDEO_START), 4000);
-    memcpy((char*)(VIDEO_START), (char*)(TERMINAL1_START + (uint32_t)to * _4KB), 4000);
+    memcpy((char*)(TERMINAL1_START +  (uint32_t)from * _4KB), (char*)(VIDEO_START), _4KB);
+    memcpy((char*)(VIDEO_START), (char*)(TERMINAL1_START + (uint32_t)to * _4KB), _4KB);
     write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
 }
 

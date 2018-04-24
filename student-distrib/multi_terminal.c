@@ -75,7 +75,7 @@ void switch_terminal(uint32_t next_terminal) {
         ece391_multi_ter_status[(uint32_t)next_ter_number] = TER_EXIST;
         /*change the current terminal to the next one */
         cur_ter_num = next_ter_number;
-        clear();
+
 
         execute((void *)"shell");
 
