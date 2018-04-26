@@ -133,6 +133,7 @@ void spKey(unsigned char scancode) {
     }
     if (scancode == LEFT_ARROW) {       /*the case of left arrow*/
         //if (check_head() == 1) return;
+        if (getIdx() <= 0) return;
         if (screen_x == 0 && screen_y == 0) return;     /*if it is at the front of the screen, just return*/
             screen_x --;        /*left move the cursor for one block*/
         if (screen_x < 0) {
