@@ -38,6 +38,14 @@
 #define TER_ZERO            0
 #define TER_ONE             1
 #define TER_TWO             2
+#define PIT_RATE_MODE       0x34
+#define PIT_SQUARE_MODE     0x36
+#define PIT_REG_COM         0x43
+#define PIT_REG_DATA_ZERO   0x40
+#define PIT_IRQ             0
+#define PIT_FREQUENCY       1193182
+#define PIT_MASK            0xFF
+#define PIT_SHIFT           8
 
 /*print the pressed key onto the screen*/
 int32_t keyboard_interrupt(void);
@@ -59,6 +67,8 @@ void init_rtc(void);
 
 /*change the rate of rtc freqency*/
 void set_rate(unsigned rate);
+
+void init_pit(unsigned rate);
 
 /*get the keyboard buffer*/
 unsigned char *getBuffer(void);

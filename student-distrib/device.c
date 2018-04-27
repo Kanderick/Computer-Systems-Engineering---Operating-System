@@ -325,6 +325,14 @@ void set_rate(unsigned rate) {
     outb((prev & 0xF0) | rate, RTC_REG_DATA);     /*write only our rate to A. Note, rate is the bottom 4 bits*/
 }
 
+void init_pit(unsigned freqency) {
+    enable_irq(PIT_IRQ);
+    outb(PIT_RATE_MODE, PIT_REG_COM);
+    uint32_t rate = PIT_FREQUENCY / freqency;
+    outb(rate & PIT_MASK, PIT_REG_DATA_ZERO);
+    outb(rate >> PIT_SHIFT, PIT_REG_DATA_ZERO);
+}
+
 /*
  * getBuffer
  *   DESCRIPTION: get the keyboard buffer
