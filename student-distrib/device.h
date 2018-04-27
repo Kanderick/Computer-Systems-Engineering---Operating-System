@@ -75,6 +75,9 @@ void resetBuffer(void);
 /*get the buffer idx*/
 int getIdx(void);
 
+/*set the buffer idx*/
+void setIdx(int new_buffIdx);
+
 void context_switch(int terNum);
 
 #endif

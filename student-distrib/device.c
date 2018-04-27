@@ -54,31 +54,35 @@ int32_t keyboard_interrupt() {
         ctrlFlag = 0;       /*reset the strl flag*/
         return 0;
     }
-    if (altFlag == 1) {
-        switch(scancode) {
-            case F_ONE:
-            if (cur_ter_num == TER_ZERO) return 0;
-            else {
-                context_switch(TER_ZERO);
-                return (int32_t)(&ece391_multi_ter_info[TER_ZERO]);
+    cli();
+    if (ter_flag == TER_NOT_BUSY){
+        if (altFlag == 1) {
+            switch(scancode) {
+                case F_ONE:
+                if (cur_ter_num == TER_ZERO) return 0;
+                else {
+                    context_switch(TER_ZERO);
+                    return (int32_t)(&ece391_multi_ter_info[cur_ter_num]);
+                }
+                break;
+                case F_TWO:
+                if (cur_ter_num == TER_ONE) return 0;
+                else {
+                    context_switch(TER_ONE);
+                    return (int32_t)(&ece391_multi_ter_info[cur_ter_num]);
+                }
+                break;
+                case F_THREE:
+                if (cur_ter_num == TER_TWO) return 0;
+                else {
+                    context_switch(TER_TWO);
+                    return (int32_t)(&ece391_multi_ter_info[cur_ter_num]);
+                }
+                break;
             }
-            break;
-            case F_TWO:
-            if (cur_ter_num == TER_ONE) return 0;
-            else {
-                context_switch(TER_ONE);
-                return (int32_t)(&ece391_multi_ter_info[TER_ONE]);
-            }
-            break;
-            case F_THREE:
-            if (cur_ter_num == TER_TWO) return 0;
-            else {
-                context_switch(TER_TWO);
-                return (int32_t)(&ece391_multi_ter_info[TER_TWO]);
-            }
-            break;
         }
     }
+    sti();
     if (pressedKey == 0) spKey(scancode);       /*if the key is not a normal key, check whether it is a special key*/
     if (scancode == BACKSPACE) {        /*if the backspace key is pressed, delete a char in the buffer*/
         if (buffIdx != 0) {
@@ -379,19 +383,33 @@ void resetBuffer() {
 int getIdx() {
     return buffIdx;
 }
+/*
+ * getIdx
+ *   DESCRIPTION: set the buffer idx
+ *   INPUTS: new_buffIdx
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: set the buffer idx
+ */
+void setIdx(int new_buffIdx) {
+    buffIdx = new_buffIdx;
+}
 
 void context_switch(int terNum) {
+    ter_flag = TER_BUSY;
+    //store the old value
     ece391_multi_ter_info[cur_ter_num].Dest_ter = terNum;
     ece391_multi_ter_info[terNum].Parent_ter = cur_ter_num;
     ece391_multi_ter_info[cur_ter_num].PID_num = ece391_process_manager.curr_pid;
     ece391_multi_ter_info[cur_ter_num].ter_screen_x = getScreen_x();
     ece391_multi_ter_info[cur_ter_num].ter_screen_y = getScreen_y();
+    memcpy(ece391_multi_ter_info[cur_ter_num].ter_buffer, keyBuffer, BUFF_SIZE);
+    ece391_multi_ter_info[cur_ter_num].ter_bufferIdx = buffIdx;
+
+
+    memcpy(keyBuffer, ece391_multi_ter_info[terNum].ter_buffer, BUFF_SIZE);
+    buffIdx = ece391_multi_ter_info[terNum].ter_bufferIdx;
     setScreen_x(ece391_multi_ter_info[terNum].ter_screen_x);
     setScreen_y(ece391_multi_ter_info[terNum].ter_screen_y);
     moveCursor();
-    memcpy(ece391_multi_ter_info[cur_ter_num].ter_buffer, keyBuffer, BUFF_SIZE);
-    memcpy(keyBuffer, ece391_multi_ter_info[terNum].ter_buffer, BUFF_SIZE);
-    ece391_multi_ter_info[cur_ter_num].ter_bufferIdx = buffIdx;
-    buffIdx = ece391_multi_ter_info[terNum].ter_bufferIdx;
-    // cur_ter_num = terNum; // NOTE
 }

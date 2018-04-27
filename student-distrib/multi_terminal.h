@@ -9,7 +9,8 @@
 #define TO_DESTI        0       // tell switch_terminal jump to destination terminal
 #define TO_PARENT       1       // tell switch_terminal jump to parent terminal
 #define ter_buffer_len  128     // for restore terminal buffer
-
+#define TER_BUSY        0
+#define TER_NOT_BUSY    1
 // NOTE: DONOT change even the element order of the following structure
 struct MULTI_TER_INFO {
     // runtime info, use this to jump back to old terminal
@@ -44,6 +45,9 @@ struct MULTI_TER_INFO {
     int8_t Dest_ter;
 } __attribute((packed)); // NOTE: MUST BE PACKED
 typedef struct MULTI_TER_INFO MULTI_TER_INFO_t;
+
+// terminal busy flag
+extern uint8_t ter_flag;
 
 // current terminal number, should be either 0, 1, or 2
 extern uint8_t cur_ter_num;

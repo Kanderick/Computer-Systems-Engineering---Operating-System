@@ -3,6 +3,11 @@
 #include "types.h"
 #include "lib.h"
 #include "pcb.h"
+#include "device.h"
+
+// terminal busy flag
+uint8_t ter_flag;
+
 // current terminal number
 uint8_t cur_ter_num;
 
@@ -28,7 +33,7 @@ void multi_terminal_init(){
     cur_ter_num = 0;
     ece391_multi_ter_status[cur_ter_num] = TER_EXIST;
     ece391_multi_ter_info[cur_ter_num].Parent_ter = -1; // set Parent_ter to nonsense
-
+    ter_flag = TER_NOT_BUSY;
 }
 
 // switch_terminal function
@@ -75,8 +80,10 @@ void switch_terminal(uint32_t next_terminal) {
         ece391_multi_ter_status[(uint32_t)next_ter_number] = TER_EXIST;
         /*change the current terminal to the next one */
         cur_ter_num = next_ter_number;
-
-
+        // make new shell's parent be -1
+        ece391_process_manager.curr_pid = -1;
+        ter_flag = TER_NOT_BUSY;
+        sti();
         execute((void *)"shell");
 
         ece391_multi_ter_status[(uint32_t)cur_ter_num] = TER_NOT_EXIST;
@@ -91,6 +98,14 @@ void switch_terminal(uint32_t next_terminal) {
     /* TODO paging, cur_pid, */
     /*switch terminal video memory*/
     switch_terminal_video(cur_ter_num, next_ter_number);
+    //
+    if (next_terminal == TO_PARENT){
+        memcpy(getBuffer(), ece391_multi_ter_info[(uint32_t)next_ter_number].ter_buffer, BUFF_SIZE);
+        setIdx(ece391_multi_ter_info[(uint32_t)next_ter_number].ter_bufferIdx);
+        setScreen_x(ece391_multi_ter_info[(uint32_t)next_ter_number].ter_screen_x);
+        setScreen_y(ece391_multi_ter_info[(uint32_t)next_ter_number].ter_screen_y);
+        moveCursor();
+    }
     /* update cur_pid */
     ece391_process_manager.curr_pid = ece391_multi_ter_info[(uint32_t)next_ter_number].PID_num;
     //printf("current pid is : %d\n", ece391_process_manager.curr_pid);
@@ -99,13 +114,15 @@ void switch_terminal(uint32_t next_terminal) {
     /*switch destination terminal process user memory*/
     switch_terminal_paging(ece391_process_manager.curr_pid);
     /* gives the notification */
-    printf("[ATTENTION] SWITCH TO TERMINAL %d\n", (uint32_t)cur_ter_num);
+
+    printf("\n[ATTENTION] SWITCH TO TERMINAL(parent pid %d) %d\n391OS>",ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->parent_pid, (uint32_t)cur_ter_num);
+
     /* ss */
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].SS_reg));
     /* esp */
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].ESP_reg));
     /* eflags */
-    asm volatile("push  %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EFLAGS_reg));
+    asm volatile("pushl  %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EFLAGS_reg));
     /* cs */
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].CS_reg));
     /* eip*/
@@ -130,8 +147,12 @@ void switch_terminal(uint32_t next_terminal) {
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].ECX_reg));
     /* ebx*/
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EBX_reg));
+
+    ter_flag = TER_NOT_BUSY;
+    sti();
     /* pop all the register just poped on the stack*/
     asm volatile("popal" : :);
+
     /* use iret to switch context */
     asm volatile("iret" : :);
 

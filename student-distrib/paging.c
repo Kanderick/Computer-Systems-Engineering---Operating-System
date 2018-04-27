@@ -157,7 +157,7 @@ void init_paging(void) {
     page_directory[1] = KERNEL_START | PAGE_SIZE_MASK | R_W_MASK | PRESENT_MASK;
 
     /* Set CR4 Flags */
-    clear_in_cr4(CR4_PAE_FLAG); /* PAE set to 0 */
+    clear_in_cr4(CR4_PAE_FLAG);   /* PAE set to 0 */
 	  set_in_cr4(CR4_PSE_FLAG);   /* PSE set to 1 */
 
 	/* Set CR3 */
