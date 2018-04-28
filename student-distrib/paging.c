@@ -274,10 +274,33 @@ void switch_terminal_paging(int8_t destination_pid) {
     }
 }
 
+/* background_uservideo_paging
+ * Purpose function used for switching user video mapping when running user program in background
+ * Inputs display_terminal_num: terminal number of the current terminal in display;
+          execute_terminal_num: terminal number of the terminal in which the user program is running;
+ * Outputs	None
+ * Side Effects flushes tlb
+ */
+//
+extern void background_uservideo_paging(uint8_t display_terminal_num, uint8_t execute_terminal_num) {
+  pde_t page_132mb_4kb;
+
+  if (display_terminal_num == execute_terminal_num) {
+    page_132mb_4kb =  VIDEO_START | U_S_MASK | R_W_MASK | PRESENT_MASK;
+    page_table_33[PTEIDX_132_4KB] = page_132mb_4kb;
+  }
+  else {
+  page_132mb_4kb =  (TERMINAL1_START + execute_terminal_num * _4KB) | U_S_MASK | R_W_MASK | PRESENT_MASK;
+  page_table_33[PTEIDX_132_4KB] = page_132mb_4kb;
+  }
+  /* This instruction flushed the tlb */
+  write_cr3((unsigned long)page_directory);
+}
+
 /* void clear_terminal_video(void);
- * Inputs: video_mem: the video memory to initialize
- * Return Value: none
- * Function: Clears video memory */
+ * Purpose: function to initialize tempory terminal video memory
+ * Inputs: terminal_video: the video memory to initialize
+ * Return Value: none */
 void clear_terminal_video(char* terminal_video) {
     int32_t i;
     for (i = 0; i < NUM_ROWS * NUM_COLS; i ++) {

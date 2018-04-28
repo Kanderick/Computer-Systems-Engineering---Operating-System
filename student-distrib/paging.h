@@ -80,6 +80,8 @@ extern void switch_terminal_video(uint8_t from, uint8_t to);
 //used to set up paging for the current process in the destination terminal, do not need if no
 //process exists in the destination terminal, because paging is set up by execute call in that case
 extern void switch_terminal_paging(int8_t destination_pid);
-
+//function to initialize tempory terminal video memory
 extern void clear_terminal_video(char* terminal_video);
+//function used for switching user video mapping when running user program in background
+extern void background_uservideo_paging(uint8_t display_terminal_num, uint8_t execute_terminal_num);
 #endif
