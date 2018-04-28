@@ -210,7 +210,8 @@ int32_t halt(uint8_t status) {
     if (ece391_process_manager.curr_pid == -1)
         return -1;
 
-    printf("%d", (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid);
+    TEST_MSG;
+    printf("A Process wants to halt, raw parent pid is %d\n", (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid);
     /*need special treatment for the first shell process*/
     if ((ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid != -1) {
         tss.esp0 = (ece391_process_manager.process_position[(ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid - 1])->esp;
@@ -288,11 +289,14 @@ int32_t execute(const uint8_t* command) {
         return -1;
     }
 
-    if (ece391_process_manager.curr_pid == MAX_PROCESS_NUM) {
-        ERROR_MSG;
-        printf("Maximum process number reached. Max %d.\n", ece391_process_manager.curr_pid);
-        return 0; // Program terminated abnormally
-    }
+    // TODO following condition check is naive
+    // if (ece391_process_manager.curr_pid == MAX_PROCESS_NUM) {
+    //     ERROR_MSG;
+    //     printf("Maximum process number reached. Max %d.\n", ece391_process_manager.curr_pid);
+    //     return 0; // Program terminated abnormally
+    // }
+
+
     // omit the space
     while (command[0] == ' ' && idx < TERMINAL_BUFEER_SIZE){
         command = command + 1;
@@ -338,6 +342,8 @@ int32_t execute(const uint8_t* command) {
     /*current esp, */
 
     int8_t pid = init_pcb(&ece391_process_manager, argument);
+    TEST_MSG;
+    printf("A Process wants to exe, raw cur pid is %d\n", (pid);
     if (pid < 1) {
         ERROR_MSG;
         printf("Unable to create a new pcb.\n");

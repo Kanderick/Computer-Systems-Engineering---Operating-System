@@ -70,6 +70,10 @@ int8_t init_pcb(process_manager_t* processManager, uint8_t* argument) {
         break;
         }
     }
+    // if the array full, immediately return
+    if (ret_pid == -1)
+        return ret_pid;
+    // else continue 
     processManager->process_position[ret_pid-1]->exc_flag = HALT_NORM;
     processManager->process_position[ret_pid-1]->vidmap_flag = VIDMAP_NOT_EXIST;
     // check input argument is bad pointer
