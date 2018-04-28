@@ -365,7 +365,7 @@ void scheduling() {
     }
     if (next_ter_num == cur_ter_num)
         return;
-    //context_switch(next_ter_num);
+    context_switch(next_ter_num);
 }
 
 /*
@@ -439,6 +439,8 @@ void setIdx(int new_buffIdx) {
 }
 
 void context_switch(int terNum) {
+    //switch uservideo mapping
+    background_uservideo_paging(cur_ter_num, terNum);
     ter_flag = TER_BUSY;
     //store the old value
     ece391_multi_ter_info[cur_ter_num].Dest_ter = terNum;
