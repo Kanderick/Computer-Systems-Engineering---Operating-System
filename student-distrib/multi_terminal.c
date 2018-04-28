@@ -119,40 +119,53 @@ void switch_terminal(uint32_t next_terminal) {
     printf("\n[ATTENTION] SWITCH TO TERMINAL(parent pid %d) %d\n391OS> ",ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->parent_pid, (uint32_t)cur_ter_num);
 
     /* ss */
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].SS_reg));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].SS_reg));
     /* esp */
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].ESP_reg));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].ESP_reg));
     /* eflags */
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EFLAGS_reg));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].EFLAGS_reg));
     /* cs */
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].CS_reg));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].CS_reg));
     /* eip*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].old_EIP_reg));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].old_EIP_reg));
     /* fs*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].FS_reg));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].FS_reg));
     /* es*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].ES_reg));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].ES_reg));
     /* ds*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].DS_reg));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].DS_reg));
     /* eax*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EAX_reg));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].EAX_reg));
     /* ebp*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EBP_reg));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].EBP_reg));
     /* edi*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EDI_reg));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].EDI_reg));
     /* esi*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].ESI_reg));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].ESI_reg));
     /* edx*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EDX_reg));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].EDX_reg));
     /* ecx*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].ECX_reg));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].ECX_reg));
     /* ebx*/
-    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EBX_reg));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].EBX_reg));
 
     ter_flag = TER_NOT_BUSY;
     sti();
     /* pop all the register just poped on the stack*/
-    asm volatile("popal" : :);
+    //asm volatile("popal" : :);
+    asm volatile("popl %%ebx" : :);
+    asm volatile("popl %%ecx" : :);
+    asm volatile("popl %%edx" : :);
+    asm volatile("popl %%esi" : :);
+    asm volatile("popl %%edi" : :);
+    asm volatile("popl %%ebp" : :);
+    asm volatile("popl %%eax" : :);
+    asm volatile("popw %%ds" : :);
+    asm volatile("popw %%ds" : :);
+    asm volatile("popw %%es" : :);
+    asm volatile("popw %%es" : :);
+    asm volatile("popw %%fs" : :);
+    asm volatile("popw %%fs" : :);
 
     /* use iret to switch context */
     asm volatile("iret" : :);

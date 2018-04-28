@@ -20,10 +20,6 @@
         EFLAGS_P = 48
         ESP_P = 52
         SS_P = 56
-        # the destination terminal number
-        DEST_TER_P = 61
-        # size of the MULTI_TER_INFO_t struct in bytes
-        INFO_LEN = 62
 .text
 .globl keyboard_wrapper
 .globl rtc_wrapper
@@ -32,7 +28,19 @@
 
 # the keyboard and rtc wrapper that will call their related handler
 keyboard_wrapper:
-    pushal
+    pushw %fs
+    pushw $0
+    pushw %es
+    pushw $0
+    pushw %ds
+    pushw $0
+    pushl %eax
+    pushl %ebp
+    pushl %edi
+    pushl %esi
+    pushl %edx
+    pushl %ecx
+    pushl %ebx
     call keyboard_interrupt
     cmpl $0, %eax
     je NO_TER_SHIFT
@@ -115,10 +123,22 @@ keyboard_wrapper:
     pushl $0
     call switch_terminal
     # naive fault, after calling switch_terminal, it should never return, unless it failed
-    pushl %eax  # pop the parameter
+    popl %eax  # pop the parameter
 # return on normal keyboard interrupt
 NO_TER_SHIFT:
-    popal
+popl %ebx
+    popl %ecx
+    popl %edx
+    popl %esi
+    popl %edi
+    popl %ebp
+    popl %eax
+    popw %ds
+    popw %ds
+    popw %es
+    popw %es
+    popw %fs
+    popw %fs
     iret
 
 rtc_wrapper:
