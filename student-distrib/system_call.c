@@ -343,7 +343,7 @@ int32_t execute(const uint8_t* command) {
 
     int8_t pid = init_pcb(&ece391_process_manager, argument);
     TEST_MSG;
-    printf("A Process wants to exe, raw cur pid is %d\n", (pid);
+    printf("A Process wants to exe, raw cur pid is %d\n", pid);
     if (pid < 1) {
         ERROR_MSG;
         printf("Unable to create a new pcb.\n");
