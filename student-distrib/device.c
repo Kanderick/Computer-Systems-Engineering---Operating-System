@@ -83,11 +83,24 @@ int32_t keyboard_interrupt() {
         }
     }
     sti();
-    if (pressedKey == 0) spKey(scancode);       /*if the key is not a normal key, check whether it is a special key*/
+    // if (pressedKey == 0) spKey(scancode);       /*if the key is not a normal key, check whether it is a special key*/
     if (scancode == BACKSPACE) {        /*if the backspace key is pressed, delete a char in the buffer*/
+        spKey(scancode);
         if (buffIdx != 0) {
             keyBuffer[buffIdx] = '\0';
             buffIdx --; // This fix the PAGE FAULT problem
+        }
+    }
+    if (scancode == LEFT_ARROW) {
+        spKey(scancode);
+        if (buffIdx != 0) {
+            buffIdx --; // This fix the PAGE FAULT problem
+        }
+    }
+    if (scancode == RIGHT_ARROW) {
+        if ((keyBuffer[buffIdx] != '\0') && (buffIdx < BUFF_SIZE - 1)) {
+            spKey(scancode);
+            buffIdx ++;
         }
     }
     /* if a key is pressed, decode it into the char that should be print on the screen */
@@ -99,6 +112,9 @@ int32_t keyboard_interrupt() {
             keyBuffer[buffIdx] = pressedKey;
         }
         buffIdx ++;
+    }
+    if (pressedKey == '\n') {
+        buffIdx = BUFF_SIZE - 1; // This handle left arrow key
     }
 
     moveCursor();
