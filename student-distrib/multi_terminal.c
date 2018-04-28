@@ -48,10 +48,10 @@ void switch_terminal(uint32_t next_terminal) {
         next_ter_number = ece391_multi_ter_info[(uint32_t)cur_ter_num].Parent_ter;
     }
     else {
-        return ;
+        return;
     }
     // handle invalid terminal number
-    if(next_terminal<0 || next_terminal>2){
+    if (next_terminal < 0 || next_terminal > 2) {
         ERROR_MSG;
         printf("INVALID TERMINAL NUMBER");
         while(1);
@@ -63,7 +63,7 @@ void switch_terminal(uint32_t next_terminal) {
             if(ece391_multi_ter_status[(uint32_t)ii] == TER_EXIST){
                 ece391_multi_ter_info[cur_ter_num].Parent_ter = ii;
                 switch_terminal(TO_PARENT);
-                return ;
+                return;
             }
         }
         ERROR_MSG;
@@ -71,8 +71,8 @@ void switch_terminal(uint32_t next_terminal) {
         while(1);
     }
     // handle the destination terminal not exist
-    if(next_terminal == TO_DESTI && ece391_multi_ter_status[(uint32_t)next_ter_number] == TER_NOT_EXIST){
-        // TODO switch terminal and initiate to execute "shell"
+    if (next_terminal == TO_DESTI && ece391_multi_ter_status[(uint32_t)next_ter_number] == TER_NOT_EXIST){
+        // TODO switch terminal and initiate to execute "shell"ˇ
         // ece391_multi_ter_info[(uint32_t)next_ter_number].Parent_ter = cur_ter_num; // assign the next_terminal's parent to be the current one
         /* TODO paging, cur_pid, */
         /*switch terminal video memory*/
@@ -84,6 +84,7 @@ void switch_terminal(uint32_t next_terminal) {
         ece391_process_manager.curr_pid = -1;
         ter_flag = TER_NOT_BUSY;
         sti();
+        clearScreen();
         execute((void *)"shell");
 
         ece391_multi_ter_status[(uint32_t)cur_ter_num] = TER_NOT_EXIST;
@@ -115,14 +116,14 @@ void switch_terminal(uint32_t next_terminal) {
     switch_terminal_paging(ece391_process_manager.curr_pid);
     /* gives the notification */
 
-    printf("\n[ATTENTION] SWITCH TO TERMINAL(parent pid %d) %d\n391OS>",ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->parent_pid, (uint32_t)cur_ter_num);
+    printf("\n[ATTENTION] SWITCH TO TERMINAL(parent pid %d) %d\n391OS> ",ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->parent_pid, (uint32_t)cur_ter_num);
 
     /* ss */
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].SS_reg));
     /* esp */
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].ESP_reg));
     /* eflags */
-    asm volatile("pushl  %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EFLAGS_reg));
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].EFLAGS_reg));
     /* cs */
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[next_terminal].CS_reg));
     /* eip*/
