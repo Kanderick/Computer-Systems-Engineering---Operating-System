@@ -68,7 +68,11 @@ void init_rtc(void);
 /*change the rate of rtc freqency*/
 void set_rate(unsigned rate);
 
+void pit_interrupt();
+
 void init_pit(unsigned rate);
+
+void scheduling();
 
 /*get the keyboard buffer*/
 unsigned char *getBuffer(void);

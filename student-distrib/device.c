@@ -325,12 +325,31 @@ void set_rate(unsigned rate) {
     outb((prev & 0xF0) | rate, RTC_REG_DATA);     /*write only our rate to A. Note, rate is the bottom 4 bits*/
 }
 
+void pit_interrupt() {
+    cli();                      /*clean the interrupt flag*/
+    send_eoi(PIT_IRQ);          /*send the end of interrupt signal to PIC*/
+    sti();                      /*restore the interrupt flag*/
+    scheduling();
+}
+
 void init_pit(unsigned freqency) {
     enable_irq(PIT_IRQ);
     outb(PIT_RATE_MODE, PIT_REG_COM);
-    uint32_t rate = PIT_FREQUENCY / freqency;
+    uint16_t rate = PIT_FREQUENCY / freqency;
     outb(rate & PIT_MASK, PIT_REG_DATA_ZERO);
     outb(rate >> PIT_SHIFT, PIT_REG_DATA_ZERO);
+}
+
+void scheduling() {
+    int next_ter_num = (cur_ter_num + 1) % TER_MAX;
+    while (next_ter_num != cur_ter_num) {
+        if (ece391_multi_ter_info[cur_ter_num].executeFlag == 1)
+            break;
+        next_ter_num = (next_ter_num + 1) % TER_MAX;
+    }
+    if (next_ter_num == cur_ter_num)
+        return;
+    //context_switch(next_ter_num);
 }
 
 /*
