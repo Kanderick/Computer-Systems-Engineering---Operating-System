@@ -27,6 +27,7 @@
 .text
 .globl keyboard_wrapper
 .globl rtc_wrapper
+.globl pit_wrapper
 
 
 # the keyboard and rtc wrapper that will call their related handler
@@ -123,5 +124,11 @@ NO_TER_SHIFT:
 rtc_wrapper:
     pushal
     call rtc_interrupt
+    popal
+    iret
+
+pit_wrapper:
+    pushal
+    call pit_interrupt
     popal
     iret

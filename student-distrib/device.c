@@ -61,21 +61,21 @@ int32_t keyboard_interrupt() {
                 case F_ONE:
                 if (cur_ter_num == TER_ZERO) return 0;
                 else {
-                    context_switch(TER_ZERO);
+                    terminal_switch(TER_ZERO);
                     return (int32_t)(&ece391_multi_ter_info[cur_ter_num]);
                 }
                 break;
                 case F_TWO:
                 if (cur_ter_num == TER_ONE) return 0;
                 else {
-                    context_switch(TER_ONE);
+                    terminal_switch(TER_ONE);
                     return (int32_t)(&ece391_multi_ter_info[cur_ter_num]);
                 }
                 break;
                 case F_THREE:
                 if (cur_ter_num == TER_TWO) return 0;
                 else {
-                    context_switch(TER_TWO);
+                    terminal_switch(TER_TWO);
                     return (int32_t)(&ece391_multi_ter_info[cur_ter_num]);
                 }
                 break;
@@ -345,7 +345,8 @@ void pit_interrupt() {
     cli();                      /*clean the interrupt flag*/
     send_eoi(PIT_IRQ);          /*send the end of interrupt signal to PIC*/
     sti();                      /*restore the interrupt flag*/
-    scheduling();
+    //printf("PIT works ");
+    //scheduling();
 }
 
 void init_pit(unsigned freqency) {
@@ -365,7 +366,7 @@ void scheduling() {
     }
     if (next_ter_num == cur_ter_num)
         return;
-    context_switch(next_ter_num);
+    //context_switch(next_ter_num);
 }
 
 /*
@@ -438,7 +439,7 @@ void setIdx(int new_buffIdx) {
     buffIdx = new_buffIdx;
 }
 
-void context_switch(int terNum) {
+void terminal_switch(int terNum) {
     //switch uservideo mapping
     background_uservideo_paging(cur_ter_num, terNum);
     ter_flag = TER_BUSY;

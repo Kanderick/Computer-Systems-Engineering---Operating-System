@@ -46,6 +46,7 @@
 #define PIT_FREQUENCY       1193182
 #define PIT_MASK            0xFF
 #define PIT_SHIFT           8
+#define _20HZ               20
 
 /*print the pressed key onto the screen*/
 int32_t keyboard_interrupt(void);
@@ -92,6 +93,6 @@ int getIdx(void);
 /*set the buffer idx*/
 void setIdx(int new_buffIdx);
 
-void context_switch(int terNum);
+void terminal_switch(int terNum);
 
 #endif

@@ -28,7 +28,7 @@
 #define AC      17      /*Alignment Check Exception*/
 #define MC      18      /*Machine-Check Exception*/
 #define XF      19      /*SIMD Floating-Point Exception*/
-#define PIT_INI 0x20    /*PIT*/
+#define PIT_INT 0x20    /*PIT*/
 #define KB_INT  0x21    /*keyboard*/
 #define RTC_INT 0x28    /*real time clock*/
 #define SCV     0x80    /*system call vector*/
@@ -113,6 +113,8 @@ extern void keyboard_wrapper(void);
 
 /*rtc_wrapper to call the related function to execute following instruction*/
 extern void rtc_wrapper(void);
+
+extern void pit_wrapper(void);
 
 /*DE_wrapper to call the related function to execute following instruction*/
 extern void exception_DE_wrapper(void);

@@ -42,6 +42,7 @@ void idt_init_exceptions(void) {
     idt_init(AC, INT_GATE, &exception_AC_wrapper);
     idt_init(MC, INT_GATE, &exception_MC_wrapper);
     idt_init(XF, INT_GATE, &exception_XF_wrapper);
+    idt_init(PIT_INT, INT_GATE, &pit_wrapper);
     idt_init(KB_INT, INT_GATE, &keyboard_wrapper);      /*fill the keyboard interruption entry*/
     idt_init(RTC_INT, INT_GATE, &rtc_wrapper);          /*fill the rtc interruption entry*/
     idt_init(SCV, TRAP_GATE, &system_call_wrapper);     /*fill the system call entry*/

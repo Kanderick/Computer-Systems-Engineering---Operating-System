@@ -160,6 +160,8 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Init the rtc */
     init_rtc();
 
+    init_pit(_20HZ);
+
     /* Init the paging */
     init_paging();
     /*initialize terminal video*/
