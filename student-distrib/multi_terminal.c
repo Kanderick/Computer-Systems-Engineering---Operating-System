@@ -107,6 +107,7 @@ void switch_terminal(uint32_t next_terminal) {
         setScreen_y(ece391_multi_ter_info[(uint32_t)next_ter_number].ter_screen_y);
         moveCursor();
     }
+
     /* update cur_pid */
     ece391_process_manager.curr_pid = ece391_multi_ter_info[(uint32_t)next_ter_number].PID_num;
     //printf("current pid is : %d\n", ece391_process_manager.curr_pid);
@@ -117,6 +118,11 @@ void switch_terminal(uint32_t next_terminal) {
     /* gives the notification */
 
     printf("\n[ATTENTION] SWITCH TO TERMINAL(parent pid %d) %d\n391OS> ",ece391_process_manager.process_position[ece391_process_manager.curr_pid-1]->parent_pid, (uint32_t)cur_ter_num);
+
+
+    printf("\nESP0: 0x%#x   SS0: 0x%#x\n", tss.esp0, tss.ss0);
+    tss.esp0 = ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp;
+    tss.ss0 = KERNEL_DS;
 
     /* ss */
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].SS_reg));

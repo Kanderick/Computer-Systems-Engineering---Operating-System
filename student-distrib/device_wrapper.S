@@ -59,17 +59,17 @@ keyboard_wrapper:
     movl $2, %ebx               # find edx offset on the current stack
     movl (%esp, %ebx, 4), %edx  # load edx value on the current stack to edx
     movl %edx, (%edi)           # store the edx value from edx to info table
-    # load ECX to info table
+    # load ESI to info table
     leal ESI_P(%eax), %edi      # find esi address in info table
     movl $3, %ebx               # find esi offset on the current stack
     movl (%esp, %ebx, 4), %edx  # load esi value on the current stack to edx
     movl %edx, (%edi)           # store the esi value from edx to info table
-    # load ECX to info table
+    # load EDI to info table
     leal EDI_P(%eax), %edi      # find edi address in info table
     movl $4, %ebx               # find edi offset on the current stack
     movl (%esp, %ebx, 4), %edx  # load edi value on the current stack to edx
     movl %edx, (%edi)           # store the edi value from edx to info table
-    # load ECX to info table
+    # load EBP to info table
     leal EBP_P(%eax), %edi      # find ebp address in info table
     movl $5, %ebx               # find ebp offset on the current stack
     movl (%esp, %ebx, 4), %edx  # load ebp value on the current stack to edx
@@ -126,7 +126,7 @@ keyboard_wrapper:
     popl %eax  # pop the parameter
 # return on normal keyboard interrupt
 NO_TER_SHIFT:
-popl %ebx
+    popl %ebx
     popl %ecx
     popl %edx
     popl %esi
