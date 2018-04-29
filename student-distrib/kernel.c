@@ -160,7 +160,7 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Init the rtc */
     init_rtc();
 
-    init_pit(_20HZ);
+
 
     /* Init the paging */
     init_paging();
@@ -199,6 +199,7 @@ void entry(unsigned long magic, unsigned long addr) {
     while(1) {
         clearScreen();
         execute((void *)"shell");
+        init_pit(_20HZ);
     }
 
     /* Spin (nicely, so we don't chew up cycles) */

@@ -53,6 +53,10 @@ extern uint8_t ter_flag;
 // current terminal number, should be either 0, 1, or 2
 extern uint8_t cur_ter_num;
 
+// for scheduler, the current terminal being executed
+extern uint8_t cur_exe_ter_num;
+
+
 // ece391 terminal info array
 extern MULTI_TER_INFO_t ece391_multi_ter_info[TER_MAX];
 
@@ -64,5 +68,7 @@ void multi_terminal_init();
 
 // switch_terminal function
 void switch_terminal(uint32_t next_terminal);
+
+void switch_context(uint32_t next_terminal);
 
 #endif

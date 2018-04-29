@@ -62,21 +62,21 @@ int32_t keyboard_interrupt() {
                 if (cur_ter_num == TER_ZERO) return 0;
                 else {
                     terminal_switch(TER_ZERO);
-                    return (int32_t)(&ece391_multi_ter_info[cur_ter_num]);
+                    return 0;
                 }
                 break;
                 case F_TWO:
                 if (cur_ter_num == TER_ONE) return 0;
                 else {
                     terminal_switch(TER_ONE);
-                    return (int32_t)(&ece391_multi_ter_info[cur_ter_num]);
+                    return 0;
                 }
                 break;
                 case F_THREE:
                 if (cur_ter_num == TER_TWO) return 0;
                 else {
                     terminal_switch(TER_TWO);
-                    return (int32_t)(&ece391_multi_ter_info[cur_ter_num]);
+                    return 0;
                 }
                 break;
             }
@@ -341,32 +341,32 @@ void set_rate(unsigned rate) {
     outb((prev & 0xF0) | rate, RTC_REG_DATA);     /*write only our rate to A. Note, rate is the bottom 4 bits*/
 }
 
-void pit_interrupt() {
+uint8_t pit_interrupt() {
     cli();                      /*clean the interrupt flag*/
     send_eoi(PIT_IRQ);          /*send the end of interrupt signal to PIC*/
-    sti();                      /*restore the interrupt flag*/
-    //printf("PIT works ");
-    //scheduling();
+    sti();
+    printf("PIT works ");
+    return scheduling();
 }
 
 void init_pit(unsigned freqency) {
     enable_irq(PIT_IRQ);
     outb(PIT_RATE_MODE, PIT_REG_COM);
     uint16_t rate = PIT_FREQUENCY / freqency;
+    cur_exe_ter_num = 0;
     outb(rate & PIT_MASK, PIT_REG_DATA_ZERO);
     outb(rate >> PIT_SHIFT, PIT_REG_DATA_ZERO);
 }
 
-void scheduling() {
-    int next_ter_num = (cur_ter_num + 1) % TER_MAX;
-    while (next_ter_num != cur_ter_num) {
-        if (ece391_multi_ter_info[cur_ter_num].executeFlag == 1)
-            break;
-        next_ter_num = (next_ter_num + 1) % TER_MAX;
-    }
-    if (next_ter_num == cur_ter_num)
-        return;
-    //context_switch(next_ter_num);
+uint8_t scheduling() {
+    // now try to process cur_exe_ter_num
+    int exe_ter_num = cur_exe_ter_num;
+    // update cur_exe_ter_num for next turn
+    cur_exe_ter_num = (cur_exe_ter_num + 1) % TER_MAX;
+    // pass-in the current processing terminal number
+    context_switch(exe_ter_num);
+    // pass in the old terminal number to process
+    return (int32_t)(&ece391_multi_ter_info[exe_ter_num]);
 }
 
 /*
@@ -441,21 +441,36 @@ void setIdx(int new_buffIdx) {
 
 void terminal_switch(int terNum) {
     //switch uservideo mapping
-    background_uservideo_paging(cur_ter_num, terNum);
-    ter_flag = TER_BUSY;
+    //background_uservideo_paging(cur_ter_num, terNum);
     //store the old value
-    ece391_multi_ter_info[cur_ter_num].Dest_ter = terNum;
-    ece391_multi_ter_info[terNum].Parent_ter = cur_ter_num;
-    ece391_multi_ter_info[cur_ter_num].PID_num = ece391_process_manager.curr_pid;
+    // ece391_multi_ter_info[cur_ter_num].Dest_ter = terNum;
+    // ece391_multi_ter_info[terNum].Parent_ter = cur_ter_num;
+    // ece391_multi_ter_info[cur_ter_num].PID_num = ece391_process_manager.curr_pid;
+
     ece391_multi_ter_info[cur_ter_num].ter_screen_x = getScreen_x();
     ece391_multi_ter_info[cur_ter_num].ter_screen_y = getScreen_y();
     memcpy(ece391_multi_ter_info[cur_ter_num].ter_buffer, keyBuffer, BUFF_SIZE);
     ece391_multi_ter_info[cur_ter_num].ter_bufferIdx = buffIdx;
 
+    switch_terminal_video(cur_ter_num, terNum);
 
     memcpy(keyBuffer, ece391_multi_ter_info[terNum].ter_buffer, BUFF_SIZE);
     buffIdx = ece391_multi_ter_info[terNum].ter_bufferIdx;
     setScreen_x(ece391_multi_ter_info[terNum].ter_screen_x);
     setScreen_y(ece391_multi_ter_info[terNum].ter_screen_y);
     moveCursor();
+    cur_ter_num = terNum;
+}
+
+// exe_ter_num is the old terminal Number
+// cur_exe_ter_num have been updated for the this turn
+void context_switch(int exe_ter_num) {
+    //switch uservideo mapping
+    background_uservideo_paging(exe_ter_num, cur_exe_ter_num);
+    //set current destination terminal number
+    ece391_multi_ter_info[exe_ter_num].Dest_ter = cur_exe_ter_num;
+    // set current terminal's parent to the old terminal number
+    ece391_multi_ter_info[cur_exe_ter_num].Parent_ter = exe_ter_num;
+    // store the old terminal number's pid number to info table
+    ece391_multi_ter_info[exe_ter_num].PID_num = ece391_process_manager.curr_pid;
 }
