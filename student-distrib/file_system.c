@@ -342,6 +342,12 @@ int32_t file_open(const uint8_t* filename) {
  *   SIDE EFFECTS: none
  */
 int32_t file_close(int32_t fd) {
+    if (fd < FD_LOW || fd > FD_UPPER) {
+        ERROR_MSG;
+        printf("Input fd out of range.\n");
+        return -1;
+    }
+    (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].flags = STATUS_CLOSED;
     return 0;
 }
 
@@ -482,6 +488,12 @@ int32_t dir_open(const uint8_t* filename) {
  *   SIDE EFFECTS: none
  */
 int32_t dir_close(int32_t fd) {
+    if (fd < FD_LOW || fd > FD_UPPER) {
+        ERROR_MSG;
+        printf("Input fd out of range.\n");
+        return -1;
+    }
+    (ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[fd].flags = STATUS_CLOSED;
     return 0;
 }
 

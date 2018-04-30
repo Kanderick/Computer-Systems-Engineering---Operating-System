@@ -196,6 +196,8 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
     }
 }
 
+#define array_min_file  2
+#define array_max_file  7
 /*
  * halt
  *   DESCRIPTION: this function will be called by system call wrapper,
@@ -207,21 +209,19 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes) {
  */
 int32_t halt(uint8_t status) {
     uint32_t f = ((ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->exc_flag);
+    int i;
     if (ece391_process_manager.curr_pid == -1)
         return -1;
 
-    //TEST_MSG;
-    //printf("A Process wants to halt, raw parent pid is %d\n", (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid);
-    /*need special treatment for the first shell process*/
+    // traverse to closed opened file
+    for (i = array_min_file; i <= array_max_file; i++ ){
+            if ((ece391_process_manager.process_position[ece391_process_manager.curr_pid-1])->file_array.files[i].flags == STATUS_OPENED)
+            close(i);
+    }
+    /* restore esp0 */
     if ((ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid != -1) {
         tss.esp0 = (ece391_process_manager.process_position[(ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid - 1])->esp;
     }
-    // else if (cur_ter_num == 0){
-    //     /*need special treatment*/
-    //     tss.esp0+=4;
-    // }
-    /*no longer stores parent_pid*/
-    //tss.esp0 = ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_esp;
 
     /* Deallocate user video mapping if necessary */
     if (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->vidmap_flag == VIDMAP_EXIST) {
