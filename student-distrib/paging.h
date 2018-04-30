@@ -59,6 +59,8 @@ extern pde_t page_directory[PAGE_DIRECTORY_SIZE];
 extern pte_t page_table_0[PAGE_TABLE_SIZE];
 extern pte_t page_table_33[PAGE_TABLE_SIZE];
 
+extern void write_cr3(unsigned long val);
+
 /* Global Function */
 extern void init_paging(void);
 

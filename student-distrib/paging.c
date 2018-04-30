@@ -12,7 +12,7 @@ pte_t page_table_33[PAGE_TABLE_SIZE] __attribute__((aligned (_4KB)));
 static inline unsigned long read_cr0(void);
 static inline unsigned long read_cr4(void);
 static inline void write_cr0(unsigned long val);
-static inline void write_cr3(unsigned long val);
+
 static inline void write_cr4(unsigned long val);
 static inline void set_in_cr0 (unsigned long mask);
 // static inline void clear_in_cr0 (unsigned long mask);
@@ -59,7 +59,7 @@ static inline void write_cr0(unsigned long val) {
  * Outputs	None
  * Side Effects CR3 value changed
  */
-static inline void write_cr3(unsigned long val) {
+inline void write_cr3(unsigned long val) {
     asm volatile("movl %0,%%cr3": :"r" (val));
 }
 

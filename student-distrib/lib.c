@@ -3,6 +3,7 @@
 
 #include "lib.h"
 #include "device.h"
+#include "multi_terminal.h"
 
 static int screen_x;
 static int screen_y;
@@ -11,7 +12,7 @@ static unsigned char text_RGB[COLOR_NUM][3] = {
     { 0x00, 0x00, 0x00 },{ 0x28, 0x28, 0x28 },{ 0x13, 0x2B, 0x14 },  // Black, White, Green
     { 0x3F, 0x30, 0x02 },{ 0x3C, 0x11, 0x0D },{ 0x1B, 0x31, 0x3F }  // Yellow, Red, Blue
 };
-
+int PRINT_TO_SCREEN;
 /*
  * set_color
  *   DESCRIPTION:   General function to set a color at a palette location
@@ -95,15 +96,26 @@ void moveCursor() {
  */
 void scrolling() {
     int32_t i;
-    if (screen_y == NUM_ROWS) {     /*check whether it is necessary to scroll*/
+    if (cur_ter_num == cur_exe_ter_num || PRINT_TO_SCREEN == 1) {
+        if (screen_y == NUM_ROWS) {     /*check whether it is necessary to scroll*/
+            memmove(video_mem, video_mem + (NUM_COLS << 1), MEM_SIZE);      /*move the whole screen up for 1 line*/
+            screen_y = NUM_ROWS - 1;        /*set the screen_y to the last line*/
+            for (i = (NUM_ROWS - 1) * NUM_COLS; i < NUM_ROWS * NUM_COLS; i ++) {        /*set the last line as blank*/
+                *(uint8_t *)(video_mem + (i << 1)) = ' ';
+                *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+            }
+        }
+        moveCursor();
+        return;
+    }
+    if ((ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) == NUM_ROWS) {     /*check whether it is necessary to scroll*/
         memmove(video_mem, video_mem + (NUM_COLS << 1), MEM_SIZE);      /*move the whole screen up for 1 line*/
-        screen_y = NUM_ROWS - 1;        /*set the screen_y to the last line*/
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) = NUM_ROWS - 1;        /*set the (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) to the last line*/
         for (i = (NUM_ROWS - 1) * NUM_COLS; i < NUM_ROWS * NUM_COLS; i ++) {        /*set the last line as blank*/
             *(uint8_t *)(video_mem + (i << 1)) = ' ';
             *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
         }
     }
-    moveCursor();
 }
 
 /*
@@ -116,34 +128,67 @@ void scrolling() {
  *   SIDE EFFECTS: handle some special keys reactions
  */
 void spKey(unsigned char scancode) {
+    if (cur_ter_num == cur_exe_ter_num || PRINT_TO_SCREEN == 1) {
+        if (scancode == DEL) {      /*the case of del*/
+            /*every block after the cursor in this line become the next block because of the del*/
+            memmove(video_mem + ((NUM_COLS * screen_y + screen_x) << 1), video_mem + ((NUM_COLS * screen_y + screen_x + 1) << 1), (NUM_COLS * NUM_ROWS - (NUM_COLS * screen_y + screen_x)) << 1);
+        }
+        if (scancode == BACKSPACE) {        /*the case of backspace*/
+            if (getIdx() <= 0) return;
+            if (screen_x == 0 && screen_y == 0) return;     /*if it is at the front of the screen, just return*/
+            screen_x --;        /*left move the cursor for one block*/
+            /*every block after the cursor in this line become the next block because of the backspace*/
+            memmove(video_mem + ((NUM_COLS * screen_y + screen_x) << 1), video_mem + ((NUM_COLS * screen_y + screen_x + 1) << 1), (NUM_COLS * NUM_ROWS - (NUM_COLS * screen_y + screen_x)) << 1);
+            if (screen_x < 0) {
+                screen_y --;
+                screen_x = NUM_COLS - 1;
+            }
+        }
+        if (scancode == LEFT_ARROW) {       /*the case of left arrow*/
+            if (getIdx() <= 0) return;
+            if (screen_x == 0 && screen_y == 0) return;     /*if it is at the front of the screen, just return*/
+                screen_x --;        /*left move the cursor for one block*/
+            if (screen_x < 0) {
+                screen_y --;
+                screen_x = NUM_COLS - 1;
+            }
+        }
+        if (scancode == RIGHT_ARROW) {      /*the case of right arrow*/
+            screen_x ++;     /*if it is not the end of the string, right move the cursor by one block*/
+            screen_y = screen_y + (screen_x / NUM_COLS);
+            screen_x %= NUM_COLS;
+            scrolling();
+        }
+        return;
+    }
     if (scancode == DEL) {      /*the case of del*/
         /*every block after the cursor in this line become the next block because of the del*/
-        memmove(video_mem + ((NUM_COLS * screen_y + screen_x) << 1), video_mem + ((NUM_COLS * screen_y + screen_x + 1) << 1), (NUM_COLS * NUM_ROWS - (NUM_COLS * screen_y + screen_x)) << 1);
+        memmove(video_mem + ((NUM_COLS * (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) + (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x)) << 1), video_mem + ((NUM_COLS * (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) + (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) + 1) << 1), (NUM_COLS * NUM_ROWS - (NUM_COLS * (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) + (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x))) << 1);
     }
     if (scancode == BACKSPACE) {        /*the case of backspace*/
         if (getIdx() <= 0) return;
-        if (screen_x == 0 && screen_y == 0) return;     /*if it is at the front of the screen, just return*/
-        screen_x --;        /*left move the cursor for one block*/
+        if ((ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) == 0 && (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) == 0) return;     /*if it is at the front of the screen, just return*/
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) --;        /*left move the cursor for one block*/
         /*every block after the cursor in this line become the next block because of the backspace*/
-        memmove(video_mem + ((NUM_COLS * screen_y + screen_x) << 1), video_mem + ((NUM_COLS * screen_y + screen_x + 1) << 1), (NUM_COLS * NUM_ROWS - (NUM_COLS * screen_y + screen_x)) << 1);
-        if (screen_x < 0) {
-            screen_y --;
-            screen_x = NUM_COLS - 1;
+        memmove(video_mem + ((NUM_COLS * (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) + (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x)) << 1), video_mem + ((NUM_COLS * (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) + (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) + 1) << 1), (NUM_COLS * NUM_ROWS - (NUM_COLS * (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) + (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x))) << 1);
+        if ((ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) < 0) {
+            (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) --;
+            (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) = NUM_COLS - 1;
         }
     }
     if (scancode == LEFT_ARROW) {       /*the case of left arrow*/
         if (getIdx() <= 0) return;
-        if (screen_x == 0 && screen_y == 0) return;     /*if it is at the front of the screen, just return*/
-            screen_x --;        /*left move the cursor for one block*/
-        if (screen_x < 0) {
-            screen_y --;
-            screen_x = NUM_COLS - 1;
+        if ((ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) == 0 && (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) == 0) return;     /*if it is at the front of the screen, just return*/
+            (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) --;        /*left move the cursor for one block*/
+        if ((ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) < 0) {
+            (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) --;
+            (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) = NUM_COLS - 1;
         }
     }
     if (scancode == RIGHT_ARROW) {      /*the case of right arrow*/
-        screen_x ++;     /*if it is not the end of the string, right move the cursor by one block*/
-        screen_y = screen_y + (screen_x / NUM_COLS);
-        screen_x %= NUM_COLS;
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) ++;     /*if it is not the end of the string, right move the cursor by one block*/
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) = (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) + ((ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) / NUM_COLS);
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) %= NUM_COLS;
         scrolling();
     }
     // if (scancode == UP_ARROW) {
@@ -261,18 +306,36 @@ int32_t putbuf(int8_t* s, uint32_t len) {
  * Return Value: void
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
+    cli();
+    if (cur_ter_num == cur_exe_ter_num || PRINT_TO_SCREEN == 1) {
+        if(c == '\n' || c == '\r') {
+            screen_y++;
+            screen_x = 0;
+            scrolling();        /*check and do scrolling*/
+        } else {
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+            screen_x++;
+            screen_y = screen_y + (screen_x / NUM_COLS);
+            scrolling();    /*check and do scrolling*/
+            screen_x %= NUM_COLS;
+        }
+        sti();
+        return;
+    }
     if(c == '\n' || c == '\r') {
-        screen_y++;
-        screen_x = 0;
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y)++;
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) = 0;
         scrolling();        /*check and do scrolling*/
     } else {
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
-        screen_x++;
-        screen_y = screen_y + (screen_x / NUM_COLS);
+        *(uint8_t *)(video_mem + ((NUM_COLS * (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) + (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x)) << 1)) = c;
+        *(uint8_t *)(video_mem + ((NUM_COLS * (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) + (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x)) << 1) + 1) = ATTRIB;
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x)++;
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) = (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) + ((ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) / NUM_COLS);
         scrolling();    /*check and do scrolling*/
-        screen_x %= NUM_COLS;
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) %= NUM_COLS;
     }
+    sti();
 }
 
 /* void putc_color(uint8_t c, uint8_t attrib)
@@ -280,18 +343,36 @@ void putc(uint8_t c) {
  * Return Value: void
  *  Function: Output a character to the console */
 void putc_color(uint8_t c, uint8_t attrib) {
+    cli();
+    if ( cur_ter_num == cur_exe_ter_num || PRINT_TO_SCREEN == 1) {
+        if(c == '\n' || c == '\r') {
+            screen_y++;
+            screen_x = 0;
+            scrolling();        /*check and do scrolling*/
+        } else {
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = attrib;
+            screen_x++;
+            screen_y = screen_y + (screen_x / NUM_COLS);
+            scrolling();    /*check and do scrolling*/
+            screen_x %= NUM_COLS;
+        }
+        sti();
+        return ;
+    }
     if(c == '\n' || c == '\r') {
-        screen_y++;
-        screen_x = 0;
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y)++;
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) = 0;
         scrolling();        /*check and do scrolling*/
     } else {
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = attrib;
-        screen_x++;
-        screen_y = screen_y + (screen_x / NUM_COLS);
+        *(uint8_t *)(video_mem + ((NUM_COLS * (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) + (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x)) << 1)) = c;
+        *(uint8_t *)(video_mem + ((NUM_COLS * (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) + (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x)) << 1) + 1) = attrib;
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x)++;
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) = (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) + ((ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) / NUM_COLS);
         scrolling();    /*check and do scrolling*/
-        screen_x %= NUM_COLS;
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) %= NUM_COLS;
     }
+    sti();
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);

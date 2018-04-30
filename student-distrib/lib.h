@@ -30,6 +30,9 @@
 #define ATTRIB_BLUE     0x5
 #define COLOR_NUM       6
 
+// sginal to tell to print to screen
+extern int PRINT_TO_SCREEN;
+
 void set_color(unsigned char addr);
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);

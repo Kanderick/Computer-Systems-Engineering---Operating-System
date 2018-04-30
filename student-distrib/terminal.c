@@ -68,8 +68,8 @@ int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
             //while ((!getEnter()) || (cur_ter_num != cur_exe_ter_num)) {}      /*wait for enter*/
             sti();
             while (!(getEnter() && (cur_ter_num == cur_exe_ter_num))) {}
-            // resetEnter();               /*reset the enter flag*/
             cli();
+            // resetEnter();               /*reset the enter flag*/
             buffLen = strlen((int8_t *)keyBuffer);              /*get the length of the string*/
             for (i = 0; i < nbytes; i ++)
                 buf[i] = '\0';        /*initialze the target buffer*/

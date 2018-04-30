@@ -8,6 +8,7 @@ their handler
 #include "lib.h"
 #include "multi_terminal.h"
 #include "pcb.h"
+#include "paging.h"
 
 static uint8_t shiftFlag;       /* check whether the shiftkey is pressed */
 static uint8_t ctrlFlag;
@@ -29,7 +30,7 @@ static int buffIdx = 0;
  *   SIDE EFFECTS: print the pressed key onto the screen
  */
 int32_t keyboard_interrupt() {
-    cli();                          /*clean the interrupt flag*/
+    // cli();                          /*clean the interrupt flag*/
     send_eoi(KEYBOARD_IRQ);         /*send the end of interrupt signal to PIC*/
     // sti();                          /*restore the interrupt flag*/
 
@@ -57,8 +58,19 @@ int32_t keyboard_interrupt() {
     }
     /*the case of ctrl + l*/
     if (scancode == L_PRESS && ctrlFlag == 1) {
+        pde_t page_temp = page_table_0[VIDEO_VIRTUAL];
+        page_table_0[VIDEO_VIRTUAL] = VIDEO_START | R_W_MASK | PRESENT_MASK;
+        write_cr3((unsigned long)page_directory);
+        PRINT_TO_SCREEN = 1;
+
         clearScreen();    /*clear the screen*/
+
+        PRINT_TO_SCREEN = 0;
+        page_table_0[VIDEO_VIRTUAL] = page_temp;
+        write_cr3((unsigned long)page_directory);
+
         ctrlFlag = 0;       /*reset the strl flag*/
+
         return 0;
     }
 
@@ -83,21 +95,50 @@ int32_t keyboard_interrupt() {
 
     // if (pressedKey == 0) spKey(scancode);       /*if the key is not a normal key, check whether it is a special key*/
     if (scancode == BACKSPACE) {        /*if the backspace key is pressed, delete a char in the buffer*/
+        pde_t page_temp = page_table_0[VIDEO_VIRTUAL];
+        page_table_0[VIDEO_VIRTUAL] = VIDEO_START | R_W_MASK | PRESENT_MASK;
+        write_cr3((unsigned long)page_directory);
+        PRINT_TO_SCREEN = 1;
+
         spKey(scancode);
+
+        PRINT_TO_SCREEN = 0;
+        page_table_0[VIDEO_VIRTUAL] = page_temp;
+        write_cr3((unsigned long)page_directory);
+
         if (buffIdx != 0) {
             keyBuffer[buffIdx] = '\0';
             buffIdx --; // This fix the PAGE FAULT problem
         }
     }
     if (scancode == LEFT_ARROW) {
+        pde_t page_temp = page_table_0[VIDEO_VIRTUAL];
+        page_table_0[VIDEO_VIRTUAL] = VIDEO_START | R_W_MASK | PRESENT_MASK;
+        write_cr3((unsigned long)page_directory);
+        PRINT_TO_SCREEN = 1;
+
         spKey(scancode);
+
+        PRINT_TO_SCREEN = 0;
+        page_table_0[VIDEO_VIRTUAL] = page_temp;
+        write_cr3((unsigned long)page_directory);
+
         if (buffIdx != 0) {
             buffIdx --; // This fix the PAGE FAULT problem
         }
     }
     if (scancode == RIGHT_ARROW) {
         if ((keyBuffer[buffIdx] != '\0') && (buffIdx < BUFF_SIZE - 1)) {
+            pde_t page_temp = page_table_0[VIDEO_VIRTUAL];
+            page_table_0[VIDEO_VIRTUAL] = VIDEO_START | R_W_MASK | PRESENT_MASK;
+            write_cr3((unsigned long)page_directory);
+            PRINT_TO_SCREEN = 1;
+
             spKey(scancode);
+            PRINT_TO_SCREEN = 0;
+            page_table_0[VIDEO_VIRTUAL] = page_temp;
+            write_cr3((unsigned long)page_directory);
+
             buffIdx ++;
         }
     }
@@ -106,7 +147,15 @@ int32_t keyboard_interrupt() {
         pressedKey = KB_decode(scancode);
     /* if the key pressed value is known, print it */
     if (pressedKey != 0) {
+        pde_t page_temp = page_table_0[VIDEO_VIRTUAL];
+        page_table_0[VIDEO_VIRTUAL] = VIDEO_START | R_W_MASK | PRESENT_MASK;
+        write_cr3((unsigned long)page_directory);
+        PRINT_TO_SCREEN = 1;
         printf("%c", pressedKey);
+        PRINT_TO_SCREEN = 0;
+        page_table_0[VIDEO_VIRTUAL] = page_temp;
+        write_cr3((unsigned long)page_directory);
+
         if (buffIdx < BUFF_SIZE) {      /*if the buffer is not full, put the char in to the buffer*/
             keyBuffer[buffIdx] = pressedKey;
         }
@@ -274,6 +323,7 @@ unsigned char KB_decode(unsigned char scancode) {
  */
 void init_keyboard() {
     shiftFlag = 0;              /*reset the shift flag*/
+    PRINT_TO_SCREEN = 0;        /*set not to print to screen */
     enable_irq(KEYBOARD_IRQ);   /*enable keyboard IRQ*/
 }
 
@@ -387,6 +437,7 @@ uint8_t getEnter() {
     } else {
         return 0;
     }
+    // cli();
     // return enterFlag;
 }
 
