@@ -69,11 +69,9 @@ void init_rtc(void);
 /*change the rate of rtc freqency*/
 void set_rate(unsigned rate);
 
-uint32_t pit_interrupt();
+void pit_interrupt();
 
 void init_pit(unsigned rate);
-
-uint32_t scheduling();
 
 /*get the keyboard buffer*/
 unsigned char *getBuffer(void);
@@ -93,7 +91,6 @@ int getIdx(void);
 /*set the buffer idx*/
 void setIdx(int new_buffIdx);
 
-void terminal_switch(int terNum);
+void terminal_switch(int destination_terminal);
 
-void context_switch(int terNum);
 #endif

@@ -183,6 +183,7 @@ void user_page_mapping(uint8_t pid) {
     } else {
         ERROR_MSG;
         printf("Invalid PID.\n");
+        while (1);
     }
 }
 
@@ -201,6 +202,7 @@ void user_page_unmapping(uint8_t pid) {
     else {
         ERROR_MSG;
         printf("Invalid PID.\n");
+        while (1);
     }
 }
 
@@ -211,16 +213,16 @@ void user_page_unmapping(uint8_t pid) {
  * Side Effects flushes tlb
  */
 void user_video_mapping() {
-  pde_t page_132mb;
-  pte_t page_132mb_4kb;
-  /*set the correct pde and pte*/
-  page_132mb = ((unsigned long)&(page_table_33[PTEIDX_132_4KB]) & PTBA_MASK) | U_S_MASK | R_W_MASK | PRESENT_MASK;
-  page_132mb_4kb =  VIDEO_START | U_S_MASK | R_W_MASK | PRESENT_MASK;
-  /*set value in the correct position*/
-  page_directory[PDEIDX_132MB] = page_132mb;
-  page_table_33[PTEIDX_132_4KB] = page_132mb_4kb;
-  /* This instruction flushed the tlb */
-  write_cr3((unsigned long)page_directory);
+    pde_t page_132mb;
+    pte_t page_132mb_4kb;
+    /*set the correct pde and pte*/
+    page_132mb = ((unsigned long)&(page_table_33[PTEIDX_132_4KB]) & PTBA_MASK) | U_S_MASK | R_W_MASK | PRESENT_MASK;
+    page_132mb_4kb =  VIDEO_START | U_S_MASK | R_W_MASK | PRESENT_MASK;
+    /*set value in the correct position*/
+    page_directory[PDEIDX_132MB] = page_132mb;
+    page_table_33[PTEIDX_132_4KB] = page_132mb_4kb;
+    /* This instruction flushed the tlb */
+    write_cr3((unsigned long)page_directory);
 }
 
 /* user_video_unmapping
@@ -230,11 +232,11 @@ void user_video_mapping() {
  * Side Effects flushes tlb
  */
 void user_video_unmapping() {
-  /*clean appropriate pde and pte*/
-  page_table_33[PTEIDX_132_4KB] = 0;
-  page_directory[PDEIDX_132MB] = 0;
-  /* This instruction flushed the tlb */
-  write_cr3((unsigned long)page_directory);
+    /*clean appropriate pde and pte*/
+    page_table_33[PTEIDX_132_4KB] = 0;
+    page_directory[PDEIDX_132MB] = 0;
+    /* This instruction flushed the tlb */
+    write_cr3((unsigned long)page_directory);
 }
 
 /* switch_terminal_video
@@ -247,11 +249,21 @@ void switch_terminal_video(uint8_t from, uint8_t to) {
     if (from > 2 || to > 2) {
         ERROR_MSG;
         printf("Invalid terminal number.\n");
+        while (1);
     }
+    /* TODO check validity here */
+    cli();
+    pde_t page_temp = page_table_0[VIDEO_VIRTUAL];
+    page_table_0[VIDEO_VIRTUAL] = VIDEO_START | R_W_MASK | PRESENT_MASK;
+    write_cr3((unsigned long)page_directory);
+
     //save displayed video memory to temp, echo the temp to displayed video memory
     memcpy((char*)(TERMINAL1_START +  (uint32_t)from * _4KB), (char*)(VIDEO_START), _4KB);
     memcpy((char*)(VIDEO_START), (char*)(TERMINAL1_START + (uint32_t)to * _4KB), _4KB);
-    write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
+
+    page_table_0[VIDEO_VIRTUAL] = page_temp;
+    write_cr3((unsigned long)page_directory);
+    sti();
 }
 
 /* switch_terminal_paging
@@ -271,6 +283,7 @@ void switch_terminal_paging(int8_t destination_pid) {
     } else {
         ERROR_MSG;
         printf("Invalid PID.\n");
+        while (1);
     }
 }
 
@@ -283,18 +296,23 @@ void switch_terminal_paging(int8_t destination_pid) {
  */
 //
 extern void background_uservideo_paging(uint8_t display_terminal_num, uint8_t execute_terminal_num) {
-  pde_t page_132mb_4kb;
+    pde_t page_132mb_4kb;
+    pde_t page_kernel_video;
 
-  if (display_terminal_num == execute_terminal_num) {
-    page_132mb_4kb =  VIDEO_START | U_S_MASK | R_W_MASK | PRESENT_MASK;
-    page_table_33[PTEIDX_132_4KB] = page_132mb_4kb;
-  }
-  else {
-  page_132mb_4kb =  (TERMINAL1_START + execute_terminal_num * _4KB) | U_S_MASK | R_W_MASK | PRESENT_MASK;
-  page_table_33[PTEIDX_132_4KB] = page_132mb_4kb;
-  }
-  /* This instruction flushed the tlb */
-  write_cr3((unsigned long)page_directory);
+    if (display_terminal_num == execute_terminal_num) {
+        page_132mb_4kb =  VIDEO_START | U_S_MASK | R_W_MASK | PRESENT_MASK;
+        page_table_33[PTEIDX_132_4KB] = page_132mb_4kb;
+        page_kernel_video =  VIDEO_START | R_W_MASK | PRESENT_MASK;
+        page_table_0[VIDEO_VIRTUAL] = page_kernel_video;
+    }
+    else {
+        page_132mb_4kb =  (TERMINAL1_START + execute_terminal_num * _4KB) | U_S_MASK | R_W_MASK | PRESENT_MASK;
+        page_table_33[PTEIDX_132_4KB] = page_132mb_4kb;
+        page_kernel_video =  (TERMINAL1_START + execute_terminal_num * _4KB) | R_W_MASK | PRESENT_MASK;
+        page_table_0[VIDEO_VIRTUAL] = page_kernel_video;
+    }
+    /* This instruction flushed the tlb */
+    write_cr3((unsigned long)page_directory);
 }
 
 /* void clear_terminal_video(void);

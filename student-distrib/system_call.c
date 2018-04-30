@@ -248,7 +248,7 @@ int32_t halt(uint8_t status) {
         user_page_mapping(ece391_process_manager.curr_pid);
     }
 
-    ece391_multi_ter_info[cur_ter_num].executeFlag = 0;
+    // ece391_multi_ter_info[cur_ter_num].executeFlag = 0;
 
     if ( f == HALT_NORM ){
         asm volatile("movzbl %%bl,%%ebx\n\t" : :);
@@ -359,7 +359,7 @@ int32_t execute(const uint8_t* command) {
 
     /*copy the user image to the user level page*/
     uint32_t* execute_start = load_user_image(filename);
-    ece391_multi_ter_info[cur_ter_num].executeFlag = 1;
+    // ece391_multi_ter_info[cur_ter_num].executeFlag = 1;
     #if (PAGE_TEST == 2)
     paging_test();
     #endif

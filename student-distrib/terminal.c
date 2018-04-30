@@ -1,6 +1,8 @@
 #include "terminal.h"
 #include "device.h"
 #include "i8259.h"
+#include "pcb.h" // for test only
+#include "multi_terminal.h"
 
 static volatile uint8_t terminalFlag = 0;
 
@@ -62,7 +64,7 @@ int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
     while (1) {
         keyBuffer = getBuffer();        /*get the key buffer*/
         if (keyBuffer != NULL) {
-            while (!getEnter()) {}      /*wait for enter*/
+            while ((!getEnter()) || (cur_ter_num != cur_exe_ter_num)) {}      /*wait for enter*/
             resetEnter();               /*reset the enter flag*/
             cli();
             buffLen = strlen((int8_t *)keyBuffer);              /*get the length of the string*/
@@ -107,7 +109,7 @@ int32_t terminal_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
 
     // Special treatment for 391OS> to print in color text
     if (!strncmp((int8_t*)buf, "391OS> ", 7) && nbytes == 7) {
-        printf("391OS> ");
+        printf("%d %d 391OS> ", ece391_process_manager.curr_pid, (ece391_process_manager.process_position[ece391_process_manager.curr_pid - 1])->parent_pid);
         return nbytes;
     }
 

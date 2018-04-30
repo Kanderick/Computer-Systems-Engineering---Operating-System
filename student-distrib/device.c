@@ -66,26 +66,17 @@ int32_t keyboard_interrupt() {
     if (altFlag == 1) {
         switch(scancode) {
             case F_ONE:
-            if (cur_ter_num == TER_ZERO) return 0;
-            else {
-                terminal_switch(TER_ZERO);
+                if (cur_ter_num != TER_ZERO)
+                    terminal_switch(TER_ZERO);
                 return 0;
-            }
-            break;
             case F_TWO:
-            if (cur_ter_num == TER_ONE) return 0;
-            else {
-                terminal_switch(TER_ONE);
+                if (cur_ter_num != TER_ONE)
+                    terminal_switch(TER_ONE);
                 return 0;
-            }
-            break;
             case F_THREE:
-            if (cur_ter_num == TER_TWO) return 0;
-            else {
-                terminal_switch(TER_TWO);
+                if (cur_ter_num != TER_TWO)
+                    terminal_switch(TER_TWO);
                 return 0;
-            }
-            break;
         }
     }
     sti();
@@ -349,12 +340,13 @@ void set_rate(unsigned rate) {
     outb((prev & 0xF0) | rate, RTC_REG_DATA);     /*write only our rate to A. Note, rate is the bottom 4 bits*/
 }
 
-uint32_t pit_interrupt() {
+void pit_interrupt() {
     cli();                      /*clean the interrupt flag*/
     send_eoi(PIT_IRQ);          /*send the end of interrupt signal to PIC*/
     sti();
-    printf("PIT works ");
-    return scheduling();
+
+    // printf("P ");
+    scheduling();
 }
 
 void init_pit(unsigned freqency) {
@@ -366,16 +358,6 @@ void init_pit(unsigned freqency) {
     outb(rate >> PIT_SHIFT, PIT_REG_DATA_ZERO);
 }
 
-uint32_t scheduling() {
-    // now try to process cur_exe_ter_num
-    int exe_ter_num = cur_exe_ter_num;
-    // update cur_exe_ter_num for next turn
-    cur_exe_ter_num = (cur_exe_ter_num + 1) % TER_MAX;
-    // pass-in the current processing terminal number
-    context_switch(exe_ter_num);
-    // pass in the old terminal number to process
-    return (int32_t)(&ece391_multi_ter_info[exe_ter_num]);
-}
 
 /*
  * getBuffer
@@ -385,7 +367,9 @@ uint32_t scheduling() {
  *   RETURN VALUE: the keyboard buffer
  *   SIDE EFFECTS: none
  */
-unsigned char *getBuffer() {return keyBuffer;}
+unsigned char *getBuffer() {
+    return keyBuffer;
+}
 
 /*
  * getEnter
@@ -395,7 +379,9 @@ unsigned char *getBuffer() {return keyBuffer;}
  *   RETURN VALUE: the enter flag
  *   SIDE EFFECTS: none
  */
-uint8_t getEnter() {return enterFlag;}
+uint8_t getEnter() {
+    return enterFlag;
+}
 
 /*
  * resetEnter
@@ -447,31 +433,19 @@ void setIdx(int new_buffIdx) {
     buffIdx = new_buffIdx;
 }
 
-void terminal_switch(int terNum) {
+void terminal_switch(int destination_terminal) {
     ece391_multi_ter_info[cur_ter_num].ter_screen_x = getScreen_x();
     ece391_multi_ter_info[cur_ter_num].ter_screen_y = getScreen_y();
     memcpy(ece391_multi_ter_info[cur_ter_num].ter_buffer, keyBuffer, BUFF_SIZE);
     ece391_multi_ter_info[cur_ter_num].ter_bufferIdx = buffIdx;
 
-    switch_terminal_video(cur_ter_num, terNum);
+    switch_terminal_video(cur_ter_num, destination_terminal);
 
-    memcpy(keyBuffer, ece391_multi_ter_info[terNum].ter_buffer, BUFF_SIZE);
-    buffIdx = ece391_multi_ter_info[terNum].ter_bufferIdx;
-    setScreen_x(ece391_multi_ter_info[terNum].ter_screen_x);
-    setScreen_y(ece391_multi_ter_info[terNum].ter_screen_y);
+    memcpy(keyBuffer, ece391_multi_ter_info[destination_terminal].ter_buffer, BUFF_SIZE);
+    buffIdx = ece391_multi_ter_info[destination_terminal].ter_bufferIdx;
+    setScreen_x(ece391_multi_ter_info[destination_terminal].ter_screen_x);
+    setScreen_y(ece391_multi_ter_info[destination_terminal].ter_screen_y);
     moveCursor();
-    cur_ter_num = terNum;
-}
 
-// exe_ter_num is the old terminal Number
-// cur_exe_ter_num have been updated for the this turn
-void context_switch(int exe_ter_num) {
-    //switch uservideo mapping
-    background_uservideo_paging(exe_ter_num, cur_exe_ter_num);
-    //set current destination terminal number
-    ece391_multi_ter_info[exe_ter_num].Dest_ter = cur_exe_ter_num;
-    // set current terminal's parent to the old terminal number
-    ece391_multi_ter_info[cur_exe_ter_num].Parent_ter = exe_ter_num;
-    // store the old terminal number's pid number to info table
-    ece391_multi_ter_info[exe_ter_num].PID_num = ece391_process_manager.curr_pid;
+    cur_ter_num = destination_terminal;
 }

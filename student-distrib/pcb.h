@@ -96,4 +96,6 @@ void init_process_manager(process_manager_t* processManager);
 // this function init a new process, return a pid and -1 on failure
 int8_t init_pcb(process_manager_t* processManager, uint8_t* argument);
 
+int8_t next_avaliable_pid();
+
 #endif
