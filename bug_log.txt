@@ -1,0 +1,12 @@
+bug log
+
+system call: 	halt			did not restore %ebp when halting
+system call: 	open			did not turn set flag properly
+
+
+multi terminal
+keyboard interrupt:			not echo on the screen : should modify all printing functons
+context_switch: 			should make it atomic operation
+terminal_switch: 			did not switch old terminal to background terminal
+context switch:				the oder of popal is incorrect
+execute: 				should pop correct flag need flag masking 
