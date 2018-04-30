@@ -73,7 +73,7 @@ int8_t init_pcb(process_manager_t* processManager, uint8_t* argument) {
     // if the array full, immediately return
     if (ret_pid == -1)
         return ret_pid;
-    // else continue 
+    // else continue
     processManager->process_position[ret_pid-1]->exc_flag = HALT_NORM;
     processManager->process_position[ret_pid-1]->vidmap_flag = VIDMAP_NOT_EXIST;
     // check input argument is bad pointer
@@ -117,6 +117,10 @@ uint32_t pop_process() {
  *   SIDE EFFECTS: none.
  */
 uint32_t push_process(int8_t new_pid) {
+    if ((ece391_process_manager.curr_pid) != -1) {
+        asm volatile("movl %%esp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp_kernel));
+        asm volatile("movl %%ebp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->ebp_kernel));
+    }
     ece391_process_manager.process_status[new_pid-1] = PROCESS_EXIST;
     ece391_process_manager.curr_pid = new_pid;
     return 0;

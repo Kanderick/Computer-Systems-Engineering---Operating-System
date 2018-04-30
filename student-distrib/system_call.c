@@ -368,6 +368,7 @@ int32_t execute(const uint8_t* command) {
     asm volatile("movl %%esp,%0\n\t" :"=r" (temp_esp));
     asm volatile("movl %%ebp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->halt_ebp));
 
+
     /*code for context switch*/
     if((ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid == -1 && cur_ter_num == 0){ // if it is the first process, maintain the current esp
         (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp )= temp_esp-4;

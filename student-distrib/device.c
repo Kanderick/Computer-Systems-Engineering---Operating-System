@@ -341,12 +341,11 @@ void set_rate(unsigned rate) {
     outb((prev & 0xF0) | rate, RTC_REG_DATA);     /*write only our rate to A. Note, rate is the bottom 4 bits*/
 }
 
-uint8_t pit_interrupt() {
+void pit_interrupt() {
     cli();                      /*clean the interrupt flag*/
     send_eoi(PIT_IRQ);          /*send the end of interrupt signal to PIC*/
     sti();
-    printf("PIT works ");
-    return scheduling();
+    scheduling();
 }
 
 void init_pit(unsigned freqency) {
@@ -358,7 +357,7 @@ void init_pit(unsigned freqency) {
     outb(rate >> PIT_SHIFT, PIT_REG_DATA_ZERO);
 }
 
-uint8_t scheduling() {
+void scheduling() {
     // now try to process cur_exe_ter_num
     int exe_ter_num = cur_exe_ter_num;
     // update cur_exe_ter_num for next turn
@@ -366,7 +365,8 @@ uint8_t scheduling() {
     // pass-in the current processing terminal number
     context_switch(exe_ter_num);
     // pass in the old terminal number to process
-    return (int32_t)(&ece391_multi_ter_info[exe_ter_num]);
+    switch_context(0);
+    return;
 }
 
 /*

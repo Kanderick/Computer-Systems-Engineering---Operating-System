@@ -58,6 +58,8 @@ typedef struct process_control_block {
     /* current process statics */
     uint32_t ebp;
     uint32_t esp;
+    uint32_t ebp_kernel;
+    uint32_t esp_kernel;
     // int8_t pid;          NOTE: no need for store pid again
     /* reserved for paging info */
     /*noot needed*/
