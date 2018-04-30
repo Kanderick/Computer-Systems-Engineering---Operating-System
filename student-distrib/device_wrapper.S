@@ -40,7 +40,7 @@ rtc_wrapper:
     iret
 
 pit_wrapper:
-pushal
-call pit_interrupt
-popal
-iret
+    pushal
+    call pit_interrupt
+    popal
+    iret

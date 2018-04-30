@@ -37,6 +37,7 @@ struct MULTI_TER_INFO {
     // info for terminal read
     int ter_bufferIdx;
     int executeFlag;
+    int enterFlag;
     uint8_t ter_buffer[ter_buffer_len+1];
     // if return to a terminal, use this pid to restore the cur_pid
     int8_t PID_num;

@@ -237,7 +237,7 @@ int32_t halt(uint8_t status) {
     if (ece391_process_manager.curr_pid == -1 && cur_ter_num != 0) {
         ece391_multi_ter_info[(uint32_t)cur_ter_num].Parent_ter = 0;
         ece391_multi_ter_status[(uint32_t)cur_ter_num] = TER_NOT_EXIST;
-        switch_terminal(TO_PARENT);
+        //switch_terminal(TO_PARENT);
         ERROR_MSG;
         printf("TERMINAL FAIL TO RETURN TO PARENT");
         while(1);

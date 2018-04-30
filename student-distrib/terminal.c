@@ -1,8 +1,11 @@
 #include "terminal.h"
 #include "device.h"
 #include "i8259.h"
+#include "multi_terminal.h"
 
 static volatile uint8_t terminalFlag = 0;
+
+uint8_t writeFlag = 0;
 
 /*
  * terminal_open
@@ -62,7 +65,7 @@ int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
     while (1) {
         keyBuffer = getBuffer();        /*get the key buffer*/
         if (keyBuffer != NULL) {
-            while (!getEnter()) {}      /*wait for enter*/
+            while (!ece391_multi_ter_info[cur_ter_num].enterFlag) {}      /*wait for enter*/
             resetEnter();               /*reset the enter flag*/
             cli();
             buffLen = strlen((int8_t *)keyBuffer);              /*get the length of the string*/
@@ -106,17 +109,27 @@ int32_t terminal_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
         nbytes = buffLen;                 /*check the length of the string that should be copied*/
 
     // Special treatment for 391OS> to print in color text
-    if (!strncmp((int8_t*)buf, "391OS> ", 7) && nbytes == 7) {
-        printf("391OS> ");
-        return nbytes;
-    }
+    if (cur_ter_num == cur_exe_ter_num) {
+        if (!strncmp((int8_t*)buf, "391OS> ", 7) && nbytes == 7) {
+            printf("391OS> ");
+            return nbytes;
+        }
 
+        for (i = 0; i < nbytes; i++) {
+            // printf("%c", buf[i]);     /*print the string in the buffer onto screen*/
+            putc(buf[i]);   // Any user level text will not be printed in color mode
+        }
+        if (strlen((int8_t*) buf) == TERMINAL_BUFEER_SIZE) {
+            printf("\n");
+        }
+        return nbytes;                                          /*return the number of bytes printed*/
+    }
     for (i = 0; i < nbytes; i++) {
         // printf("%c", buf[i]);     /*print the string in the buffer onto screen*/
-        putc(buf[i]);   // Any user level text will not be printed in color mode
+        exe_putc(buf[i]);   // Any user level text will not be printed in color mode
     }
     if (strlen((int8_t*) buf) == TERMINAL_BUFEER_SIZE) {
-        printf("\n");
+        exe_putc((uint8_t)"\n");
     }
     return nbytes;                                          /*return the number of bytes printed*/
 }

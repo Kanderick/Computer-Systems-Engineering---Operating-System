@@ -32,6 +32,7 @@ int32_t keyboard_interrupt() {
     cli();                          /*clean the interrupt flag*/
     send_eoi(KEYBOARD_IRQ);         /*send the end of interrupt signal to PIC*/
     sti();                          /*restore the interrupt flag*/
+    moveCursor();
     unsigned char scancode = 0;     /*initialize scancode*/
     unsigned char pressedKey = 0;   /*initialize pressedKey*/
     scancode = inb(KEY_REG_DATA);
@@ -116,9 +117,7 @@ int32_t keyboard_interrupt() {
     if (pressedKey == '\n') {
         buffIdx = BUFF_SIZE - 1; // This handle left arrow key
     }
-
     moveCursor();
-
     return 0;
 }
 
@@ -146,7 +145,7 @@ int key_pressed() {
 unsigned char KB_decode(unsigned char scancode) {
     switch(scancode) {
         case 0x1C: {
-            enterFlag = 1;
+            ece391_multi_ter_info[cur_ter_num].enterFlag = 1;
             return '\n';
         }
         case 0x39: return ' ';
@@ -398,7 +397,7 @@ uint8_t getEnter() {return enterFlag;}
  *   SIDE EFFECTS: reset the enter flag
  */
 void resetEnter() {
-    enterFlag = 0;
+    ece391_multi_ter_info[cur_ter_num].enterFlag = 0;
     buffIdx = 0;
 }
 
@@ -466,7 +465,7 @@ void terminal_switch(int terNum) {
 // cur_exe_ter_num have been updated for the this turn
 void context_switch(int exe_ter_num) {
     //switch uservideo mapping
-    background_uservideo_paging(exe_ter_num, cur_exe_ter_num);
+    //background_uservideo_paging(cur_ter_num, cur_exe_ter_num);
     //set current destination terminal number
     ece391_multi_ter_info[exe_ter_num].Dest_ter = cur_exe_ter_num;
     // set current terminal's parent to the old terminal number

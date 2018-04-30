@@ -4,6 +4,8 @@
 #include "types.h"
 #include "device.h"
 
+extern uint8_t writeFlag;
+
 #define TERMINAL_BUFEER_SIZE    BUFF_SIZE
 
 /*terminal open function*/

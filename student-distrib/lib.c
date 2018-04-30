@@ -3,6 +3,7 @@
 
 #include "lib.h"
 #include "device.h"
+#include "multi_terminal.h"
 
 static int screen_x;
 static int screen_y;
@@ -104,6 +105,19 @@ void scrolling() {
         }
     }
     moveCursor();
+}
+
+void exe_scrolling() {
+    int32_t i;
+    char* cur_video_mem = video_mem + _4KB * (cur_exe_ter_num + 1);
+    if ((ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) == NUM_ROWS) {     /*check whether it is necessary to scroll*/
+        memmove(video_mem, video_mem + (NUM_COLS << 1), MEM_SIZE);      /*move the whole screen up for 1 line*/
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) = NUM_ROWS - 1;        /*set the (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) to the last line*/
+        for (i = (NUM_ROWS - 1) * NUM_COLS; i < NUM_ROWS * NUM_COLS; i ++) {        /*set the last line as blank*/
+            *(uint8_t *)(cur_video_mem + (i << 1)) = ' ';
+            *(uint8_t *)(cur_video_mem + (i << 1) + 1) = ATTRIB;
+        }
+    }
 }
 
 /*
@@ -261,17 +275,33 @@ int32_t putbuf(int8_t* s, uint32_t len) {
  * Return Value: void
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
+        if(c == '\n' || c == '\r') {
+            screen_y++;
+            screen_x = 0;
+            scrolling();        /*check and do scrolling*/
+        } else {
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+            screen_x++;
+            screen_y = screen_y + (screen_x / NUM_COLS);
+            scrolling();    /*check and do scrolling*/
+            screen_x %= NUM_COLS;
+        }
+}
+
+void exe_putc(uint8_t c) {
+    char* cur_video_mem = video_mem + _4KB * (cur_exe_ter_num + 1);
     if(c == '\n' || c == '\r') {
-        screen_y++;
-        screen_x = 0;
-        scrolling();        /*check and do scrolling*/
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y)++;
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) = 0;
+        exe_scrolling();        /*check and do scrolling*/
     } else {
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
-        screen_x++;
-        screen_y = screen_y + (screen_x / NUM_COLS);
-        scrolling();    /*check and do scrolling*/
-        screen_x %= NUM_COLS;
+        *(uint8_t *)(cur_video_mem + ((NUM_COLS * (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) + (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x)) << 1)) = c;
+        *(uint8_t *)(cur_video_mem + ((NUM_COLS * (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) + (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x)) << 1) + 1) = ATTRIB;
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x)++;
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) = (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y) + ((ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) / NUM_COLS);
+        exe_scrolling();    /*check and do scrolling*/
+        (ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x) %= NUM_COLS;
     }
 }
 
@@ -280,18 +310,19 @@ void putc(uint8_t c) {
  * Return Value: void
  *  Function: Output a character to the console */
 void putc_color(uint8_t c, uint8_t attrib) {
-    if(c == '\n' || c == '\r') {
-        screen_y++;
-        screen_x = 0;
-        scrolling();        /*check and do scrolling*/
-    } else {
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = attrib;
-        screen_x++;
-        screen_y = screen_y + (screen_x / NUM_COLS);
-        scrolling();    /*check and do scrolling*/
-        screen_x %= NUM_COLS;
-    }
+        if(c == '\n' || c == '\r') {
+            screen_y++;
+            screen_x = 0;
+            scrolling();        /*check and do scrolling*/
+        } else {
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = attrib;
+            screen_x++;
+            screen_y = screen_y + (screen_x / NUM_COLS);
+            scrolling();    /*check and do scrolling*/
+            screen_x %= NUM_COLS;
+        }
+        return;
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);

@@ -54,6 +54,10 @@ void spKey(unsigned char scancode);
 /*scroll the screen when it is necessary*/
 void scrolling(void);
 
+void exe_scrolling(void);
+
+void exe_putc(uint8_t c);
+
 /*clear the screen*/
 void clearScreen(void);
 
