@@ -399,6 +399,14 @@ void set_rate(unsigned rate) {
     outb((prev & 0xF0) | rate, RTC_REG_DATA);     /*write only our rate to A. Note, rate is the bottom 4 bits*/
 }
 
+/*
+ * pit_interrupt
+ *   DESCRIPTION: this function is called by the pit interrupt wrapper
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE:  none
+ *   SIDE EFFECTS:  execute the interrupt handler of rtc
+ */
 uint32_t pit_interrupt() {
     cli();                      /*clean the interrupt flag*/
     send_eoi(PIT_IRQ);          /*send the end of interrupt signal to PIC*/
@@ -407,15 +415,35 @@ uint32_t pit_interrupt() {
     return scheduling();
 }
 
+/*
+ * init_pit
+ *   DESCRIPTION: this function is called by the kernel
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE:  the addr of the terminal struct that we want to store
+                    the register information
+ *   SIDE EFFECTS:  initialize the rtc and enable pit IRQ
+ */
 void init_pit(unsigned freqency) {
-    enable_irq(PIT_IRQ);
-    outb(PIT_RATE_MODE, PIT_REG_COM);
+    enable_irq(PIT_IRQ);        //enable the irq of pit
+    outb(PIT_RATE_MODE, PIT_REG_COM);       //choose the correct mode and channel for pit
     uint16_t rate = PIT_FREQUENCY / freqency;
-    cur_exe_ter_num = 0;
-    outb(rate & PIT_MASK, PIT_REG_DATA_ZERO);
+    cur_exe_ter_num = 0;        //initialize the cur_ter_num;
+    outb(rate & PIT_MASK, PIT_REG_DATA_ZERO);       //input the rate into port
     outb(rate >> PIT_SHIFT, PIT_REG_DATA_ZERO);
 }
 
+/*
+ * scheduling
+ *   DESCRIPTION: this function is called by pit interrupt handler
+                  and execute the scheduling as the freqency of
+                  PIT
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE:  the addr of the terminal struct that we want to store
+                    the register information
+ *   SIDE EFFECTS:  prepare for context switch and save the necessary information
+ */
 uint32_t scheduling() {
     // now try to process cur_exe_ter_num
     int exe_ter_num = cur_exe_ter_num;
@@ -499,6 +527,17 @@ void setIdx(int new_buffIdx) {
     buffIdx = new_buffIdx;
 }
 
+
+/*
+ * terminal_switch
+ *   DESCRIPTION: this function save the information of current terminal
+                  and get the information of next terminal(cursor, video memory)
+ *   INPUTS: terNum -- the current terminal that is displayed
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: save the information of current terminal
+                  and get the information of next terminal(cursor, video memory)
+ */
 void terminal_switch(int terNum) {
     //switch uservideo mapping
     //background_uservideo_paging(cur_ter_num, terNum);
@@ -506,18 +545,20 @@ void terminal_switch(int terNum) {
     // ece391_multi_ter_info[cur_ter_num].Dest_ter = terNum;
     // ece391_multi_ter_info[terNum].Parent_ter = cur_ter_num;
     // ece391_multi_ter_info[cur_ter_num].PID_num = ece391_process_manager.curr_pid;
-
+    /*store the cursor information*/
     ece391_multi_ter_info[cur_ter_num].ter_screen_x = getScreen_x();
     ece391_multi_ter_info[cur_ter_num].ter_screen_y = getScreen_y();
+    /*store the buffer information*/
     memcpy(ece391_multi_ter_info[cur_ter_num].ter_buffer, keyBuffer, BUFF_SIZE);
     ece391_multi_ter_info[cur_ter_num].ter_bufferIdx = buffIdx;
-
+    /*switch the terminal video*/
     switch_terminal_video(cur_ter_num, terNum);
 
     background_uservideo_paging(terNum, cur_ter_num);
-
+    /*get the buffer information*/
     memcpy(keyBuffer, ece391_multi_ter_info[terNum].ter_buffer, BUFF_SIZE);
     buffIdx = ece391_multi_ter_info[terNum].ter_bufferIdx;
+    /*get the cursor information*/
     setScreen_x(ece391_multi_ter_info[terNum].ter_screen_x);
     setScreen_y(ece391_multi_ter_info[terNum].ter_screen_y);
     moveCursor();
@@ -525,7 +566,16 @@ void terminal_switch(int terNum) {
 
     background_uservideo_paging(terNum, terNum);
 }
-
+/*
+ * context_switch
+ *   DESCRIPTION: this function save the information of current terminal
+                  and get the information of next terminal(pid number)
+ *   INPUTS: exe_ter_num -- the current terminal that is running
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: save the information of current terminal
+                  and get the information of next terminal(pid number)
+ */
 // exe_ter_num is the old terminal Number
 // cur_exe_ter_num have been updated for the this turn
 void context_switch(int exe_ter_num) {

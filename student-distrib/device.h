@@ -38,14 +38,14 @@
 #define TER_ZERO            0
 #define TER_ONE             1
 #define TER_TWO             2
-#define PIT_RATE_MODE       0x34
-#define PIT_SQUARE_MODE     0x36
-#define PIT_REG_COM         0x43
-#define PIT_REG_DATA_ZERO   0x40
-#define PIT_IRQ             0
-#define PIT_FREQUENCY       1193182
-#define PIT_MASK            0xFF
-#define PIT_SHIFT           8
+#define PIT_RATE_MODE       0x34        /*pit rate mode number*/
+#define PIT_SQUARE_MODE     0x36        /*pit square wave mode number*/
+#define PIT_REG_COM         0x43        /*pit command port number*/
+#define PIT_REG_DATA_ZERO   0x40        /*pit channel 0 register port*/
+#define PIT_IRQ             0           /*pit irq number on the port*/
+#define PIT_FREQUENCY       1193182     /*pit base rate*/
+#define PIT_MASK            0xFF        /*pit data register mask*/
+#define PIT_SHIFT           8           /*pit mask shift mask*/
 #define _20HZ               20
 
 /*print the pressed key onto the screen*/
@@ -69,10 +69,13 @@ void init_rtc(void);
 /*change the rate of rtc freqency*/
 void set_rate(unsigned rate);
 
+/*pit interrupt handler*/
 uint32_t pit_interrupt();
 
+/*intialize the pit*/
 void init_pit(unsigned rate);
 
+/*prepare for scheduling*/
 uint32_t scheduling();
 
 /*get the keyboard buffer*/
@@ -93,7 +96,9 @@ int getIdx(void);
 /*set the buffer idx*/
 void setIdx(int new_buffIdx);
 
+/*terminal switch*/
 void terminal_switch(int terNum);
 
+/*context switch preparation*/
 void context_switch(int terNum);
 #endif
