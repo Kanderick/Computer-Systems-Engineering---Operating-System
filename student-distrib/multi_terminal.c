@@ -156,11 +156,13 @@ void switch_terminal(uint32_t next_terminal) {
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].ECX_reg));
     /* ebx*/
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].EBX_reg));
-
+    /* esp*/
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].K_ESP_reg));
     // ter_flag = TER_NOT_BUSY;
     sti();
     /* pop all the register just poped on the stack*/
     //asm volatile("popal" : :);
+    asm volatile("popl %%esp" : :);
     asm volatile("popl %%ebx" : :);
     asm volatile("popl %%ecx" : :);
     asm volatile("popl %%edx" : :);
@@ -272,9 +274,12 @@ void switch_context(uint32_t next_terminal) {
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].ECX_reg));
     /* ebx*/
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].EBX_reg));
-    sti();
+    /* esp*/
+    asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].K_ESP_reg));
+
     /* pop all the register just poped on the stack*/
     //asm volatile("popal" : :);
+    asm volatile("popl %%esp" : :);
     asm volatile("popl %%ebx" : :);
     asm volatile("popl %%ecx" : :);
     asm volatile("popl %%edx" : :);
@@ -288,7 +293,7 @@ void switch_context(uint32_t next_terminal) {
     asm volatile("popw %%es" : :);
     asm volatile("popw %%fs" : :);
     asm volatile("popw %%fs" : :);
-
+    sti();
     /* use iret to switch context */
     asm volatile("iret" : :);
 

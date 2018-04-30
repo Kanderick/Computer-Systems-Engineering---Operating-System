@@ -29,7 +29,7 @@ struct MULTI_TER_INFO {
     uint32_t EFLAGS_reg;
     uint32_t ESP_reg;
     uint32_t SS_reg;
-
+    uint32_t K_ESP_reg;
     // for user runtime
     // cursor information
     int ter_screen_x;
