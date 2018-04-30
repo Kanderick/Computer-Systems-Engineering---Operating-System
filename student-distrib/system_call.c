@@ -266,6 +266,7 @@ int32_t halt(uint8_t status) {
     return 0;       //prevent warning
 }
 
+#define clear_flag_mask 0x200
 /*
  * execute
  *   DESCRIPTION: this function will be called by system call wrapper,
@@ -279,6 +280,7 @@ int32_t halt(uint8_t status) {
  */
 int32_t execute(const uint8_t* command) {
     cli();
+    uint32_t new_falg;
     uint8_t filename[TERMINAL_BUFEER_SIZE];
     uint8_t argument[TERMINAL_BUFEER_SIZE];
     uint32_t idx = 0;
@@ -380,6 +382,9 @@ int32_t execute(const uint8_t* command) {
     tss.esp0 = ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->esp;
     tss.ss0 = KERNEL_DS;
 
+    asm volatile("pushfl");
+    asm volatile("popl %0\n\t" :"=r"(new_falg));
+    new_falg|=clear_flag_mask;
     /*code for setting up stack for iret*/
     //use the exexute_start to setup eip
     //asm volatile("movl %%ebp,%0\n\t" :"=r" (ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_ebp));
@@ -393,8 +398,7 @@ int32_t execute(const uint8_t* command) {
     /* esp */
     asm volatile("pushl %0\n\t" : :"g" (LOAD_PAGE_END_ADDR-1));
     /* eflags */
-    sti();
-    asm volatile("pushfl\n\t" : :);
+    asm volatile("pushl %0\n\t" : :"g"(new_falg));
     /* cs */
     asm volatile("pushl %0\n\t" : :"g" (USER_CS));
     /* eip*/

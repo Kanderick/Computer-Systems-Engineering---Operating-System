@@ -221,7 +221,6 @@ void switch_context(uint32_t next_terminal) {
         ece391_multi_ter_info[(uint32_t)next_ter_number].PID_num = -1;
         for (i = 0; i < ter_buffer_len+1; i ++)
             ece391_multi_ter_info[(uint32_t)next_ter_number].ter_buffer[i] = '\0'; // +1 since we need to detect ENTER after filled
-        sti();
         execute((void *)"shell"); // QUESTION may be interrupted
         ERROR_MSG;
         printf("TERMINAL FAIL TO RETURN TO PARENT");

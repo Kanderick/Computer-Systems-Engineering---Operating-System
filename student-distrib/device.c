@@ -72,6 +72,7 @@ int32_t keyboard_interrupt() {
     if (altFlag == 1) {
         switch(scancode) {
             case F_ONE:
+            altFlag = 0;
             if (cur_ter_num == TER_ZERO) return 0;
             else {
                 terminal_switch(TER_ZERO);
@@ -79,6 +80,7 @@ int32_t keyboard_interrupt() {
             }
             break;
             case F_TWO:
+            altFlag = 0;
             if (cur_ter_num == TER_ONE) return 0;
             else {
                 terminal_switch(TER_ONE);
@@ -86,6 +88,7 @@ int32_t keyboard_interrupt() {
             }
             break;
             case F_THREE:
+            altFlag = 0;
             if (cur_ter_num == TER_TWO) return 0;
             else {
                 terminal_switch(TER_TWO);
@@ -443,6 +446,7 @@ unsigned char *getBuffer() {return keyBuffer;}
  *   SIDE EFFECTS: none
  */
 uint8_t getEnter() {
+    cli();
     return enterFlag;
 }
 
@@ -511,7 +515,7 @@ void terminal_switch(int terNum) {
 
     switch_terminal_video(cur_ter_num, terNum);
 
-    //background_uservideo_paging(terNum, cur_ter_num);
+    background_uservideo_paging(terNum, cur_ter_num);
 
     memcpy(keyBuffer, ece391_multi_ter_info[terNum].ter_buffer, BUFF_SIZE);
     buffIdx = ece391_multi_ter_info[terNum].ter_bufferIdx;
@@ -520,7 +524,6 @@ void terminal_switch(int terNum) {
     moveCursor();
     cur_ter_num = terNum;
 
-    //background_uservideo_paging(terNum, terNum);
 }
 
 // exe_ter_num is the old terminal Number
