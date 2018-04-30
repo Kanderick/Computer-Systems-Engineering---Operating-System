@@ -31,6 +31,7 @@
 #define CTRL_REL            0x9D
 #define CAPS_PRESS          0x3A
 #define L_PRESS             0x26
+#define ENTER_REL           0x9C
 #define BACKSPACE           0x0E
 #define F_ONE               0x3B
 #define F_TWO               0x3C
@@ -69,10 +70,13 @@ void init_rtc(void);
 /*change the rate of rtc freqency*/
 void set_rate(unsigned rate);
 
+/*pit interrupt handler*/
 uint32_t pit_interrupt();
 
+/*intialize the pit*/
 void init_pit(unsigned rate);
 
+/*prepare for scheduling*/
 uint32_t scheduling();
 
 /*get the keyboard buffer*/
@@ -93,7 +97,9 @@ int getIdx(void);
 /*set the buffer idx*/
 void setIdx(int new_buffIdx);
 
+/*terminal switch*/
 void terminal_switch(int terNum);
 
+/*context switch preparation*/
 void context_switch(int terNum);
 #endif

@@ -21,6 +21,15 @@ MULTI_TER_INFO_t ece391_multi_ter_info[TER_MAX];
 uint8_t ece391_multi_ter_status[TER_MAX];
 
 // init multi-terminal
+/*
+ *  multi_terminal_init
+ *   DESCRIPTION: this funciton initialize the terminal structure
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: initialize the terminal structure
+ */
+
 void multi_terminal_init(){
     uint8_t ii, i;
     for (ii = 0; ii < TER_MAX; ii++) {
@@ -41,6 +50,16 @@ void multi_terminal_init(){
 }
 
 // switch_terminal function
+/*
+ *  switch_terminal
+ *   DESCRIPTION: this function switch terminal when detect the signal from
+                  keyboard
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: change the video memory that displayed on the screen
+ */
+
 void switch_terminal(uint32_t next_terminal) {
     int8_t next_ter_number, ii;
 
@@ -185,6 +204,16 @@ void switch_terminal(uint32_t next_terminal) {
 // switch_context function
 // exe current terminal number, if halt, exe a new shell
 // this function should always be called with TO_DESTI
+/*
+ *  switch_context
+ *   DESCRIPTION: this function switch context when when receiving signal
+                  from pit interrupt
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: change the process currently running
+ */
+
 void switch_context(uint32_t next_terminal) {
     int8_t next_ter_number;
     int i;
