@@ -215,10 +215,11 @@ int32_t halt(uint8_t status) {
     /*need special treatment for the first shell process*/
     if ((ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid != -1) {
         tss.esp0 = (ece391_process_manager.process_position[(ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1])->parent_pid - 1])->esp;
-    } else if (cur_ter_num == 0){
-        /*need special treatment*/
-        tss.esp0+=4;
     }
+    // else if (cur_ter_num == 0){
+    //     /*need special treatment*/
+    //     tss.esp0+=4;
+    // }
     /*no longer stores parent_pid*/
     //tss.esp0 = ece391_process_manager.process_position[(ece391_process_manager.curr_pid) - 1]->parent_esp;
 
@@ -234,13 +235,15 @@ int32_t halt(uint8_t status) {
     pop_process();
 
     // if this process is a main process of the terminal 1, 2 then should jump back to terminal 0 immediately rather than halt
-    if (ece391_process_manager.curr_pid == -1 && cur_ter_num != 0) {
+    if (ece391_process_manager.curr_pid == -1) {
         ece391_multi_ter_info[(uint32_t)cur_ter_num].Parent_ter = 0;
         ece391_multi_ter_status[(uint32_t)cur_ter_num] = TER_NOT_EXIST;
+        if (f != HALT_NORM) sti();
+        while(1);
         switch_terminal(TO_PARENT);
         ERROR_MSG;
         printf("TERMINAL FAIL TO RETURN TO PARENT");
-        while(1);
+
     }
 
     /*if still have parent user process*/

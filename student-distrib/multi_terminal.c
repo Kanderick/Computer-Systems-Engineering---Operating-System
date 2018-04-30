@@ -159,7 +159,6 @@ void switch_terminal(uint32_t next_terminal) {
     /* esp*/
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].K_ESP_reg));
     // ter_flag = TER_NOT_BUSY;
-    sti();
     /* pop all the register just poped on the stack*/
     //asm volatile("popal" : :);
     asm volatile("popl %%esp" : :);
