@@ -34,9 +34,9 @@ void multi_terminal_init(){
     }
     // open terminal 0
     cur_ter_num = 0;
-    ece391_multi_ter_status[cur_ter_num] = TER_EXIST;
-    ece391_multi_ter_info[cur_ter_num].Parent_ter = -1; // set Parent_ter to nonsense
-    ter_flag = TER_NOT_BUSY;
+    // ece391_multi_ter_status[cur_ter_num] = TER_EXIST;
+    // ece391_multi_ter_info[cur_ter_num].Parent_ter = -1; // set Parent_ter to nonsense
+    // ter_flag = TER_NOT_BUSY;
 }
 
 // switch_terminal function
@@ -54,7 +54,7 @@ void switch_terminal(uint32_t next_terminal) {
         return;
     }
     // handle invalid terminal number
-    if (next_terminal < 0 || next_terminal > 2) {
+    if (next_ter_number < 0 || next_ter_number > 2) {
         ERROR_MSG;
         printf("INVALID TERMINAL NUMBER");
         while(1);
@@ -189,7 +189,7 @@ void switch_context(uint32_t next_terminal) {
     int i;
     // extract the terminal number to jump to
     if (next_terminal == TO_DESTI) {
-        next_ter_number = ece391_multi_ter_info[(uint32_t)cur_ter_num].Dest_ter;
+        next_ter_number = cur_exe_ter_num;
     }
     else if (next_terminal == TO_PARENT) {
         ERROR_MSG;
@@ -202,7 +202,7 @@ void switch_context(uint32_t next_terminal) {
         return;
     }
     // handle invalid terminal number
-    if (next_terminal < 0 || next_terminal > 2) {
+    if (next_ter_number < 0 || next_ter_number > 2) {
         ERROR_MSG;
         printf("INVALID TERMINAL NUMBER");
         while(1);

@@ -341,11 +341,11 @@ void set_rate(unsigned rate) {
     outb((prev & 0xF0) | rate, RTC_REG_DATA);     /*write only our rate to A. Note, rate is the bottom 4 bits*/
 }
 
-uint8_t pit_interrupt() {
+uint32_t pit_interrupt() {
     cli();                      /*clean the interrupt flag*/
     send_eoi(PIT_IRQ);          /*send the end of interrupt signal to PIC*/
     sti();
-    printf("PIT works ");
+    printf("P ");
     return scheduling();
 }
 
@@ -358,7 +358,7 @@ void init_pit(unsigned freqency) {
     outb(rate >> PIT_SHIFT, PIT_REG_DATA_ZERO);
 }
 
-uint8_t scheduling() {
+uint32_t scheduling() {
     // now try to process cur_exe_ter_num
     int exe_ter_num = cur_exe_ter_num;
     // update cur_exe_ter_num for next turn
@@ -366,7 +366,7 @@ uint8_t scheduling() {
     // pass-in the current processing terminal number
     context_switch(exe_ter_num);
     // pass in the old terminal number to process
-    return (int32_t)(&ece391_multi_ter_info[exe_ter_num]);
+    return (uint32_t)(&ece391_multi_ter_info[exe_ter_num]);
 }
 
 /*
@@ -466,7 +466,7 @@ void terminal_switch(int terNum) {
 // cur_exe_ter_num have been updated for the this turn
 void context_switch(int exe_ter_num) {
     //switch uservideo mapping
-    background_uservideo_paging(exe_ter_num, cur_exe_ter_num);
+    background_uservideo_paging(cur_ter_num, cur_exe_ter_num);
     //set current destination terminal number
     ece391_multi_ter_info[exe_ter_num].Dest_ter = cur_exe_ter_num;
     // set current terminal's parent to the old terminal number
