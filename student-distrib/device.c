@@ -16,6 +16,7 @@ static uint8_t altFlag;
 static uint8_t capsFlag;
 static volatile uint8_t keyFlag;
 static volatile uint8_t enterFlag;
+static volatile uint8_t enterSignal;
 static unsigned char keyBuffer[BUFF_SIZE + 1]; // +1 since we need to detect ENTER after filled
 static int buffIdx = 0;
 
@@ -74,6 +75,7 @@ int32_t keyboard_interrupt() {
             case F_ONE:
             if (cur_ter_num == TER_ZERO) return 0;
             else {
+                altFlag = 0;
                 terminal_switch(TER_ZERO);
                 return 0;
             }
@@ -81,6 +83,7 @@ int32_t keyboard_interrupt() {
             case F_TWO:
             if (cur_ter_num == TER_ONE) return 0;
             else {
+                altFlag = 0;
                 terminal_switch(TER_ONE);
                 return 0;
             }
@@ -88,6 +91,7 @@ int32_t keyboard_interrupt() {
             case F_THREE:
             if (cur_ter_num == TER_TWO) return 0;
             else {
+                altFlag = 0;
                 terminal_switch(TER_TWO);
                 return 0;
             }
@@ -150,6 +154,7 @@ int32_t keyboard_interrupt() {
             buffIdx ++;
         }
     }
+    if (scancode == ENTER_REL) enterSignal = 0;
     /* if a key is pressed, decode it into the char that should be print on the screen */
     if (scancode > 0x00 && scancode < 0x81) pressedKey = KB_decode(scancode);
     /* if the key pressed value is known, print it */
@@ -203,8 +208,12 @@ int key_pressed() {
 unsigned char KB_decode(unsigned char scancode) {
     switch(scancode) {
         case 0x1C: {
-            enterFlag = 1;
-            return '\n';
+            if (enterSignal == 0) {
+                enterSignal = 1;
+                enterFlag = 1;
+                return '\n';
+            }
+            return 0;
         }
         case 0x39: return ' ';
     }

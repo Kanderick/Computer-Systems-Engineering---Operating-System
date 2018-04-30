@@ -21,6 +21,7 @@
 #define RATE                15          /*2Hz rate*/
 #define DEFAULT_RATE        6           /*1024Hz rate*/
 #define BUFF_SIZE           128         /*keyboard buffer size*/
+#define ENTER_REL           0x9C   
 #define LEFT_SHIFT_PRESS    0x2A
 #define RIGHT_SHIFT_PRESS   0x36
 #define LEFT_SHIFT_REL      0xAA
