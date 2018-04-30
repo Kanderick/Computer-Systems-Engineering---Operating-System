@@ -238,7 +238,7 @@ void user_video_unmapping() {
 }
 
 /* switch_terminal_video
- * Purpose	used to map actual video memory to the correct terminal, does not map round tasks
+ * Purpose	used to map actual video memory to the correct terminal, does not map background tasks
  * Inputs from: the current terminal; to: the terminal switching to.
  * Outputs	None
  * Side Effects None
@@ -283,18 +283,18 @@ void switch_terminal_paging(int8_t destination_pid) {
  */
 //
 extern void background_uservideo_paging(uint8_t display_terminal_num, uint8_t execute_terminal_num) {
-    pde_t page_132mb_4kb;
+  pde_t page_132mb_4kb;
 
-    if (display_terminal_num == execute_terminal_num) {
-        page_132mb_4kb =  VIDEO_START | U_S_MASK | R_W_MASK | PRESENT_MASK;
-        page_table_33[PTEIDX_132_4KB] = page_132mb_4kb;
-    }
-    else {
-        page_132mb_4kb =  (TERMINAL1_START + execute_terminal_num * _4KB) | U_S_MASK | R_W_MASK | PRESENT_MASK;
-        page_table_33[PTEIDX_132_4KB] = page_132mb_4kb;
-    }
-    /* This instruction flushed the tlb */
-    write_cr3((unsigned long)page_directory);
+  if (display_terminal_num == execute_terminal_num) {
+    page_132mb_4kb =  VIDEO_START | U_S_MASK | R_W_MASK | PRESENT_MASK;
+    page_table_33[PTEIDX_132_4KB] = page_132mb_4kb;
+  }
+  else {
+  page_132mb_4kb =  (TERMINAL1_START + execute_terminal_num * _4KB) | U_S_MASK | R_W_MASK | PRESENT_MASK;
+  page_table_33[PTEIDX_132_4KB] = page_132mb_4kb;
+  }
+  /* This instruction flushed the tlb */
+  write_cr3((unsigned long)page_directory);
 }
 
 /* void clear_terminal_video(void);

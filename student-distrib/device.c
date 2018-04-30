@@ -32,18 +32,25 @@ int32_t keyboard_interrupt() {
     cli();                          /*clean the interrupt flag*/
     send_eoi(KEYBOARD_IRQ);         /*send the end of interrupt signal to PIC*/
     sti();                          /*restore the interrupt flag*/
+
     unsigned char scancode = 0;     /*initialize scancode*/
     unsigned char pressedKey = 0;   /*initialize pressedKey*/
     scancode = inb(KEY_REG_DATA);
-    if (scancode == LEFT_SHIFT_PRESS || scancode == RIGHT_SHIFT_PRESS) shiftFlag = 1; /* check whether the shift key is pressed */
-    if (scancode == LEFT_SHIFT_REL || scancode == RIGHT_SHIFT_REL) shiftFlag = 0; /* check whether the shift key is released */
-    if (scancode == CTRL_PRESS) ctrlFlag = 1; /*check whether the ctrl key is pressed*/
-    if (scancode == CTRL_REL) ctrlFlag = 0; /*check whether the ctrl key is released*/
+
+    if (scancode == LEFT_SHIFT_PRESS || scancode == RIGHT_SHIFT_PRESS)
+        shiftFlag = 1; /* check whether the shift key is pressed */
+    if (scancode == LEFT_SHIFT_REL || scancode == RIGHT_SHIFT_REL)
+        shiftFlag = 0; /* check whether the shift key is released */
+    if (scancode == CTRL_PRESS)
+        ctrlFlag = 1; /*check whether the ctrl key is pressed*/
+    if (scancode == CTRL_REL)
+        ctrlFlag = 0; /*check whether the ctrl key is released*/
     if (scancode == ALT_PRESS) {
         altFlag = 1;  /*check whether the alt key is pressed*/
         keyFlag = 1;
     }
-    if (scancode == ALT_REL) altFlag = 0;  /*check whether the alt key is released*/
+    if (scancode == ALT_REL)
+        altFlag = 0;  /*check whether the alt key is released*/
     if (scancode == CAPS_PRESS) {         /*check whether the capslock key is pressed*/
         if (capsFlag == 0) capsFlag = 1;    /*if it in the case whrn capslock is off, set it to be on*/
         else capsFlag = 0;      /*otherwise set it to be off*/
@@ -54,35 +61,35 @@ int32_t keyboard_interrupt() {
         ctrlFlag = 0;       /*reset the strl flag*/
         return 0;
     }
+
     cli();
-    if (ter_flag == TER_NOT_BUSY){
-        if (altFlag == 1) {
-            switch(scancode) {
-                case F_ONE:
-                if (cur_ter_num == TER_ZERO) return 0;
-                else {
-                    terminal_switch(TER_ZERO);
-                    return 0;
-                }
-                break;
-                case F_TWO:
-                if (cur_ter_num == TER_ONE) return 0;
-                else {
-                    terminal_switch(TER_ONE);
-                    return 0;
-                }
-                break;
-                case F_THREE:
-                if (cur_ter_num == TER_TWO) return 0;
-                else {
-                    terminal_switch(TER_TWO);
-                    return 0;
-                }
-                break;
+    if (altFlag == 1) {
+        switch(scancode) {
+            case F_ONE:
+            if (cur_ter_num == TER_ZERO) return 0;
+            else {
+                terminal_switch(TER_ZERO);
+                return 0;
             }
+            break;
+            case F_TWO:
+            if (cur_ter_num == TER_ONE) return 0;
+            else {
+                terminal_switch(TER_ONE);
+                return 0;
+            }
+            break;
+            case F_THREE:
+            if (cur_ter_num == TER_TWO) return 0;
+            else {
+                terminal_switch(TER_TWO);
+                return 0;
+            }
+            break;
         }
     }
     sti();
+
     // if (pressedKey == 0) spKey(scancode);       /*if the key is not a normal key, check whether it is a special key*/
     if (scancode == BACKSPACE) {        /*if the backspace key is pressed, delete a char in the buffer*/
         spKey(scancode);
@@ -104,7 +111,8 @@ int32_t keyboard_interrupt() {
         }
     }
     /* if a key is pressed, decode it into the char that should be print on the screen */
-    if (scancode > 0x00 && scancode < 0x81) pressedKey = KB_decode(scancode);
+    if (scancode > 0x00 && scancode < 0x81)
+        pressedKey = KB_decode(scancode);
     /* if the key pressed value is known, print it */
     if (pressedKey != 0) {
         printf("%c", pressedKey);
@@ -345,7 +353,7 @@ uint32_t pit_interrupt() {
     cli();                      /*clean the interrupt flag*/
     send_eoi(PIT_IRQ);          /*send the end of interrupt signal to PIC*/
     sti();
-    printf("P ");
+    printf("PIT works ");
     return scheduling();
 }
 
@@ -366,7 +374,7 @@ uint32_t scheduling() {
     // pass-in the current processing terminal number
     context_switch(exe_ter_num);
     // pass in the old terminal number to process
-    return (uint32_t)(&ece391_multi_ter_info[exe_ter_num]);
+    return (int32_t)(&ece391_multi_ter_info[exe_ter_num]);
 }
 
 /*
@@ -440,13 +448,6 @@ void setIdx(int new_buffIdx) {
 }
 
 void terminal_switch(int terNum) {
-    //switch uservideo mapping
-    //background_uservideo_paging(cur_ter_num, terNum);
-    //store the old value
-    // ece391_multi_ter_info[cur_ter_num].Dest_ter = terNum;
-    // ece391_multi_ter_info[terNum].Parent_ter = cur_ter_num;
-    // ece391_multi_ter_info[cur_ter_num].PID_num = ece391_process_manager.curr_pid;
-
     ece391_multi_ter_info[cur_ter_num].ter_screen_x = getScreen_x();
     ece391_multi_ter_info[cur_ter_num].ter_screen_y = getScreen_y();
     memcpy(ece391_multi_ter_info[cur_ter_num].ter_buffer, keyBuffer, BUFF_SIZE);
@@ -466,7 +467,7 @@ void terminal_switch(int terNum) {
 // cur_exe_ter_num have been updated for the this turn
 void context_switch(int exe_ter_num) {
     //switch uservideo mapping
-    background_uservideo_paging(cur_ter_num, cur_exe_ter_num);
+    background_uservideo_paging(exe_ter_num, cur_exe_ter_num);
     //set current destination terminal number
     ece391_multi_ter_info[exe_ter_num].Dest_ter = cur_exe_ter_num;
     // set current terminal's parent to the old terminal number

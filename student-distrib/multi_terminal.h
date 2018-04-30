@@ -48,7 +48,7 @@ struct MULTI_TER_INFO {
 typedef struct MULTI_TER_INFO MULTI_TER_INFO_t;
 
 // terminal busy flag
-extern uint8_t ter_flag;
+// extern uint8_t ter_flag;
 
 // current terminal number, should be either 0, 1, or 2
 extern uint8_t cur_ter_num;
@@ -67,7 +67,7 @@ extern uint8_t ece391_multi_ter_status[TER_MAX];
 void multi_terminal_init();
 
 // switch_terminal function
-void switch_terminal(uint32_t next_terminal);
+// void switch_terminal(uint32_t next_terminal);
 
 void switch_context(uint32_t next_terminal);
 
