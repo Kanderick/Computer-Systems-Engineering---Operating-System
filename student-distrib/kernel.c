@@ -195,12 +195,13 @@ void entry(unsigned long magic, unsigned long addr) {
     launch_tests();    /* Run tests */
     #endif
 
+    init_pit(_20HZ);
+
     /* Execute the first program ("shell") ... */
-    while(1) {
-        clearScreen();
+    // while(1) {
+        // clearScreen();
         // execute((void *)"shell");
-        init_pit(_20HZ);
-    }
+    // }
 
     /* Spin (nicely, so we don't chew up cycles) */
     asm volatile (".1: hlt; jmp .1;");

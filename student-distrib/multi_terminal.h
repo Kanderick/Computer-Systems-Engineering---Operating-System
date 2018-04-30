@@ -47,8 +47,8 @@ struct MULTI_TER_INFO {
 } __attribute((packed)); // NOTE: MUST BE PACKED
 typedef struct MULTI_TER_INFO MULTI_TER_INFO_t;
 
-// terminal busy flag
-extern uint8_t ter_flag;
+// // terminal busy flag
+// extern uint8_t ter_flag;
 
 // current terminal number, should be either 0, 1, or 2
 extern uint8_t cur_ter_num;

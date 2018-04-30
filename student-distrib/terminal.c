@@ -1,6 +1,7 @@
 #include "terminal.h"
 #include "device.h"
 #include "i8259.h"
+#include "multi_terminal.h"
 
 static volatile uint8_t terminalFlag = 0;
 
@@ -62,7 +63,7 @@ int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
     while (1) {
         keyBuffer = getBuffer();        /*get the key buffer*/
         if (keyBuffer != NULL) {
-            while (!getEnter()) {}      /*wait for enter*/
+            while ((!getEnter()) || (cur_ter_num != cur_exe_ter_num)) {}      /*wait for enter*/
             resetEnter();               /*reset the enter flag*/
             cli();
             buffLen = strlen((int8_t *)keyBuffer);              /*get the length of the string*/

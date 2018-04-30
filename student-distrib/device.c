@@ -8,6 +8,7 @@ their handler
 #include "lib.h"
 #include "multi_terminal.h"
 #include "pcb.h"
+#include "paging.h"
 
 static uint8_t shiftFlag;       /* check whether the shiftkey is pressed */
 static uint8_t ctrlFlag;
@@ -55,31 +56,29 @@ int32_t keyboard_interrupt() {
         return 0;
     }
     cli();
-    if (ter_flag == TER_NOT_BUSY){
-        if (altFlag == 1) {
-            switch(scancode) {
-                case F_ONE:
-                if (cur_ter_num == TER_ZERO) return 0;
-                else {
-                    terminal_switch(TER_ZERO);
-                    return 0;
-                }
-                break;
-                case F_TWO:
-                if (cur_ter_num == TER_ONE) return 0;
-                else {
-                    terminal_switch(TER_ONE);
-                    return 0;
-                }
-                break;
-                case F_THREE:
-                if (cur_ter_num == TER_TWO) return 0;
-                else {
-                    terminal_switch(TER_TWO);
-                    return 0;
-                }
-                break;
+    if (altFlag == 1) {
+        switch(scancode) {
+            case F_ONE:
+            if (cur_ter_num == TER_ZERO) return 0;
+            else {
+                terminal_switch(TER_ZERO);
+                return 0;
             }
+            break;
+            case F_TWO:
+            if (cur_ter_num == TER_ONE) return 0;
+            else {
+                terminal_switch(TER_ONE);
+                return 0;
+            }
+            break;
+            case F_THREE:
+            if (cur_ter_num == TER_TWO) return 0;
+            else {
+                terminal_switch(TER_TWO);
+                return 0;
+            }
+            break;
         }
     }
     sti();
@@ -107,7 +106,17 @@ int32_t keyboard_interrupt() {
     if (scancode > 0x00 && scancode < 0x81) pressedKey = KB_decode(scancode);
     /* if the key pressed value is known, print it */
     if (pressedKey != 0) {
+        cli();
+        pde_t page_temp = page_table_0[VIDEO_VIRTUAL];
+        page_table_0[VIDEO_VIRTUAL] = VIDEO_START | R_W_MASK | PRESENT_MASK;
+        write_cr3((unsigned long)page_directory);
+        PRINT_TO_SCREEN = 1;
         printf("%c", pressedKey);
+        PRINT_TO_SCREEN = 0;
+        page_table_0[VIDEO_VIRTUAL] = page_temp;
+        write_cr3((unsigned long)page_directory);
+        sti();
+
         if (buffIdx < BUFF_SIZE) {      /*if the buffer is not full, put the char in to the buffer*/
             keyBuffer[buffIdx] = pressedKey;
         }
@@ -275,6 +284,7 @@ unsigned char KB_decode(unsigned char scancode) {
  */
 void init_keyboard() {
     shiftFlag = 0;              /*reset the shift flag*/
+    PRINT_TO_SCREEN = 0;        /*set not to print to screen */
     enable_irq(KEYBOARD_IRQ);   /*enable keyboard IRQ*/
 }
 
@@ -345,7 +355,7 @@ uint32_t pit_interrupt() {
     cli();                      /*clean the interrupt flag*/
     send_eoi(PIT_IRQ);          /*send the end of interrupt signal to PIC*/
     sti();
-    printf("P ");
+    // printf("P ");
     return scheduling();
 }
 
@@ -387,7 +397,9 @@ unsigned char *getBuffer() {return keyBuffer;}
  *   RETURN VALUE: the enter flag
  *   SIDE EFFECTS: none
  */
-uint8_t getEnter() {return enterFlag;}
+uint8_t getEnter() {
+    return enterFlag;
+}
 
 /*
  * resetEnter
@@ -473,4 +485,5 @@ void context_switch(int exe_ter_num) {
     ece391_multi_ter_info[cur_exe_ter_num].Parent_ter = exe_ter_num;
     // store the old terminal number's pid number to info table
     ece391_multi_ter_info[exe_ter_num].PID_num = ece391_process_manager.curr_pid;
+
 }

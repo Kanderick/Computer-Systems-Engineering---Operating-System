@@ -12,7 +12,6 @@ pte_t page_table_33[PAGE_TABLE_SIZE] __attribute__((aligned (_4KB)));
 static inline unsigned long read_cr0(void);
 static inline unsigned long read_cr4(void);
 static inline void write_cr0(unsigned long val);
-static inline void write_cr3(unsigned long val);
 static inline void write_cr4(unsigned long val);
 static inline void set_in_cr0 (unsigned long mask);
 // static inline void clear_in_cr0 (unsigned long mask);
@@ -59,7 +58,7 @@ static inline void write_cr0(unsigned long val) {
  * Outputs	None
  * Side Effects CR3 value changed
  */
-static inline void write_cr3(unsigned long val) {
+inline void write_cr3(unsigned long val) {
     asm volatile("movl %0,%%cr3": :"r" (val));
 }
 
@@ -249,9 +248,18 @@ void switch_terminal_video(uint8_t from, uint8_t to) {
         printf("Invalid terminal number.\n");
     }
     //save displayed video memory to temp, echo the temp to displayed video memory
+    cli();
+    pde_t page_temp = page_table_0[VIDEO_VIRTUAL];
+    page_table_0[VIDEO_VIRTUAL] = VIDEO_START | R_W_MASK | PRESENT_MASK;
+    write_cr3((unsigned long)page_directory);
+
     memcpy((char*)(TERMINAL1_START +  (uint32_t)from * _4KB), (char*)(VIDEO_START), _4KB);
     memcpy((char*)(VIDEO_START), (char*)(TERMINAL1_START + (uint32_t)to * _4KB), _4KB);
-    write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
+
+    page_table_0[VIDEO_VIRTUAL] = page_temp;
+    write_cr3((unsigned long)page_directory);
+    sti();
+    //write_cr3((unsigned long)page_directory);   /* This instruction flushed the tlb */
 }
 
 /* switch_terminal_paging
@@ -284,14 +292,19 @@ void switch_terminal_paging(int8_t destination_pid) {
 //
 extern void background_uservideo_paging(uint8_t display_terminal_num, uint8_t execute_terminal_num) {
     pde_t page_132mb_4kb;
+    pde_t page_132mb_4kb_2;
 
     if (display_terminal_num == execute_terminal_num) {
         page_132mb_4kb =  VIDEO_START | U_S_MASK | R_W_MASK | PRESENT_MASK;
         page_table_33[PTEIDX_132_4KB] = page_132mb_4kb;
+        page_132mb_4kb_2 =  VIDEO_START | R_W_MASK | PRESENT_MASK;
+        page_table_0[VIDEO_VIRTUAL] = page_132mb_4kb_2;
     }
     else {
         page_132mb_4kb =  (TERMINAL1_START + execute_terminal_num * _4KB) | U_S_MASK | R_W_MASK | PRESENT_MASK;
         page_table_33[PTEIDX_132_4KB] = page_132mb_4kb;
+        page_132mb_4kb_2 =  (TERMINAL1_START + execute_terminal_num * _4KB) | R_W_MASK | PRESENT_MASK;
+        page_table_0[VIDEO_VIRTUAL] = page_132mb_4kb_2;
     }
     /* This instruction flushed the tlb */
     write_cr3((unsigned long)page_directory);

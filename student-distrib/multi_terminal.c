@@ -5,8 +5,8 @@
 #include "pcb.h"
 #include "device.h"
 
-// terminal busy flag
-uint8_t ter_flag;
+// // terminal busy flag
+// uint8_t ter_flag;
 
 // current terminal number
 uint8_t cur_ter_num;
@@ -85,7 +85,6 @@ void switch_terminal(uint32_t next_terminal) {
         cur_ter_num = next_ter_number;
         // make new shell's parent be -1
         ece391_process_manager.curr_pid = -1;
-        ter_flag = TER_NOT_BUSY;
         sti();
         clearScreen();
         execute((void *)"shell");
@@ -158,7 +157,7 @@ void switch_terminal(uint32_t next_terminal) {
     /* ebx*/
     asm volatile("pushl %0\n\t" : :"g" (ece391_multi_ter_info[(uint32_t)next_ter_number].EBX_reg));
 
-    ter_flag = TER_NOT_BUSY;
+    // ter_flag = TER_NOT_BUSY;
     sti();
     /* pop all the register just poped on the stack*/
     //asm volatile("popal" : :);
