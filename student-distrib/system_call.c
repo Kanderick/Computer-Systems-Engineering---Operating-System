@@ -393,6 +393,7 @@ int32_t execute(const uint8_t* command) {
     /* esp */
     asm volatile("pushl %0\n\t" : :"g" (LOAD_PAGE_END_ADDR-1));
     /* eflags */
+    sti();
     asm volatile("pushfl\n\t" : :);
     /* cs */
     asm volatile("pushl %0\n\t" : :"g" (USER_CS));

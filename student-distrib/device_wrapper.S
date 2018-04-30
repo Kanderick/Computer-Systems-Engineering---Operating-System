@@ -63,7 +63,6 @@ pit_wrapper:
     call pit_interrupt
     cmpl $0, %eax
     je NO_CONTEXT_SHIFT
-    cli
     # load K_ESP to info table
     leal K_ESP_P(%eax), %edi    # find K_ESP address in info table
     movl $0, %ebx               # find K_ESP offset on the current stack

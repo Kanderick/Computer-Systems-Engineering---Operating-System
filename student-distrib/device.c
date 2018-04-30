@@ -346,7 +346,6 @@ void init_keyboard() {
  *   SIDE EFFECTS:  execute the interrupt of rtc
  */
 void rtc_interrupt() {
-    cli();                      /*clean the interrupt flag*/
     send_eoi(RTC_IRQ);          /*send the end of interrupt signal to PIC*/
     outb(SR_C, RTC_REG_NUM);    /*select register C*/
     inb(RTC_REG_DATA);          /*throw away contents*/
@@ -358,7 +357,6 @@ void rtc_interrupt() {
     // make the rtcFlag in the proper range
     if (rtcFlag >= HIGHEST)
         rtcFlag = 0;
-    sti();                      /*restore the interrupt flag*/
 }
 
 /*
@@ -400,9 +398,8 @@ void set_rate(unsigned rate) {
 }
 
 uint32_t pit_interrupt() {
-    cli();                      /*clean the interrupt flag*/
     send_eoi(PIT_IRQ);          /*send the end of interrupt signal to PIC*/
-    sti();
+
     // printf("P ");
     return scheduling();
 }
@@ -514,7 +511,7 @@ void terminal_switch(int terNum) {
 
     switch_terminal_video(cur_ter_num, terNum);
 
-    background_uservideo_paging(terNum, cur_ter_num);
+    //background_uservideo_paging(terNum, cur_ter_num);
 
     memcpy(keyBuffer, ece391_multi_ter_info[terNum].ter_buffer, BUFF_SIZE);
     buffIdx = ece391_multi_ter_info[terNum].ter_bufferIdx;
@@ -523,7 +520,7 @@ void terminal_switch(int terNum) {
     moveCursor();
     cur_ter_num = terNum;
 
-    background_uservideo_paging(terNum, terNum);
+    //background_uservideo_paging(terNum, terNum);
 }
 
 // exe_ter_num is the old terminal Number
