@@ -20,6 +20,7 @@ rtc_wrapper:
     iret
 
 pit_wrapper:
+    pushl %eax
     pushl %ebx
     pushl %ecx
     pushl %edx
@@ -47,4 +48,5 @@ pit_wrapper:
     popl %edx
     popl %ecx
     popl %ebx           # pop the register
+    popl %eax
     iret

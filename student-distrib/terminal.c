@@ -58,14 +58,17 @@ int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
         return -1;         /*check whether the buffer is valid*/
     if (nbytes < 0)
         return -1;          /*check whether nbytes is valid*/
+    cli();
     int i;
     unsigned char *keyBuffer;
     uint32_t buffLen;
     while (1) {
         keyBuffer = getBuffer();        /*get the key buffer*/
         if (keyBuffer != NULL) {
-            while ((!getEnter()) || (cur_ter_num != cur_exe_ter_num)) {}      /*wait for enter*/
-            resetEnter();               /*reset the enter flag*/
+            //while ((!getEnter()) || (cur_ter_num != cur_exe_ter_num)) {}      /*wait for enter*/
+            sti();
+            while (!(getEnter() && (cur_ter_num == cur_exe_ter_num))) {}
+            // resetEnter();               /*reset the enter flag*/
             cli();
             buffLen = strlen((int8_t *)keyBuffer);              /*get the length of the string*/
             for (i = 0; i < nbytes; i ++)
@@ -78,6 +81,7 @@ int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
             return nbytes;                                      /*return the number of bytes that copied*/
         }
     }
+    sti();
     return -1;
 }
 
@@ -93,6 +97,7 @@ int32_t terminal_read(int32_t fd, unsigned char *buf, int32_t nbytes) {
  *   SIDE EFFECTS: print the char in target buffer onto the screen
  */
 int32_t terminal_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
+    cli();
     if (terminalFlag == 0) {             /*check whether the terminal is open*/
         ERROR_MSG;
         printf("Terminal is not yet opened.\n");
@@ -110,6 +115,7 @@ int32_t terminal_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
     // Special treatment for 391OS> to print in color text
     if (!strncmp((int8_t*)buf, "391OS> ", 7) && nbytes == 7) {
         printf("%d %d 391OS> ", ece391_process_manager.curr_pid, (ece391_process_manager.process_position[ece391_process_manager.curr_pid - 1])->parent_pid);
+        sti();
         return nbytes;
     }
 
@@ -120,6 +126,7 @@ int32_t terminal_write(int32_t fd, const unsigned char *buf, int32_t nbytes) {
     if (strlen((int8_t*) buf) == TERMINAL_BUFEER_SIZE) {
         printf("\n");
     }
+    sti();
     return nbytes;                                          /*return the number of bytes printed*/
 }
 

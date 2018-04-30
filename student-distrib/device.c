@@ -31,7 +31,7 @@ static int buffIdx = 0;
 int32_t keyboard_interrupt() {
     cli();                          /*clean the interrupt flag*/
     send_eoi(KEYBOARD_IRQ);         /*send the end of interrupt signal to PIC*/
-    sti();                          /*restore the interrupt flag*/
+    // sti();                          /*restore the interrupt flag*/
 
     unsigned char scancode = 0;     /*initialize scancode*/
     unsigned char pressedKey = 0;   /*initialize pressedKey*/
@@ -62,7 +62,7 @@ int32_t keyboard_interrupt() {
         return 0;
     }
 
-    cli();
+    // cli();
     if (altFlag == 1) {
         switch(scancode) {
             case F_ONE:
@@ -79,7 +79,7 @@ int32_t keyboard_interrupt() {
                 return 0;
         }
     }
-    sti();
+    // sti();
 
     // if (pressedKey == 0) spKey(scancode);       /*if the key is not a normal key, check whether it is a special key*/
     if (scancode == BACKSPACE) {        /*if the backspace key is pressed, delete a char in the buffer*/
@@ -117,7 +117,7 @@ int32_t keyboard_interrupt() {
     }
 
     moveCursor();
-
+    sti();
     return 0;
 }
 
@@ -380,7 +380,14 @@ unsigned char *getBuffer() {
  *   SIDE EFFECTS: none
  */
 uint8_t getEnter() {
-    return enterFlag;
+    if (enterFlag) {
+        enterFlag = 0;
+        buffIdx = 0;
+        return 1;
+    } else {
+        return 0;
+    }
+    // return enterFlag;
 }
 
 /*

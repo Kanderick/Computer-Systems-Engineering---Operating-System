@@ -179,6 +179,11 @@ void scheduling() {
         ece391_multi_ter_info[cur_exe_ter_num].tss_ss0 = tss.ss0;
         ece391_multi_ter_info[cur_exe_ter_num].ter_pid_num = ece391_process_manager.curr_pid;
 
+        ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x = getScreen_x();
+        ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y = getScreen_y();
+        memcpy(ece391_multi_ter_info[cur_exe_ter_num].ter_buffer, getBuffer(), BUFF_SIZE);
+        ece391_multi_ter_info[cur_exe_ter_num].ter_bufferIdx = getIdx();
+
         /* Step2 Switch to correct page, both video and user code */
         background_uservideo_paging(cur_ter_num, (cur_exe_ter_num + 1) % TER_MAX);
 
@@ -190,6 +195,11 @@ void scheduling() {
             /* Restore next shell's esp and ebp*/
             /* Restore all previously stored next shell's registers */
             /* Just like halt */
+            memcpy(getBuffer(), ece391_multi_ter_info[cur_exe_ter_num].ter_buffer, BUFF_SIZE);
+            setIdx(ece391_multi_ter_info[cur_exe_ter_num].ter_bufferIdx);
+            setScreen_x(ece391_multi_ter_info[cur_exe_ter_num].ter_screen_x);
+            setScreen_y(ece391_multi_ter_info[cur_exe_ter_num].ter_screen_y);
+
             ece391_process_manager.curr_pid = ece391_multi_ter_info[cur_exe_ter_num].ter_pid_num;
             tss.esp0 = ece391_multi_ter_info[cur_exe_ter_num].tss_esp0;
             tss.ss0 = ece391_multi_ter_info[cur_exe_ter_num].tss_ss0;
@@ -232,9 +242,11 @@ void boot_new_shell() {
     execute((void *)"shell");
     WARNING_MSG;
     printf("If not exit intentionally, this is an ERROR.\n");
-    while (1) {
+    // while (1) {
         printf("A new shell should be able to boot up shortly.\n");
-    }
+        ece391_multi_ter_status[cur_exe_ter_num] = TER_NOT_EXIST;
+        return;
+    // }
 }
 
 // exe_ter_num is the old terminal Number
