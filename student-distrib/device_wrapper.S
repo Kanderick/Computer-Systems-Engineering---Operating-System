@@ -29,18 +29,21 @@
 
 # the keyboard and rtc wrapper that will call their related handler
 keyboard_wrapper:
+    cli
     pushal
     call keyboard_interrupt
     popal
     iret
 
 rtc_wrapper:
+    cli
     pushal
     call rtc_interrupt
     popal
     iret
 
 pit_wrapper:
+    cli
     pushw %fs
     pushw $0
     pushw %es
@@ -146,7 +149,6 @@ pit_wrapper:
     call switch_context
     # naive fault, after calling switch_terminal, it should never return, unless it failed
     popl %eax  # pop the parameter
-    sti
     # return on normal keyboard interrupt
     NO_CONTEXT_SHIFT:
     popl %esp

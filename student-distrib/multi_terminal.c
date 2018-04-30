@@ -28,6 +28,7 @@ void multi_terminal_init(){
         ece391_multi_ter_info[ii].ter_screen_x = TER_NOT_EXIST;
         ece391_multi_ter_info[ii].ter_screen_y = TER_NOT_EXIST;
         ece391_multi_ter_info[ii].ter_bufferIdx = TER_NOT_EXIST;
+        ece391_multi_ter_info[ii].TER_RTC_FLAG = 0;
         ece391_multi_ter_info[ii].PID_num = -1;
         for (i = 0; i < ter_buffer_len+1; i ++)
             ece391_multi_ter_info[ii].ter_buffer[i] = '\0'; // +1 since we need to detect ENTER after filled

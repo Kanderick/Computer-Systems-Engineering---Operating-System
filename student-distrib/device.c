@@ -30,9 +30,9 @@ static int buffIdx = 0;
  *   SIDE EFFECTS: print the pressed key onto the screen
  */
 int32_t keyboard_interrupt() {
-    cli();                          /*clean the interrupt flag*/
+    // cli();                          /*clean the interrupt flag*/
     send_eoi(KEYBOARD_IRQ);         /*send the end of interrupt signal to PIC*/
-    sti();                          /*restore the interrupt flag*/
+    // sti();                          /*restore the interrupt flag*/
     unsigned char scancode = 0;     /*initialize scancode*/
     unsigned char pressedKey = 0;   /*initialize pressedKey*/
     scancode = inb(KEY_REG_DATA);
@@ -51,7 +51,7 @@ int32_t keyboard_interrupt() {
     }
     /*the case of ctrl + l*/
     if (scancode == L_PRESS && ctrlFlag == 1) {
-        cli();
+        // cli();
         pde_t page_temp = page_table_0[VIDEO_VIRTUAL];
         page_table_0[VIDEO_VIRTUAL] = VIDEO_START | R_W_MASK | PRESENT_MASK;
         write_cr3((unsigned long)page_directory);
@@ -62,12 +62,13 @@ int32_t keyboard_interrupt() {
         PRINT_TO_SCREEN = 0;
         page_table_0[VIDEO_VIRTUAL] = page_temp;
         write_cr3((unsigned long)page_directory);
-        sti();
+        // sti();
 
         ctrlFlag = 0;       /*reset the strl flag*/
+        sti();
         return 0;
     }
-    cli();
+    // cli();
     if (altFlag == 1) {
         switch(scancode) {
             case F_ONE:
@@ -93,10 +94,10 @@ int32_t keyboard_interrupt() {
             break;
         }
     }
-    sti();
+    // sti();
     // if (pressedKey == 0) spKey(scancode);       /*if the key is not a normal key, check whether it is a special key*/
     if (scancode == BACKSPACE) {        /*if the backspace key is pressed, delete a char in the buffer*/
-        cli();
+        // cli();
         pde_t page_temp = page_table_0[VIDEO_VIRTUAL];
         page_table_0[VIDEO_VIRTUAL] = VIDEO_START | R_W_MASK | PRESENT_MASK;
         write_cr3((unsigned long)page_directory);
@@ -107,7 +108,7 @@ int32_t keyboard_interrupt() {
         PRINT_TO_SCREEN = 0;
         page_table_0[VIDEO_VIRTUAL] = page_temp;
         write_cr3((unsigned long)page_directory);
-        sti();
+        // sti();
 
         if (buffIdx != 0) {
             keyBuffer[buffIdx] = '\0';
@@ -115,7 +116,7 @@ int32_t keyboard_interrupt() {
         }
     }
     if (scancode == LEFT_ARROW) {
-        cli();
+        // cli();
         pde_t page_temp = page_table_0[VIDEO_VIRTUAL];
         page_table_0[VIDEO_VIRTUAL] = VIDEO_START | R_W_MASK | PRESENT_MASK;
         write_cr3((unsigned long)page_directory);
@@ -126,7 +127,7 @@ int32_t keyboard_interrupt() {
         PRINT_TO_SCREEN = 0;
         page_table_0[VIDEO_VIRTUAL] = page_temp;
         write_cr3((unsigned long)page_directory);
-        sti();
+        // sti();
 
         if (buffIdx != 0) {
             buffIdx --; // This fix the PAGE FAULT problem
@@ -134,7 +135,7 @@ int32_t keyboard_interrupt() {
     }
     if (scancode == RIGHT_ARROW) {
         if ((keyBuffer[buffIdx] != '\0') && (buffIdx < BUFF_SIZE - 1)) {
-            cli();
+            // cli();
             pde_t page_temp = page_table_0[VIDEO_VIRTUAL];
             page_table_0[VIDEO_VIRTUAL] = VIDEO_START | R_W_MASK | PRESENT_MASK;
             write_cr3((unsigned long)page_directory);
@@ -144,8 +145,8 @@ int32_t keyboard_interrupt() {
             PRINT_TO_SCREEN = 0;
             page_table_0[VIDEO_VIRTUAL] = page_temp;
             write_cr3((unsigned long)page_directory);
-            sti();
-            
+            // sti();
+
             buffIdx ++;
         }
     }
@@ -153,7 +154,7 @@ int32_t keyboard_interrupt() {
     if (scancode > 0x00 && scancode < 0x81) pressedKey = KB_decode(scancode);
     /* if the key pressed value is known, print it */
     if (pressedKey != 0) {
-        cli();
+        // cli();
         pde_t page_temp = page_table_0[VIDEO_VIRTUAL];
         page_table_0[VIDEO_VIRTUAL] = VIDEO_START | R_W_MASK | PRESENT_MASK;
         write_cr3((unsigned long)page_directory);
@@ -162,7 +163,7 @@ int32_t keyboard_interrupt() {
         PRINT_TO_SCREEN = 0;
         page_table_0[VIDEO_VIRTUAL] = page_temp;
         write_cr3((unsigned long)page_directory);
-        sti();
+        // sti();
 
         if (buffIdx < BUFF_SIZE) {      /*if the buffer is not full, put the char in to the buffer*/
             keyBuffer[buffIdx] = pressedKey;
@@ -174,7 +175,7 @@ int32_t keyboard_interrupt() {
     }
 
     moveCursor();
-
+    sti();
     return 0;
 }
 
@@ -347,7 +348,6 @@ void init_keyboard() {
 void rtc_interrupt() {
     cli();                      /*clean the interrupt flag*/
     send_eoi(RTC_IRQ);          /*send the end of interrupt signal to PIC*/
-    sti();                      /*restore the interrupt flag*/
     outb(SR_C, RTC_REG_NUM);    /*select register C*/
     inb(RTC_REG_DATA);          /*throw away contents*/
     #if (RTC_TEST == 1)
@@ -358,6 +358,7 @@ void rtc_interrupt() {
     // make the rtcFlag in the proper range
     if (rtcFlag >= HIGHEST)
         rtcFlag = 0;
+    sti();                      /*restore the interrupt flag*/
 }
 
 /*
@@ -513,17 +514,23 @@ void terminal_switch(int terNum) {
 
     switch_terminal_video(cur_ter_num, terNum);
 
+    background_uservideo_paging(terNum, cur_ter_num);
+
     memcpy(keyBuffer, ece391_multi_ter_info[terNum].ter_buffer, BUFF_SIZE);
     buffIdx = ece391_multi_ter_info[terNum].ter_bufferIdx;
     setScreen_x(ece391_multi_ter_info[terNum].ter_screen_x);
     setScreen_y(ece391_multi_ter_info[terNum].ter_screen_y);
     moveCursor();
     cur_ter_num = terNum;
+
+    background_uservideo_paging(terNum, terNum);
 }
 
 // exe_ter_num is the old terminal Number
 // cur_exe_ter_num have been updated for the this turn
 void context_switch(int exe_ter_num) {
+    ece391_multi_ter_info[exe_ter_num].TER_RTC_FLAG = rtcFlag;
+    rtcFlag = ece391_multi_ter_info[cur_exe_ter_num].TER_RTC_FLAG ;
     //switch uservideo mapping
     background_uservideo_paging(cur_ter_num, cur_exe_ter_num);
     //set current destination terminal number

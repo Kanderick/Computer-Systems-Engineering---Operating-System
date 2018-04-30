@@ -4,6 +4,7 @@
 .globl system_call_wrapper
 
 system_call_wrapper:
+    cli
     cmpl $1, %eax
     jl fail
     cmpl $10, %eax

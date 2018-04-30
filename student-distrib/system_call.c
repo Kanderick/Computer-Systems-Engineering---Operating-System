@@ -236,10 +236,11 @@ int32_t halt(uint8_t status) {
 
     // if this process is a main process of the terminal 1, 2 then should jump back to terminal 0 immediately rather than halt
     if (ece391_process_manager.curr_pid == -1) {
-        ece391_multi_ter_info[(uint32_t)cur_ter_num].Parent_ter = 0;
-        ece391_multi_ter_status[(uint32_t)cur_ter_num] = TER_NOT_EXIST;
-        if (f != HALT_NORM) sti();
-        while(1);
+        //ece391_multi_ter_info[(uint32_t)cur_ter_num].Parent_ter = 0;
+        //ece391_multi_ter_status[(uint32_t)cur_ter_num] = TER_NOT_EXIST;
+        // if (f != HALT_NORM) sti();
+        // while(1);
+        execute((void *)"shell");
         switch_terminal(TO_PARENT);
         ERROR_MSG;
         printf("TERMINAL FAIL TO RETURN TO PARENT");
@@ -277,6 +278,7 @@ int32_t halt(uint8_t status) {
  *   SIDE EFFECTS: execute the next process
  */
 int32_t execute(const uint8_t* command) {
+    cli();
     uint8_t filename[TERMINAL_BUFEER_SIZE];
     uint8_t argument[TERMINAL_BUFEER_SIZE];
     uint32_t idx = 0;
